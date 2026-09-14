@@ -1,4 +1,4 @@
-.PHONY: python install check-dataset up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+.PHONY: python install check-dataset closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
 
 CONFIGS := baseline threshold full agentic
 
@@ -57,6 +57,9 @@ eval-all:     ## the four-configuration comparison table
 		$(PY) -m eval.run --config configs/$$c.yaml --ingest data/corpus --out reports/$$c.json || exit 1; \
 	done
 	$(PY) -m eval.report $(foreach c,$(CONFIGS),reports/$(c).json)
+
+closed-book:  ## does retrieval buy anything? same questions, no documents
+	$(PY) -m eval.closed_book --n 20 --out reports/closed-book.json
 
 ragas:        ## LLM-judge second opinion on each report (needs JUDGE_* in the env)
 	for c in $(CONFIGS); do $(PY) -m eval.ragas_eval reports/$$c.json || exit 1; done
