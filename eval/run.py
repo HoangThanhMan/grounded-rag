@@ -168,6 +168,16 @@ def main() -> None:
 
     config = RunConfig.from_yaml(args.config)
 
+    # The instrument's threshold comes from the environment, the guard's from
+    # the YAML. They are separate on purpose, but a silent divergence makes
+    # every number in the report wrong in a way nobody notices.
+    print(f"[judge] {settings.nli_model} tau={args.judge_threshold} "
+          f"(guard tau={config.guard.entailment_threshold})")
+    if abs(args.judge_threshold - config.guard.entailment_threshold) > 1e-9:
+        print(f"[warn] judge tau {args.judge_threshold} != guard tau "
+              f"{config.guard.entailment_threshold}; set ENTAILMENT_THRESHOLD or "
+              f"pass --judge-threshold if that is not intended")
+
     if args.ingest:
         stats = ingest(args.ingest, config)
         print(f"[ingest] files={stats['files']} chunks={stats['chunks']}")
