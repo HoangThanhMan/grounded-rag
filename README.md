@@ -103,7 +103,7 @@ picked.
 The real thing:
 
 ```bash
-make up                  # Qdrant + Langfuse
+make up-qdrant           # Qdrant. The API itself runs natively, not in a container
 cp .env.example .env     # LLM_PROVIDER = gemini | ollama | vllm | openai | anthropic
 make dev-install
 make ingest

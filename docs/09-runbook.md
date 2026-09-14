@@ -168,3 +168,21 @@ Lượt chạy này có ích ngoài dự kiến: `[1]` là mã trích dẫn khô
 kiểm tra trích dẫn xoá đi, và câu trả lời thành chuỗi rỗng mà vẫn mang trạng
 thái `answered`. Đó là lỗi của `apply_policy`, đã sửa — không còn mệnh đề nào
 sống sót thì đó là từ chối, không phải thành công rỗng.
+
+
+## Chỉ cần Qdrant, không cần build image API
+
+`make up-qdrant` là đủ cho `make ingest`, `make run` và `make eval` — API chạy
+native bằng `.venv`. Chỉ dùng `make up-api` khi thực sự muốn đóng gói container.
+
+Lý do: image API cài `torch`, mà mặc định pip kéo về bản CUDA — 554 MB torch
+cộng khoảng 3 GB wheel `nvidia-*` không bao giờ được nạp trên máy không GPU.
+Dockerfile nay ghim bản CPU trước (`--index-url .../whl/cpu`), nhưng lần build
+đầu vẫn tốn thời gian và dung lượng. Đừng chạy nó chỉ để có Qdrant.
+
+Build hỏng giữa chừng để lại cache của buildkit; dọn bằng:
+
+```bash
+docker builder prune -f      # cache build
+docker image prune -f        # image mồ côi
+```

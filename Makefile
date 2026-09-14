@@ -1,4 +1,4 @@
-.PHONY: python install check-dataset up-ollama dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+.PHONY: python install check-dataset up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
 
 CONFIGS := baseline threshold full agentic
 
@@ -18,8 +18,14 @@ install:      ## runtime deps only
 dev-install:  ## everything needed to actually run the pipeline
 	$(PY) -m pip install -e ".[models,eval,obs,demo,dev]"
 
-up:           ## qdrant + langfuse
-	docker compose up -d
+up:           ## qdrant + langfuse only - the API runs natively with `make run`
+	docker compose up -d qdrant langfuse
+
+up-qdrant:    ## qdrant alone, all `make ingest` and `make eval` need
+	docker compose up -d qdrant
+
+up-api:       ## also build and run the API in a container (slow first build)
+	docker compose up -d --build api
 
 up-ollama:    ## + Ollama serving an open model on CPU (set LLM_PROVIDER=ollama)
 	docker compose --profile ollama up -d ollama
