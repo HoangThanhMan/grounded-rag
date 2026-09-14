@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>grounded-rag — đối chiếu từng mệnh đề với điều luật</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<header class="rail">
+  <a class="wordmark" href="/">grounded<span>-rag</span></a>
+  <div class="rail-controls">
+    <label class="field">
+      <span class="field-label">Cấu hình</span>
+      <select id="config"></select>
+    </label>
+    <label class="field">
+      <span class="field-label">Đọc luật vào ngày</span>
+      <input id="as-of" type="date">
+    </label>
+    <span class="health" id="health" hidden></span>
+  </div>
+</header>
+
+<main>
+
+  <section class="ask">
+    <div class="hero">
+      <div>
+        <h1>Mỗi mệnh đề được đối chiếu với điều luật trước khi bạn đọc nó.</h1>
+        <p>Không tìm thấy căn cứ thì hệ thống nói là không tìm thấy, thay vì viết ra một điều khoản nghe hợp lý.</p>
+      </div>
+      <div class="layers intro">
+        <h2>Bốn lớp phòng vệ</h2>
+        <p>Xếp theo thứ tự chạy, rẻ trước. Lớp nào chặn được thì các lớp sau không phải chạy.</p>
+        <ol>
+          <li><span>Ngưỡng truy xuất — không đoạn nào đủ liên quan, LLM không được gọi</span></li>
+          <li><span>Phạm vi câu hỏi — bộ lập kế hoạch thấy đây không phải câu hỏi pháp luật</span></li>
+          <li><span>Model tự từ chối — model dùng đúng câu từ chối mà prompt cho sẵn</span></li>
+          <li><span>Guard NLI — không mệnh đề nào được đoạn nó trích chứng minh</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <form id="ask-form" class="ask-form">
+      <textarea id="question" rows="1" maxlength="1000" required
+        placeholder="Nghỉ việc phải báo trước bao nhiêu ngày?"
+        aria-label="Câu hỏi về luật lao động Việt Nam"></textarea>
+      <button id="submit" type="submit">Hỏi</button>
+    </form>
+
+    <ul class="samples" id="samples">
+      <li><button type="button">Nghỉ việc phải báo trước bao nhiêu ngày?</button></li>
+      <li><button type="button">Một ngày làm việc tối đa bao nhiêu giờ?</button></li>
+      <li><button type="button">Ai được hưởng trợ cấp hưu trí xã hội?</button></li>
+      <li><button type="button">Đi làm muộn bị phạt bao nhiêu tiền?</button></li>
+    </ul>
+  </section>
+
+  <section class="result" id="result" hidden aria-live="polite"></section>
+
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

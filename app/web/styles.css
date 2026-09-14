@@ -1,0 +1,598 @@
+/* grounded-rag — a collation sheet, not a chat window.
+   The machine speaks in sans; the law speaks in serif. Verdict colours are
+   the only saturated things on the page, so the eye lands on them first. */
+
+:root {
+  --paper:      #e7eae4;   /* ground: Vietnamese official form paper */
+  --sheet:      #fcfcfa;   /* the raised collation sheet */
+  --tray:       #dfe3dc;   /* the recessed evidence tray */
+  --ink:        #22261f;
+  --ink-soft:   #5a6055;
+  --ink-faint:  #868d80;
+  --rule:       #c7ccc1;
+  --rule-soft:  #d8dcd3;
+
+  --supported:   #1c6b45;
+  --unsupported: #a32017;
+  --uncited:     #96590a;
+  --unverified:  #6b7266;
+
+  --sans: "Be Vietnam Pro", "Segoe UI", system-ui, sans-serif;
+  --serif: "Source Serif 4", "Times New Roman", Georgia, serif;
+
+  --step: 1.5rem;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.55;
+  font-feature-settings: "tnum" 0;
+}
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- rail --- */
+
+.rail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--step);
+  padding: 14px clamp(16px, 5vw, 56px);
+  border-bottom: 1px solid var(--rule);
+  background: var(--sheet);
+}
+
+.wordmark {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  color: var(--ink);
+  margin-right: auto;
+  padding-bottom: 2px;
+}
+.wordmark span { color: var(--ink-faint); font-weight: 500; }
+
+.rail-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 18px;
+}
+
+.field { display: block; }
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-bottom: 3px;
+}
+
+.field select,
+.field input {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 5px 8px;
+  font-size: 14px;
+}
+
+.health {
+  align-self: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+  padding-bottom: 5px;
+}
+.health::before {
+  content: "";
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--supported);
+  margin-right: 7px;
+  vertical-align: 1px;
+}
+.health.down { color: var(--unsupported); }
+.health.down::before { background: var(--unsupported); }
+
+/* ----------------------------------------------------------------- ask --- */
+
+main {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 clamp(16px, 5vw, 56px) 72px;
+}
+
+.ask { padding-block: clamp(32px, 7vw, 68px) 0; }
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(28px, 6vw, 72px);
+  align-items: start;
+  margin-bottom: 38px;
+}
+.hero > div:first-child { max-width: 25ch; }
+
+@media (max-width: 900px) {
+  .hero { grid-template-columns: 1fr; gap: 26px; }
+  .hero > div:first-child { max-width: none; }
+}
+
+.hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(29px, 4.2vw, 42px);
+  font-weight: 400;
+  line-height: 1.18;
+  letter-spacing: -0.012em;
+  margin: 0 0 14px;
+}
+
+.hero p {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+
+body.answering .hero,
+body.answered .hero { display: none; }
+
+body.answering .ask,
+body.answered .ask { padding-block: 26px 0; }
+
+.ask-form {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  max-width: 780px;
+}
+
+#question {
+  flex: 1;
+  resize: none;
+  overflow: hidden;
+  min-height: 52px;
+  padding: 13px 15px;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  font-size: 17px;
+  line-height: 1.4;
+}
+#question::placeholder { color: var(--ink-faint); }
+#question:focus { border-color: var(--ink); outline: none; }
+
+#submit {
+  flex: none;
+  padding: 0 26px;
+  background: var(--ink);
+  color: var(--sheet);
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#submit:hover { background: #333930; }
+#submit:disabled { background: var(--ink-faint); border-color: var(--ink-faint); cursor: progress; }
+
+.samples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  list-style: none;
+  margin: 14px 0 0;
+  padding: 0;
+  max-width: 780px;
+}
+.samples button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.samples button:hover { color: var(--ink); text-decoration-color: currentColor; }
+
+/* -------------------------------------------------------------- result --- */
+
+.result { margin-top: 40px; }
+
+.collation {
+  display: grid;
+  grid-template-columns: 1.12fr 0.88fr;
+  gap: 28px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .collation { grid-template-columns: 1fr; gap: 22px; }
+}
+
+/* -- left: the sheet ------------------------------------------------------ */
+
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  padding: clamp(20px, 3vw, 30px);
+}
+
+.verdict-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.status {
+  font-size: 15px;
+  font-weight: 600;
+}
+.status[data-status="answered"]   { color: var(--supported); }
+.status[data-status="partial"]    { color: var(--uncited); }
+.status[data-status="abstained"],
+.status[data-status="no_context"] { color: var(--ink-soft); }
+
+.cost {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Said out loud when the guard removed something, because the answer above
+   is then shorter than what the model actually wrote. */
+.dropped {
+  flex-basis: 100%;
+  margin: 8px 0 0;
+  font-size: 13.5px;
+  color: var(--uncited);
+}
+
+.answer {
+  font-family: var(--serif);
+  font-size: 19px;
+  line-height: 1.62;
+  margin: 20px 0 0;
+  max-width: 62ch;
+}
+
+.answer .cite,
+.cite {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: 2px;
+  padding: 1px 5px;
+  margin: 0 1px;
+  background: var(--tray);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.cite:hover { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+
+/* -- the ledger of claims ------------------------------------------------- */
+
+.ledger { margin-top: 30px; }
+
+.ledger-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.ledger-head h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+.ledger-head p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.claim {
+  width: 100%;
+  display: block;
+  text-align: left;
+  background: none;
+  border: 0;
+  border-left: 3px solid var(--unverified);
+  border-top: 1px solid var(--rule-soft);
+  padding: 14px 0 14px 15px;
+  cursor: pointer;
+}
+.claim:first-of-type { border-top: 0; }
+.claim[data-verdict="supported"]   { border-left-color: var(--supported); }
+.claim[data-verdict="unsupported"] { border-left-color: var(--unsupported); }
+.claim[data-verdict="uncited"]     { border-left-color: var(--uncited); }
+
+.claim:hover { background: #f5f6f2; }
+.claim[aria-pressed="true"] { background: #eef0ea; }
+
+.claim-text { margin: 0 0 9px; font-size: 15px; }
+.claim[data-verdict="unsupported"] .claim-text { text-decoration: line-through; color: var(--ink-soft); }
+
+.claim-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.tag {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--unverified);
+}
+.claim[data-verdict="supported"]   .tag { color: var(--supported); }
+.claim[data-verdict="unsupported"] .tag { color: var(--unsupported); }
+.claim[data-verdict="uncited"]     .tag { color: var(--uncited); }
+
+/* The one bold element: entailment against the threshold. */
+.gauge {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.track {
+  position: relative;
+  width: 132px;
+  height: 4px;
+  background: var(--tray);
+  border-radius: 2px;
+}
+.fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  background: var(--unverified);
+}
+.claim[data-verdict="supported"]   .fill { background: var(--supported); }
+.claim[data-verdict="unsupported"] .fill { background: var(--unsupported); }
+.claim[data-verdict="uncited"]     .fill { background: var(--uncited); }
+
+.tau {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px rgba(252, 252, 250, 0.85);
+}
+
+.score {
+  min-width: 3.2em;
+  text-align: right;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-soft);
+}
+.score.none { color: var(--ink-faint); }
+
+/* -- which layer refused -------------------------------------------------- */
+
+.layers { margin-top: 26px; }
+.layers.intro { margin-top: 6px; max-width: 48ch; }
+.layers.intro li { color: var(--ink); }
+.layers h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+.layers > p { margin: 0 0 12px; font-size: 13px; color: var(--ink-soft); }
+
+.layers ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: layer;
+  border-top: 1px solid var(--rule-soft);
+}
+.layers li {
+  counter-increment: layer;
+  display: flex;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--rule-soft);
+  font-size: 14px;
+  color: var(--ink-faint);
+}
+.layers li::before {
+  content: counter(layer);
+  font-variant-numeric: tabular-nums;
+  color: var(--rule);
+}
+.layers li.fired {
+  color: var(--ink);
+  font-weight: 600;
+}
+.layers li.fired::before { color: var(--ink); }
+.layers li.fired::after {
+  content: "đã dừng ở đây";
+  margin-left: auto;
+  padding-left: 16px;
+  white-space: nowrap;
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* -- right: the evidence tray --------------------------------------------- */
+
+.tray-panel {
+  background: var(--tray);
+  border: 1px solid var(--rule);
+  padding: clamp(18px, 2.4vw, 24px);
+}
+
+.tray-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.tray-head h2 { font-size: 15px; font-weight: 600; margin: 0; }
+.tray-head button {
+  background: none; border: 0; padding: 0;
+  font-size: 13px; color: var(--ink-soft);
+  text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer;
+}
+.tray-head button[hidden] { display: none; }
+
+.tray-note { margin: 0 0 16px; font-size: 13px; color: var(--ink-soft); }
+
+.source {
+  border-top: 1px solid var(--rule);
+  padding: 14px 0;
+  transition: opacity .18s ease;
+}
+.source:last-child { padding-bottom: 0; }
+
+.collation.filtered .source { opacity: .28; }
+.collation.filtered .source.lit { opacity: 1; }
+
+.source-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.source-label {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 1px 5px;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+.source.lit .source-label { background: var(--ink); color: var(--sheet); border-color: var(--ink); }
+
+.source-ref { font-size: 14px; font-weight: 600; }
+.source-score {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.source-doc { margin: 0 0 6px; font-size: 12.5px; color: var(--ink-soft); }
+
+.source-text {
+  font-family: var(--serif);
+  font-size: 15px;
+  line-height: 1.62;
+  margin: 0;
+  max-height: 6.5em;
+  overflow: hidden;
+  position: relative;
+}
+.source-text.open { max-height: none; }
+.source-text:not(.open)::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2.2em;
+  background: linear-gradient(to bottom, rgba(223,227,220,0), var(--tray));
+}
+
+.more {
+  background: none; border: 0; padding: 4px 0 0;
+  font-size: 13px; color: var(--ink-soft);
+  text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------ pipeline --- */
+
+.pipeline {
+  grid-column: 1 / -1;
+  border-top: 1px solid var(--rule);
+  padding-top: 18px;
+}
+
+.pipeline h2 { font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+
+.timeline {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 12px;
+}
+.span {
+  min-width: 3px;
+  height: 26px;
+  background: var(--rule);
+  border-radius: 2px;
+}
+.span[data-name="retrieve"] { background: #9aa793; }
+.span[data-name="plan"]     { background: #b9a06a; }
+.span[data-name="generate"] { background: #6f7a8c; }
+.span[data-name="verify"]   { background: #4e7a63; }
+
+.spans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.spans li { display: flex; align-items: center; gap: 7px; }
+.swatch { width: 9px; height: 9px; border-radius: 2px; background: var(--rule); }
+.spans b { font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* --------------------------------------------------- waiting and errors --- */
+
+.waiting, .failed {
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  padding: 24px clamp(20px, 3vw, 30px);
+}
+
+.waiting p, .failed p { margin: 0; max-width: 60ch; }
+.waiting p { color: var(--ink-soft); }
+.waiting em { font-style: normal; color: var(--ink); font-weight: 600; }
+
+.failed h2 { font-size: 16px; margin: 0 0 6px; color: var(--unsupported); }
+.failed code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  background: var(--tray);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
