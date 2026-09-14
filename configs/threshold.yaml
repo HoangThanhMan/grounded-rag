@@ -1,0 +1,20 @@
+# Baseline + a retrieval floor. Cheapest possible defence against
+# unanswerable questions: if nothing retrieves well, do not call the LLM.
+name: threshold
+
+retrieval:
+  chunker: recursive
+  hybrid: true
+  top_k_dense: 20
+  top_k_sparse: 20
+  rerank_candidates: 20
+  rerank_to: 5
+  min_score: 0.30
+
+generation:
+  temperature: 0.0
+  max_tokens: 512
+  require_citations: true
+
+guard:
+  enabled: false
