@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    env:
+      LLM_PROVIDER: mock        # no API keys in CI
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check src eval tests app
+
+      - name: Unit tests
+        run: pytest -q
+
+      # The dataset is the project's evidence; a broken gold ref silently
+      # zeroes retrieval_recall, so it is checked before anything is measured.
+      - name: Evaluation dataset
+        run: python scripts/check_dataset.py
+
+      # The point of the project: quality is a release gate, not a vibe.
+      - name: Benchmark gate
+        run: python -m eval.run --config configs/full.yaml --ingest data/sample_corpus --out reports/ci-full.json --gate
+
+      - name: Corrective-retrieval config runs end to end
+        run: python -m eval.run --config configs/agentic.yaml --ingest data/sample_corpus --out reports/ci-agentic.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-report
+          path: reports/ci-*.json
