@@ -199,3 +199,101 @@ giá bao nhiêu lời gọi LLM. Và bảng thứ hai — lớp nào chặn câu
 
 | Configuration | retrieval_floor | out_of_domain | model | guard |
 |---|---|---|---|---|
+
+
+## Ablation: có retrieval và không có retrieval
+
+Bảng bốn cấu hình chỉ so các kiểu retrieval với nhau. Nó không trả lời câu hỏi
+đứng trước tất cả: **cùng model đó, không đưa tài liệu gì, nó trả lời thế nào?**
+Thiếu con số này thì "RAG hoạt động" là một giả định chứ không phải kết luận.
+
+```bash
+python -m eval.closed_book --n 60 --threshold 0.6 --out reports/closed-book.json
+```
+
+### Vì sao không dùng thước đo của benchmark
+
+`judge_claims` chấm mệnh đề dựa trên **đoạn mà câu trả lời trích dẫn**. Trả lời
+chay không có trích dẫn nào, nên mọi mệnh đề thành `uncited` và
+`hallucination_rate` = 1.0 — con số đó đo "không trích dẫn", không đo "sai".
+So như vậy là gian lận với phía không có RAG.
+
+Công cụ này chấm **cả hai phía bằng cùng một thứ**: khoản luật gold của chính
+câu hỏi đó.
+
+| Chỉ số | Nghĩa |
+|---|---|
+| `grounded_claims` | tỉ lệ mệnh đề được khoản gold chứng minh (NLI) |
+| `gold_numbers_present` | số trong đáp án chuẩn có xuất hiện trong câu trả lời |
+| `answered` | có trả lời hay từ chối |
+
+Prompt của phía chay **cố ý khác** prompt RAG: prompt RAG bắt trích dẫn và đưa
+sẵn câu từ chối, dùng nó khi không có tài liệu thì ép model phải từ chối.
+
+### Đọc kết quả cho đúng
+
+**`grounded_claims` thiên vị RAG tới mức gần như tautology.** Câu trả lời RAG
+được dựng từ chính chunk được trích, mà chunk đó thường là gold chunk — nó gần
+như không thể không "grounded". Trả lời chay thêm bối cảnh ("Theo khoản 2 Điều
+20...") thì mệnh đề đó đúng nhưng không nằm trong văn bản khoản luật, nên bị
+chấm là thiếu căn cứ. Hai cột đáng tin là `answered` và `gold_numbers_present`.
+
+**`gold_numbers_present` quan trọng hơn vẻ ngoài.** Đáp án pháp luật xoay quanh
+"45 ngày", "08 giờ", "85%". Đổi số thì câu vẫn trôi chảy, vẫn đúng ngữ pháp,
+chỉ sai luật — và đó đúng là chỗ NLI yếu nhất (xem probe ngày 9 trong [08]).
+Kiểm tra số bằng luật đơn giản bắt được thứ NLI bỏ lọt, và không tốn model nào.
+
+### Kết quả 2026-09-15 — và vì sao không có một câu trả lời chung
+
+Chạy hai lần với hai model khác nhau, kết luận **trái ngược**:
+
+- `gemini-3.1-flash-lite`, 8 câu: trả lời chay đáp đủ 8/8 và lấy đúng **100%**
+  số trong đáp án chuẩn; RAG chỉ đáp 4/8, đúng 67%. Model đã thuộc các điều
+  luật phổ biến; retrieval chủ yếu lấy đi câu trả lời đúng.
+- `qwen2.5:3b-instruct`, 60 câu: trả lời chay đáp mọi câu nhưng **sai số gần
+  như toàn bộ** ("báo trước ít nhất 07 ngày" thay vì 45); RAG im lặng phần lớn
+  nhưng đúng khi đã nói.
+
+**"RAG có đáng không" phụ thuộc vào model, không phải là một hằng số.** Với
+model mạnh trên domain phổ biến, retrieval có thể là chi phí ròng. Với model
+yếu hoặc văn bản mới, nó là thứ ngăn một câu bịa nói ra đầy tự tin.
+
+Hai cảnh báo khi trích kết quả này:
+
+1. Tám câu Gemini nghiêng về các điều nổi tiếng (Điều 17, 20, 26, 35) — đúng
+   phần model thuộc nhất. Luật BHXH 2024 hiệu lực 2025-07-01, nhiều khả năng
+   nằm ngoài dữ liệu huấn luyện, là phép thử sòng phẳng hơn.
+2. Phép so sánh này chỉ dùng 60 câu **có** đáp án. Nó chưa chạm tới 40 câu
+   **không** có đáp án — nơi model thuộc bài sẽ bịa còn sàn truy xuất chặn
+   được. Muốn công bằng phải chạy cả tập 100 câu.
+
+## Hiệu chỉnh sàn truy xuất
+
+`min_score` quyết định LLM có được gọi hay không. Retrieval là tất định nên một
+lượt quét chấm được mọi ngưỡng cùng lúc, **không tốn lời gọi LLM nào**:
+
+```bash
+python scripts/sweep_floor.py --out reports/floor-sweep.json
+```
+
+Kết quả 2026-09-15 trên 100 câu, chunker `structural`:
+
+| `min_score` | câu có đáp án tới LLM | gold vượt sàn | câu vô đáp án bị chặn |
+|---|---|---|---|
+| 0.05 | 0.967 | 0.967 | 0.350 |
+| 0.10 | 0.950 | 0.950 | 0.425 |
+| **0.30** (hiện tại) | **0.950** | **0.950** | **0.475** |
+| 0.50 | 0.950 | 0.933 | 0.625 |
+| 0.70 | 0.917 | 0.900 | 0.725 |
+
+Từ 0.1 đến 0.3 **không có gì thay đổi** — ngưỡng hiện tại nằm giữa một vùng
+phẳng, hạ xuống không mua được gì. Chỉ 3/60 câu có đáp án bị gold rơi dưới 0.30.
+
+Phát hiện thật nằm ở phân bố: câu **không** có đáp án có trung vị top score
+**0.340**, cao nhất 0.970. Một nửa số câu vô đáp án vẫn được reranker chấm trên
+ngưỡng — cross-encoder tìm được đoạn "nghe hợp lý" cho cả câu không có đáp án.
+Sàn truy xuất không thể tự làm việc này; đó là lý do guard tồn tại.
+
+Hệ quả ngược với trực giác: **nên cân nhắc nâng ngưỡng, không phải hạ.** Từ
+0.30 lên 0.50 chặn thêm 15 điểm câu vô đáp án mà chỉ mất 1,7 điểm gold, và câu
+bị sàn chặn không tốn lời gọi LLM nào.
