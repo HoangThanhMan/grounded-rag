@@ -30,12 +30,19 @@ jobs:
       - name: Evaluation dataset
         run: python scripts/check_dataset.py
 
-      # The point of the project: quality is a release gate, not a vibe.
+      # The sample dataset and sample corpus only prove the pipeline runs end
+      # to end; the real gate needs the full corpus and is run with `make eval-all`.
       - name: Benchmark gate
-        run: python -m eval.run --config configs/full.yaml --ingest data/sample_corpus --out reports/ci-full.json --gate
+        run: >-
+          python -m eval.run --config configs/full.yaml
+          --dataset eval/dataset/questions.sample.jsonl
+          --ingest data/sample_corpus --out reports/ci-full.json --gate
 
       - name: Corrective-retrieval config runs end to end
-        run: python -m eval.run --config configs/agentic.yaml --ingest data/sample_corpus --out reports/ci-agentic.json
+        run: >-
+          python -m eval.run --config configs/agentic.yaml
+          --dataset eval/dataset/questions.sample.jsonl
+          --ingest data/sample_corpus --out reports/ci-agentic.json
 
       - uses: actions/upload-artifact@v4
         if: always()

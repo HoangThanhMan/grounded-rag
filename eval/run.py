@@ -128,11 +128,15 @@ def main() -> None:
     ap.add_argument("--as-of", type=date.fromisoformat, default=date.today())
     args = ap.parse_args()
 
+    SAMPLE = Path("eval/dataset/questions.sample.jsonl")
     dataset = args.dataset
-    on_sample = not dataset.exists()
-    if on_sample:
-        dataset = Path("eval/dataset/questions.sample.jsonl")
+    if not dataset.exists():
+        dataset = SAMPLE
         print(f"[warn] {args.dataset} not found, falling back to {dataset}")
+    # Six questions over an excerpt of one law say whether the pipeline runs,
+    # not whether it is good enough to ship. Thresholds need the full dataset
+    # against the full corpus.
+    on_sample = dataset.name == SAMPLE.name
 
     config = RunConfig.from_yaml(args.config)
 
@@ -154,7 +158,7 @@ def main() -> None:
 
     if args.gate and on_sample:
         print("\n[skip] thresholds are not enforced on the sample dataset - "
-              "build eval/dataset/questions.jsonl first (see LABELING.md)")
+              "run against eval/dataset/questions.jsonl and the full corpus")
     elif args.gate:
         breached = [k for k, limit in DEFAULT_GATES.items() if m.get(k, 0) > limit]
         if breached:
