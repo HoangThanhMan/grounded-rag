@@ -1,0 +1,87 @@
+import pytest
+
+from grounded_rag.config import GuardConfig
+from grounded_rag.guard.policy import (
+    apply_policy,
+    is_abstention,
+    should_regenerate,
+    verify_claims,
+)
+from grounded_rag.types import ABSTAIN_TEXT, AnswerStatus, Chunk, RetrievedChunk, Verdict
+
+
+class FixedVerifier:
+    def __init__(self, score):
+        self.score = score
+
+    def entailment(self, premise, hypothesis):
+        return self.score
+
+
+@pytest.fixture
+def sources():
+    chunk = Chunk(chunk_id="c1", doc_id="d", text="Phải báo trước ít nhất 45 ngày.")
+    return [RetrievedChunk(chunk=chunk, score=0.9, label="C1")]
+
+
+def test_supported_claim_passes_through(sources):
+    claims = verify_claims("Phải báo trước 45 ngày [C1].", sources, FixedVerifier(0.9), 0.6)
+    assert claims[0].verdict is Verdict.SUPPORTED
+    assert apply_policy(claims, sources, GuardConfig(enabled=True)).status is AnswerStatus.ANSWERED
+
+
+def test_unsupported_claim_is_dropped_not_shown(sources):
+    claims = verify_claims("Phải báo trước 90 ngày [C1].", sources, FixedVerifier(0.1), 0.6)
+    out = apply_policy(claims, sources, GuardConfig(enabled=True))
+    assert out.status is AnswerStatus.ABSTAINED
+    assert "90 ngày" not in out.answer
+
+
+def test_a_claim_with_no_citation_can_never_be_supported(sources):
+    claims = verify_claims("Một khẳng định không nguồn.", sources, FixedVerifier(1.0), 0.0)
+    assert claims[0].verdict is Verdict.UNCITED
+
+
+def test_partial_when_some_claims_survive(sources):
+    claims = verify_claims(
+        "Phải báo trước 45 ngày [C1]. Và được thưởng thêm [C1].",
+        sources,
+        FixedVerifier(0.9),
+        0.6,
+    )
+    claims[1].verdict = Verdict.UNSUPPORTED
+    out = apply_policy(claims, sources, GuardConfig(enabled=True))
+    assert out.status is AnswerStatus.PARTIAL
+    assert "thưởng thêm" not in out.answer
+
+
+def test_regeneration_happens_once_then_stops(sources):
+    claims = verify_claims("Sai hoàn toàn [C1].", sources, FixedVerifier(0.0), 0.6)
+    cfg = GuardConfig(enabled=True, max_regenerations=1)
+    assert should_regenerate(claims, cfg, attempts=1) is True
+    assert should_regenerate(claims, cfg, attempts=2) is False
+
+
+def test_guard_disabled_never_regenerates(sources):
+    claims = verify_claims("Sai hoàn toàn [C1].", sources, FixedVerifier(0.0), 0.6)
+    assert should_regenerate(claims, GuardConfig(enabled=False), attempts=1) is False
+
+
+def test_the_models_own_refusal_is_recognised():
+    assert is_abstention(ABSTAIN_TEXT)
+    assert is_abstention("Xin lỗi, không tìm thấy thông tin này trong tài liệu")
+    assert not is_abstention("Phải báo trước 45 ngày [C1].")
+    # an answer that also admits a gap is still an answer, and gets verified
+    assert not is_abstention(f"Phải báo trước 45 ngày [C1]. {ABSTAIN_TEXT}")
+
+
+def test_baseline_does_not_drop_anything(sources):
+    """With the guard off the answer must survive untouched - otherwise the
+    baseline silently borrows the guard's benefit and the comparison lies."""
+    raw = "Phải báo trước 90 ngày [C1]. Một khẳng định không nguồn."
+    claims = verify_claims(raw, sources, FixedVerifier(0.0), 0.6)
+    out = apply_policy(claims, sources, GuardConfig(enabled=False), raw_text=raw)
+    assert out.status is AnswerStatus.ANSWERED
+    assert out.answer == raw
+    # verdicts are still reported, they just do not change the answer
+    assert out.claims[1].verdict is Verdict.UNCITED
