@@ -1,0 +1,68 @@
+.PHONY: python install check-dataset dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+
+CONFIGS := baseline threshold full agentic
+
+# Use the project venv when there is one, so no target depends on you having
+# remembered to activate it. VIRTUAL_ENV wins if you did activate something.
+ifdef VIRTUAL_ENV
+PY := $(VIRTUAL_ENV)/bin/python
+else ifneq ($(wildcard .venv/bin/python),)
+PY := .venv/bin/python
+else
+PY := python3
+endif
+
+install:      ## runtime deps only
+	$(PY) -m pip install -e .
+
+dev-install:  ## everything needed to actually run the pipeline
+	$(PY) -m pip install -e ".[models,eval,obs,demo,dev]"
+
+up:           ## qdrant + langfuse
+	docker compose up -d
+
+up-gpu:       ## + vLLM serving an open model (NVIDIA GPU only)
+	docker compose --profile gpu up -d
+
+down:
+	docker compose down
+
+run:          ## api + demo UI on :8000 (open http://localhost:8000)
+	$(PY) -m uvicorn grounded_rag.api.main:app --reload --port 8000
+
+corpus:       ## download the laws from Công báo -> data/corpus/*.md
+	$(PY) scripts/prepare_corpus.py
+
+ingest:       ## index the real corpus in data/corpus/ (both chunkers)
+	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --config configs/full.yaml
+	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --config configs/baseline.yaml
+
+check-dataset: ## resolve every gold ref against the corpus before trusting a number
+	$(PY) scripts/check_dataset.py
+
+eval:         ## full benchmark -> reports/full.json
+	$(PY) -m eval.run --config configs/full.yaml --ingest data/corpus --out reports/full.json
+
+eval-all:     ## the four-configuration comparison table
+	for c in $(CONFIGS); do \
+		$(PY) -m eval.run --config configs/$$c.yaml --ingest data/corpus --out reports/$$c.json || exit 1; \
+	done
+	$(PY) -m eval.report $(foreach c,$(CONFIGS),reports/$(c).json)
+
+ragas:        ## LLM-judge second opinion on each report (needs JUDGE_* in the env)
+	for c in $(CONFIGS); do $(PY) -m eval.ragas_eval reports/$$c.json || exit 1; done
+
+demo:         ## the old Streamlit demo; the web UI at / replaces it
+	$(PY) -m streamlit run app/streamlit_demo.py
+
+test:
+	$(PY) -m pytest -q
+
+lint:
+	$(PY) -m ruff check src eval tests app
+
+fmt:
+	$(PY) -m ruff format src eval tests app
+
+python:       ## which interpreter every target above will use
+	@echo $(PY)

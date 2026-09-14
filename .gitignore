@@ -1,0 +1,18 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+# data/corpus/ IS committed: 500 KB of Công báo text, so `git clone` gives a
+# working corpus without depending on that site still being up, and CI can
+# resolve every gold ref in the evaluation dataset.
+# data/sample_corpus/ IS committed too: the fast path for tests and CI eval.
+reports/*
+!reports/.gitkeep
+# the first real run is evidence cited by docs/08-roadmap.md, so it is kept
+!reports/smoke-2026-09-11/
+qdrant_storage/
+.cache/
