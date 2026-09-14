@@ -250,9 +250,22 @@ Chạy hai lần với hai model khác nhau, kết luận **trái ngược**:
 - `gemini-3.1-flash-lite`, 8 câu: trả lời chay đáp đủ 8/8 và lấy đúng **100%**
   số trong đáp án chuẩn; RAG chỉ đáp 4/8, đúng 67%. Model đã thuộc các điều
   luật phổ biến; retrieval chủ yếu lấy đi câu trả lời đúng.
-- `qwen2.5:3b-instruct`, 60 câu: trả lời chay đáp mọi câu nhưng **sai số gần
-  như toàn bộ** ("báo trước ít nhất 07 ngày" thay vì 45); RAG im lặng phần lớn
-  nhưng đúng khi đã nói.
+- `qwen2.5:3b-instruct`, 60 câu, τ = 0.60 (`reports/closed-book.json`):
+
+  | | trả lời chay | RAG (`full`) |
+  |---|---|---|
+  | Số câu trả lời | 60 | **13** |
+  | Số gold lấy đúng, **trên 13 câu RAG trả lời** | 3/17 = 0.18 | 11/17 = **0.65** |
+  | Mệnh đề có căn cứ, trên 13 câu đó | 6/14 = 0.43 | 13/16 = 0.81 |
+  | Số gold lấy đúng, trên 47 câu RAG từ chối | 7/84 = **0.08** | — |
+
+  Trạng thái RAG: 44 `abstained`, 13 `answered`, 3 `no_context`.
+
+  Trên cùng tập câu hỏi, **RAG chính xác gấp 3,6 lần** (0.65 so với 0.18). Nhưng
+  nó chỉ trả lời 22% số câu, và 44 câu bị từ chối đều **có đáp án rõ ràng trong
+  corpus** — đã kiểm chứng bằng `make check-dataset`. Đó là guard hỏng, không
+  phải guard làm đúng việc. Trên 47 câu ấy, trả lời chay nói sai **77 con số**
+  mà lẽ ra tra được.
 
 **"RAG có đáng không" phụ thuộc vào model, không phải là một hằng số.** Với
 model mạnh trên domain phổ biến, retrieval có thể là chi phí ròng. Với model

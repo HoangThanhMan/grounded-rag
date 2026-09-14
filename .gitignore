@@ -16,5 +16,8 @@ reports/*
 !reports/.gitkeep
 # the first real run is evidence cited by docs/08-roadmap.md, so it is kept
 !reports/smoke-2026-09-11/
+# cited by docs/07-evaluation-plan.md
+!reports/closed-book.json
+!reports/floor-sweep.json
 qdrant_storage/
 .cache/

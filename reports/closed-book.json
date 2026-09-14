@@ -1,0 +1,1417 @@
+{
+  "summary": {
+    "n": 60,
+    "closed_book": {
+      "grounded_claims": 0.2319,
+      "answers_fully_grounded": 0.2,
+      "gold_numbers_present": 0.099,
+      "answered": 60
+    },
+    "rag": {
+      "grounded_claims": 0.8125,
+      "answers_fully_grounded": 0.8462,
+      "gold_numbers_present": 0.1089,
+      "answered": 13
+    },
+    "config": "full",
+    "model": "qwen2.5:3b-instruct-q4_K_M",
+    "judge": "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7",
+    "threshold": 0.6
+  },
+  "cases": [
+    {
+      "id": "a001",
+      "question": "Người lao động đơn phương chấm dứt hợp đồng lao động không xác định thời hạn phải báo trước bao nhiêu ngày?",
+      "gold_answer": "Ít nhất 45 ngày.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 35:1"
+      ],
+      "closed_book": {
+        "answer": "Người lao động phải báo trước ít nhất 07 (bảy) ngày.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Người lao động đơn phương chấm dứt hợp đồng lao động không xác định thời hạn phải báo trước ít nhất 45 ngày. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    },
+    {
+      "id": "a002",
+      "question": "Hợp đồng lao động xác định thời hạn được ký tối đa bao nhiêu tháng?",
+      "gold_answer": "Không quá 36 tháng kể từ thời điểm hợp đồng có hiệu lực.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 20:1"
+      ],
+      "closed_book": {
+        "answer": "Hợp đồng lao động xác định thời hạn được ký tối đa 03 năm.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a003",
+      "question": "Hợp đồng xác định thời hạn hết hạn mà người lao động vẫn làm tiếp, sau bao lâu không ký mới thì thành hợp đồng không xác định thời hạn?",
+      "gold_answer": "Hết 30 ngày kể từ ngày hợp đồng hết hạn mà hai bên không ký hợp đồng mới.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 20:2"
+      ],
+      "closed_book": {
+        "answer": "Hợp đồng lao động không xác định thời hạn sau 03 (ba) tháng kể từ ngày hết hạn.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a004",
+      "question": "Công ty có được giữ bản chính bằng đại học của nhân viên không?",
+      "gold_answer": "Không. Giữ bản chính giấy tờ tùy thân, văn bằng, chứng chỉ của người lao động là hành vi bị cấm.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 17:1"
+      ],
+      "closed_book": {
+        "answer": "Không, công ty không được giữ bản chính bằng đại học của nhân viên.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "no_context",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a005",
+      "question": "Khi ký hợp đồng lao động, người lao động phải đặt cọc bao nhiêu tiền cho công ty?",
+      "gold_answer": "Không phải đặt cọc. Luật cấm người sử dụng lao động yêu cầu người lao động thực hiện biện pháp bảo đảm bằng tiền hoặc tài sản khác.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 17:2"
+      ],
+      "closed_book": {
+        "answer": "Không có quy định cụ thể về việc người lao động phải đặt cọc cho công ty khi ký hợp đồng lao động.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "no_context",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a006",
+      "question": "Thời gian thử việc tối đa với công việc cần trình độ cao đẳng trở lên và với công việc thông thường khác là bao nhiêu?",
+      "gold_answer": "Không quá 60 ngày với công việc cần trình độ cao đẳng trở lên; không quá 06 ngày làm việc với công việc khác.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 25:2",
+        "bo_luat_lao_dong_2019:Điều 25:4"
+      ],
+      "closed_book": {
+        "answer": "Thời gian thử việc tối đa với công việc cần trình độ cao đẳng trở lên là 3 tháng. Với công việc thông thường khác, thời gian thử việc tối đa là 2 tháng.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 2,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a007",
+      "question": "Lương thử việc ít nhất phải bằng bao nhiêu phần trăm lương của công việc đó?",
+      "gold_answer": "Ít nhất bằng 85% mức lương của công việc đó.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 26"
+      ],
+      "closed_book": {
+        "answer": "Lương thử việc ít nhất phải bằng 80% lương của công việc đó.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a008",
+      "question": "Đang thử việc mà muốn nghỉ thì có phải báo trước không?",
+      "gold_answer": "Không. Trong thời gian thử việc, mỗi bên có quyền hủy bỏ hợp đồng mà không cần báo trước và không phải bồi thường.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 27:2"
+      ],
+      "closed_book": {
+        "answer": "Có, thường phải báo trước ít nhất từ 3 đến 7 ngày tùy theo hợp đồng thử việc.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a009",
+      "question": "Người sử dụng lao động được tạm thời chuyển người lao động làm công việc khác tối đa bao nhiêu ngày trong một năm?",
+      "gold_answer": "Không quá 60 ngày làm việc cộng dồn trong 01 năm, trừ khi người lao động đồng ý bằng văn bản.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 29:1"
+      ],
+      "closed_book": {
+        "answer": "Người sử dụng lao động được tạm thời chuyển người lao động làm công việc khác tối đa 15 ngày trong một năm.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a010",
+      "question": "Chuyển người lao động sang làm công việc khác thì phải báo trước bao lâu và trả lương thế nào?",
+      "gold_answer": "Báo trước ít nhất 03 ngày làm việc; lương công việc mới ít nhất bằng 85% lương công việc cũ và không thấp hơn mức lương tối thiểu.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 29:2",
+        "bo_luat_lao_dong_2019:Điều 29:3"
+      ],
+      "closed_book": {
+        "answer": "Thời hạn báo trước và cách trả lương khi chuyển công việc khác nhau tùy thuộc vào thỏa thuận giữa hai bên và quy định của劳动法.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a011",
+      "question": "Hết thời hạn tạm hoãn hợp đồng lao động, người lao động phải có mặt tại nơi làm việc trong bao lâu?",
+      "gold_answer": "Trong thời hạn 15 ngày kể từ ngày hết thời hạn tạm hoãn.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 31"
+      ],
+      "closed_book": {
+        "answer": "Người lao động phải có mặt tại nơi làm việc trong 3 ngày kể từ ngày hết hạn tạm hoãn hợp đồng.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a012",
+      "question": "Công ty có được cho lao động nữ đang nuôi con dưới 12 tháng tuổi nghỉ việc không?",
+      "gold_answer": "Không. Người sử dụng lao động không được đơn phương chấm dứt hợp đồng với lao động nữ mang thai, đang nghỉ thai sản hoặc nuôi con dưới 12 tháng tuổi.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 37:3"
+      ],
+      "closed_book": {
+        "answer": "Không, công ty không được cho lao động nữ nghỉ việc trong thời gian này.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a013",
+      "question": "Người lao động đơn phương chấm dứt hợp đồng trái pháp luật phải bồi thường bao nhiêu?",
+      "gold_answer": "Nửa tháng tiền lương theo hợp đồng lao động, cộng khoản tiền tương ứng tiền lương những ngày không báo trước.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 40:2"
+      ],
+      "closed_book": {
+        "answer": "Quy định cụ thể về bồi thường cho người lao động đơn phương chấm dứt hợp đồng trái pháp luật chưa được quy định cụ thể trong các văn bản hiện hành.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Người lao động đơn phương chấm dứt hợp đồng trái pháp luật phải bồi thường cho người sử dụng lao động nửa tháng tiền lương theo hợp đồng lao động và một khoản tiền tương ứng với tiền lương theo hợp đồng lao động trong những ngày không báo trước. [C1] Ngoài ra, nếu người lao động đồng ý và hai bên thỏa thuận, người sử dụng lao động phải trả thêm cho người lao động ít nhất bằng 02 tháng tiền lương theo hợp đồng lao động để chấm dứt hợp đồng lao động. [C2] [C4]",
+        "status": "answered",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 2,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a014",
+      "question": "Trợ cấp thôi việc và trợ cấp mất việc làm được tính khác nhau thế nào?",
+      "gold_answer": "Trợ cấp thôi việc: mỗi năm làm việc bằng nửa tháng tiền lương. Trợ cấp mất việc làm: mỗi năm làm việc bằng 01 tháng tiền lương nhưng ít nhất 02 tháng.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 46:1",
+        "bo_luat_lao_dong_2019:Điều 47:1"
+      ],
+      "closed_book": {
+        "answer": "Trợ cấp thôi việc và trợ cấp mất việc làm có quy định khác nhau, cụ thể trong Luật Lao động 2019.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a015",
+      "question": "Tiền lương để tính trợ cấp thôi việc là lương của mấy tháng?",
+      "gold_answer": "Tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi thôi việc.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 46:3"
+      ],
+      "closed_book": {
+        "answer": "Lương của 12 tháng gần nhất trước khi thôi việc.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a016",
+      "question": "Làm thêm giờ vào ngày thường được trả ít nhất bao nhiêu phần trăm?",
+      "gold_answer": "Ít nhất bằng 150% đơn giá tiền lương hoặc tiền lương thực trả.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 98:1"
+      ],
+      "closed_book": {
+        "answer": "150% lương cơ bản.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      },
+      "rag": {
+        "answer": "Làm thêm giờ vào ngày thường được trả ít nhất 150% tiền lương. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    },
+    {
+      "id": "a017",
+      "question": "Làm việc vào ban đêm được trả thêm bao nhiêu phần trăm?",
+      "gold_answer": "Được trả thêm ít nhất bằng 30% tiền lương của ngày làm việc bình thường.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 98:2"
+      ],
+      "closed_book": {
+        "answer": "15% overtime pay.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a018",
+      "question": "Giờ làm việc ban đêm được tính từ mấy giờ đến mấy giờ?",
+      "gold_answer": "Từ 22 giờ đến 06 giờ sáng ngày hôm sau.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 106"
+      ],
+      "closed_book": {
+        "answer": "Giờ làm việc ban đêm thường được tính từ khoảng 21:00 đến 07:00.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a019",
+      "question": "Công ty được trừ lương nhân viên tối đa bao nhiêu phần trăm mỗi tháng?",
+      "gold_answer": "Không quá 30% tiền lương thực trả hằng tháng sau khi trích nộp bảo hiểm và thuế thu nhập cá nhân.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 102:3"
+      ],
+      "closed_book": {
+        "answer": "10% cho mỗi lần trừ lương bất thường.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Công ty được trừ lương nhân viên tối đa 30% mỗi tháng. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    },
+    {
+      "id": "a020",
+      "question": "Công ty bắt nộp phạt tiền khi đi làm muộn quá 3 lần một tháng có đúng luật không?",
+      "gold_answer": "Không. Phạt tiền, cắt lương thay việc xử lý kỷ luật lao động là hành vi bị nghiêm cấm.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 127:2"
+      ],
+      "closed_book": {
+        "answer": "Đây là một vấn đề phức tạp và có thể tùy thuộc vào quy định cụ thể của công ty và pháp luật lao động Việt Nam. Thường thì việc đi làm muộn không vượt quá giới hạn quy định là hợp pháp, nhưng cần có quy định rõ ràng trong hợp đồng lao động hoặc điều lệ công ty.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 2,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "no_context",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a021",
+      "question": "Thời giờ làm việc bình thường tối đa trong một ngày là bao nhiêu giờ?",
+      "gold_answer": "Không quá 08 giờ trong 01 ngày.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 105:1"
+      ],
+      "closed_book": {
+        "answer": "Thời giờ làm việc bình thường tối đa trong một ngày là 8 giờ.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a022",
+      "question": "Nếu công ty quy định thời giờ làm việc theo tuần thì tối đa bao nhiêu giờ một ngày?",
+      "gold_answer": "Không quá 10 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 105:2"
+      ],
+      "closed_book": {
+        "answer": "11 часов một ngày.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/3"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/3"
+      }
+    },
+    {
+      "id": "a023",
+      "question": "Ngành nào được làm thêm tới 300 giờ một năm?",
+      "gold_answer": "Dệt may, da giày, điện, điện tử, chế biến nông lâm diêm nghiệp thủy sản; sản xuất cung cấp điện, viễn thông, lọc dầu, cấp thoát nước và một số trường hợp khác.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 107:3"
+      ],
+      "closed_book": {
+        "answer": "Nhân viên ngành công nghiệp sản xuất được làm thêm đến 300 giờ một năm.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Công việc thuộc các ngành, nghề sau được làm thêm không quá 300 giờ trong 01 năm: [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a024",
+      "question": "Làm việc từ 6 giờ trở lên trong ngày thì được nghỉ giữa giờ bao nhiêu phút?",
+      "gold_answer": "Ít nhất 30 phút liên tục; làm việc ban đêm thì ít nhất 45 phút liên tục.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 109:1"
+      ],
+      "closed_book": {
+        "answer": "10 phút.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a025",
+      "question": "Mỗi tuần người lao động được nghỉ ít nhất bao nhiêu giờ liên tục?",
+      "gold_answer": "Ít nhất 24 giờ liên tục.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 111:1"
+      ],
+      "closed_book": {
+        "answer": "72 (48 giờ trong một tuần trừ đi thời gian làm việc).",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a026",
+      "question": "Nghỉ hằng năm trong điều kiện làm việc bình thường là bao nhiêu ngày, và cứ 5 năm làm việc thì tăng thêm mấy ngày?",
+      "gold_answer": "12 ngày làm việc; cứ đủ 05 năm làm việc cho một người sử dụng lao động thì tăng thêm 01 ngày.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 113:1",
+        "bo_luat_lao_dong_2019:Điều 114"
+      ],
+      "closed_book": {
+        "answer": "Nghỉ hằng năm trong điều kiện làm việc bình thường là 15 ngày. Sau mỗi 5 năm làm việc, nghỉ hằng năm tăng thêm 2 ngày.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 2,
+        "numbers": "1/3"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/3"
+      }
+    },
+    {
+      "id": "a027",
+      "question": "Người làm công việc đặc biệt nặng nhọc, độc hại, nguy hiểm được nghỉ hằng năm bao nhiêu ngày?",
+      "gold_answer": "16 ngày làm việc.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 113:1"
+      ],
+      "closed_book": {
+        "answer": "Người làm công việc đặc biệt nặng nhọc, độc hại, nguy hiểm được nghỉ hằng năm 30 ngày.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Người làm công việc đặc biệt nặng nhọc, độc hại, nguy hiểm được nghỉ hằng năm 16 ngày làm việc. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    },
+    {
+      "id": "a028",
+      "question": "Kết hôn thì được nghỉ mấy ngày hưởng nguyên lương?",
+      "gold_answer": "Nghỉ 03 ngày.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 115:1"
+      ],
+      "closed_book": {
+        "answer": "Không có quy định cụ thể về ngày nghỉ khi kết hôn hưởng nguyên lương trong lao động Việt Nam.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a029",
+      "question": "Ông bà nội mất thì được nghỉ mấy ngày và có hưởng lương không?",
+      "gold_answer": "Được nghỉ không hưởng lương 01 ngày và phải thông báo với người sử dụng lao động.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 115:2"
+      ],
+      "closed_book": {
+        "answer": "Điều này tùy thuộc vào chính sách của từng doanh nghiệp và địa phương, không có quy định cụ thể về số ngày nghỉ và hưởng lương.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a030",
+      "question": "Nghỉ việc phải báo trước bao nhiêu ngày và mỗi năm được nghỉ phép bao nhiêu ngày?",
+      "gold_answer": "Báo trước ít nhất 45 ngày với hợp đồng không xác định thời hạn; nghỉ hằng năm 12 ngày làm việc trong điều kiện bình thường.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 35:1",
+        "bo_luat_lao_dong_2019:Điều 113:1"
+      ],
+      "closed_book": {
+        "answer": "Nghỉ việc phải báo trước từ 30 đến 60 ngày tùy theo hợp đồng lao động. Mỗi năm được nghỉ phép từ 10 đến 15 ngày.",
+        "grounded": 0.5,
+        "claims_ok": 1,
+        "claims": 2,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Người lao động phải báo trước ít nhất 3 ngày làm việc để nghỉ việc riêng. [C3] Mỗi năm được nghỉ hằng năm là 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 2,
+        "claims": 2,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a031",
+      "question": "Thời hiệu xử lý kỷ luật lao động là bao lâu?",
+      "gold_answer": "06 tháng kể từ ngày xảy ra hành vi vi phạm; 12 tháng nếu liên quan trực tiếp đến tài chính, tài sản, bí mật công nghệ, bí mật kinh doanh.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 123:1"
+      ],
+      "closed_book": {
+        "answer": "Thời hiệu xử lý kỷ luật lao động là 12 tháng.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "1/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a032",
+      "question": "Có mấy hình thức xử lý kỷ luật lao động?",
+      "gold_answer": "Bốn hình thức: khiển trách; kéo dài thời hạn nâng lương không quá 06 tháng; cách chức; sa thải.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 124:1",
+        "bo_luat_lao_dong_2019:Điều 124:2",
+        "bo_luat_lao_dong_2019:Điều 124:3",
+        "bo_luat_lao_dong_2019:Điều 124:4"
+      ],
+      "closed_book": {
+        "answer": "Có 5 hình thức xử lý kỷ luật lao động.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a033",
+      "question": "Tự ý bỏ việc bao nhiêu ngày thì bị sa thải?",
+      "gold_answer": "05 ngày cộng dồn trong 30 ngày hoặc 20 ngày cộng dồn trong 365 ngày mà không có lý do chính đáng.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 125:4"
+      ],
+      "closed_book": {
+        "answer": "Điều này tùy thuộc vào thỏa thuận劳动合同和公司政策。",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/4"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/4"
+      }
+    },
+    {
+      "id": "a034",
+      "question": "Làm hỏng thiết bị do sơ suất thì phải bồi thường nhiều nhất bao nhiêu?",
+      "gold_answer": "Nhiều nhất là 03 tháng tiền lương, nếu thiệt hại không nghiêm trọng và giá trị không quá 10 tháng lương tối thiểu vùng.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 129:1"
+      ],
+      "closed_book": {
+        "answer": "Quy định cụ thể về bồi thường khi làm hỏng thiết bị do sơ suất không được quy định chung cho tất cả trường hợp. Cần xem xét theo hợp đồng cụ thể hoặc quy định của từng loại thiết bị.",
+        "grounded": 1.0,
+        "claims_ok": 2,
+        "claims": 2,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a035",
+      "question": "Công ty sử dụng bao nhiêu lao động thì phải có nội quy lao động bằng văn bản?",
+      "gold_answer": "Từ 10 người lao động trở lên.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 118:1"
+      ],
+      "closed_book": {
+        "answer": "Công ty có từ 20 lao động trở lên phải có nội quy lao động bằng văn bản.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a036",
+      "question": "Lao động nữ được nghỉ thai sản bao nhiêu tháng, và chồng được nghỉ mấy ngày khi vợ sinh con?",
+      "gold_answer": "Lao động nữ nghỉ 06 tháng; lao động nam đang đóng bảo hiểm xã hội bắt buộc được nghỉ 05 ngày làm việc, 07 ngày nếu vợ sinh phải phẫu thuật hoặc sinh con dưới 32 tuần tuổi.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 139:1",
+        "luat_bao_hiem_xa_hoi_2024:Điều 53:2"
+      ],
+      "closed_book": {
+        "answer": "Lao động nữ được nghỉ thai sản 90 ngày. Chồng được nghỉ 15 ngày.",
+        "grounded": 0.5,
+        "claims_ok": 1,
+        "claims": 2,
+        "numbers": "0/4"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/4"
+      }
+    },
+    {
+      "id": "a037",
+      "question": "Sinh đôi thì lao động nữ được nghỉ thai sản thêm bao lâu?",
+      "gold_answer": "Tính từ con thứ 02 trở đi, cứ mỗi con được nghỉ thêm 01 tháng.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 139:1"
+      ],
+      "closed_book": {
+        "answer": "Sinh đôi, lao động nữ được nghỉ thai sản thêm 30 ngày.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a038",
+      "question": "Muốn đi làm lại sớm sau sinh thì phải nghỉ ít nhất mấy tháng?",
+      "gold_answer": "Phải nghỉ ít nhất 04 tháng, có báo trước, được người sử dụng lao động đồng ý và có xác nhận của cơ sở khám chữa bệnh.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 139:4"
+      ],
+      "closed_book": {
+        "answer": "Nếu muốn làm lại sớm sau sinh, cần nghỉ ít nhất 6 tháng.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a039",
+      "question": "Lao động nữ trong thời gian hành kinh và khi nuôi con dưới 12 tháng tuổi được nghỉ bao nhiêu phút mỗi ngày?",
+      "gold_answer": "Hành kinh nghỉ 30 phút mỗi ngày; nuôi con dưới 12 tháng tuổi nghỉ 60 phút mỗi ngày, vẫn hưởng đủ tiền lương.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 137:4"
+      ],
+      "closed_book": {
+        "answer": "20 phút/ngày cho cả hai trường hợp.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/3"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/3"
+      }
+    },
+    {
+      "id": "a040",
+      "question": "Thời giờ làm việc của người chưa đủ 15 tuổi và của người từ đủ 15 tuổi đến chưa đủ 18 tuổi là bao nhiêu?",
+      "gold_answer": "Chưa đủ 15 tuổi: không quá 04 giờ/ngày và 20 giờ/tuần. Từ đủ 15 đến chưa đủ 18 tuổi: không quá 08 giờ/ngày và 40 giờ/tuần.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 146:1",
+        "bo_luat_lao_dong_2019:Điều 146:2"
+      ],
+      "closed_book": {
+        "answer": "Thời giờ làm việc của người từ đủ 15 tuổi đến chưa đủ 18 tuổi là không quá 6 tiếng/ngày và không quá 36 tiếng/tuần.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "2/6"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/6"
+      }
+    },
+    {
+      "id": "a041",
+      "question": "Lao động chưa thành niên là người bao nhiêu tuổi?",
+      "gold_answer": "Người lao động chưa đủ 18 tuổi.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 143:1"
+      ],
+      "closed_book": {
+        "answer": "Lao động chưa thành niên là người từ 15 đến dưới 18 tuổi.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "1/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a042",
+      "question": "Tuổi nghỉ hưu sẽ đạt mức nào và phải đóng bảo hiểm xã hội bao nhiêu năm mới được hưởng lương hưu?",
+      "gold_answer": "Đủ 62 tuổi với nam vào năm 2028 và đủ 60 tuổi với nữ vào năm 2035; phải có từ đủ 15 năm đóng bảo hiểm xã hội bắt buộc trở lên.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 169:2",
+        "luat_bao_hiem_xa_hoi_2024:Điều 64:1"
+      ],
+      "closed_book": {
+        "answer": "Tuổi nghỉ hưu và số năm đóng bảo hiểm xã hội để được hưởng lương hưu phụ thuộc vào từng quy định cụ thể của từng đối tượng lao động. Thông thường, người lao động phải đóng bảo hiểm xã hội ít nhất 20 năm để được hưởng lương hưu. Tuổi nghỉ hưu cũng có thể khác nhau tùy theo giới tính và thời điểm đóng bảo hiểm.",
+        "grounded": 0.333,
+        "claims_ok": 1,
+        "claims": 3,
+        "numbers": "0/5"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/5"
+      }
+    },
+    {
+      "id": "a043",
+      "question": "Người làm công việc nặng nhọc độc hại được nghỉ hưu sớm hơn tối đa bao nhiêu tuổi?",
+      "gold_answer": "Không quá 05 tuổi so với tuổi nghỉ hưu trong điều kiện bình thường.",
+      "gold_chunks": [
+        "bo_luat_lao_dong_2019:Điều 169:3"
+      ],
+      "closed_book": {
+        "answer": "Người làm công việc nặng nhọc độc hại được nghỉ hưu sớm tối đa 5 năm.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a044",
+      "question": "Ai được hưởng trợ cấp hưu trí xã hội?",
+      "gold_answer": "Công dân Việt Nam từ đủ 75 tuổi trở lên, không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng và có văn bản đề nghị.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 21:1"
+      ],
+      "closed_book": {
+        "answer": "Người lao động đã nghỉ hưu theo quy định của pháp luật được hưởng trợ cấp hưu trí xã hội.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Công dân Việt Nam từ đủ 75 tuổi trở lên được hưởng trợ cấp hưu trí xã hội khi có đủ các điều kiện: [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    },
+    {
+      "id": "a045",
+      "question": "Người từ đủ 70 tuổi đến dưới 75 tuổi có được hưởng trợ cấp hưu trí xã hội không?",
+      "gold_answer": "Có, nếu thuộc hộ nghèo, hộ cận nghèo và đáp ứng các điều kiện còn lại.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 21:2"
+      ],
+      "closed_book": {
+        "answer": "Không rõ người từ 70-74 tuổi có được hưởng trợ cấp hưu trí xã hội hay không, quy định cụ thể có thể thay đổi theo thời gian.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/0"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/0"
+      }
+    },
+    {
+      "id": "a046",
+      "question": "Người lao động đóng bao nhiêu phần trăm tiền lương, và tổng tỷ lệ đóng vào quỹ hưu trí và tử tuất là bao nhiêu?",
+      "gold_answer": "Người lao động đóng 8%; tổng tỷ lệ đóng vào quỹ hưu trí và tử tuất là 22% tiền lương làm căn cứ đóng.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 33:1",
+        "luat_bao_hiem_xa_hoi_2024:Điều 32:1"
+      ],
+      "closed_book": {
+        "answer": "Người lao động đóng 20% tiền lương vào quỹ hưu trí và tử tuất. Tổng tỷ lệ đóng là 20%.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 2,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a047",
+      "question": "Mức lương hưu hằng tháng của lao động nữ được tính thế nào?",
+      "gold_answer": "Bằng 45% mức bình quân tiền lương làm căn cứ đóng tương ứng 15 năm đóng, sau đó mỗi năm thêm 2%, tối đa 75%.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 66:1"
+      ],
+      "closed_book": {
+        "answer": "Mức lương hưu hằng tháng của lao động nữ được tính dựa trên mức lương cơ sở và hệ số lương hưu.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/4"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/4"
+      }
+    },
+    {
+      "id": "a048",
+      "question": "Nghỉ hưu trước tuổi thì lương hưu bị giảm bao nhiêu phần trăm mỗi năm?",
+      "gold_answer": "Mỗi năm nghỉ hưu trước tuổi giảm 2%; dưới 06 tháng không giảm, từ đủ 06 tháng đến dưới 12 tháng giảm 1%.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 66:3"
+      ],
+      "closed_book": {
+        "answer": "Nghỉ hưu trước tuổi, lương hưu giảm 1% mỗi năm.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "1/4"
+      },
+      "rag": {
+        "answer": "Đối tượng nghỉ hưu trước tuổi thì lương hưu bị giảm 2% mỗi năm. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "2/4"
+      }
+    },
+    {
+      "id": "a049",
+      "question": "Đóng bảo hiểm xã hội bao nhiêu năm thì được trợ cấp một lần khi nghỉ hưu?",
+      "gold_answer": "Lao động nam trên 35 năm, lao động nữ trên 30 năm.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 68:1"
+      ],
+      "closed_book": {
+        "answer": "Được nghỉ hưu với trợ cấp một lần sau 20 năm đóng bảo hiểm xã hội.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a050",
+      "question": "Thời gian hưởng chế độ ốm đau tối đa trong một năm với người đóng bảo hiểm dưới 15 năm là bao nhiêu?",
+      "gold_answer": "30 ngày làm việc trong điều kiện bình thường.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 43:1"
+      ],
+      "closed_book": {
+        "answer": "365 ngày trong năm.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a051",
+      "question": "Trợ cấp ốm đau bằng bao nhiêu phần trăm tiền lương?",
+      "gold_answer": "Bằng 75% tiền lương làm căn cứ đóng bảo hiểm xã hội.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 45:2"
+      ],
+      "closed_book": {
+        "answer": "Trợ cấp ốm đau bằng 60% tiền lương.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a052",
+      "question": "Nghỉ dưỡng sức sau ốm đau tối đa bao nhiêu ngày và mức hưởng mỗi ngày là bao nhiêu?",
+      "gold_answer": "Tối đa 10 ngày trong một năm; mỗi ngày bằng 30% mức tham chiếu.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 46:1",
+        "luat_bao_hiem_xa_hoi_2024:Điều 46:3"
+      ],
+      "closed_book": {
+        "answer": "Nghỉ dưỡng sức sau ốm đau tối đa 14 ngày, mức hưởng mỗi ngày là 70% lương cơ bản.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Nghỉ dưỡng sức sau ốm đau tối đa 10 ngày trong một năm. [C1] Mức hưởng mỗi ngày là 30% mức tham chiếu. [C5]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 2,
+        "claims": 2,
+        "numbers": "2/2"
+      }
+    },
+    {
+      "id": "a053",
+      "question": "Lao động nữ mang thai được nghỉ khám thai mấy lần?",
+      "gold_answer": "Tối đa 05 lần, mỗi lần không quá 02 ngày.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 51:1"
+      ],
+      "closed_book": {
+        "answer": "Lao động nữ được nghỉ khám thai 3 lần trong quá trình làm việc.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a054",
+      "question": "Vợ sinh đôi thì lao động nam được nghỉ bao nhiêu ngày?",
+      "gold_answer": "10 ngày làm việc; 14 ngày nếu sinh đôi phải phẫu thuật.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 53:2"
+      ],
+      "closed_book": {
+        "answer": "50 ngày cho mỗi con.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a055",
+      "question": "Trợ cấp một lần khi sinh con là bao nhiêu?",
+      "gold_answer": "Bằng 02 lần mức tham chiếu tại tháng sinh con cho mỗi con.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 58:4"
+      ],
+      "closed_book": {
+        "answer": "Trợ cấp một lần khi sinh con phụ thuộc vào địa phương và chính sách cụ thể, không có quy định chung.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/1"
+      }
+    },
+    {
+      "id": "a056",
+      "question": "Trợ cấp thai sản một tháng bằng bao nhiêu phần trăm tiền lương?",
+      "gold_answer": "Bằng 100% mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội bắt buộc của 06 tháng gần nhất.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 59:1"
+      ],
+      "closed_book": {
+        "answer": "Trợ cấp thai sản một tháng bằng 70% tiền lương.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      },
+      "rag": {
+        "answer": "[Điều 59, Khoản 1] [C1]",
+        "status": "answered",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/2"
+      }
+    },
+    {
+      "id": "a057",
+      "question": "Trợ cấp mai táng và trợ cấp tuất hằng tháng cho mỗi thân nhân là bao nhiêu?",
+      "gold_answer": "Trợ cấp mai táng bằng 10 lần mức tham chiếu; trợ cấp tuất hằng tháng bằng 50% mức tham chiếu, hoặc 70% nếu thân nhân không có người trực tiếp nuôi dưỡng.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 85:2",
+        "luat_bao_hiem_xa_hoi_2024:Điều 87:1"
+      ],
+      "closed_book": {
+        "answer": "Trợ cấp mai táng là 20 triệu đồng, trợ cấp tuất là 5 triệu đồng/hằng tháng cho mỗi thân nhân.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/3"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/3"
+      }
+    },
+    {
+      "id": "a058",
+      "question": "Tối đa bao nhiêu thân nhân được hưởng trợ cấp tuất hằng tháng?",
+      "gold_answer": "Tối đa 04 người.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 87:2"
+      ],
+      "closed_book": {
+        "answer": "Tối đa 3 thân nhân được hưởng trợ cấp tử tế hằng tháng.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/1"
+      },
+      "rag": {
+        "answer": "[Tối đa 04 người] [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    },
+    {
+      "id": "a059",
+      "question": "Rút bảo hiểm xã hội một lần thì mỗi năm đóng được tính bao nhiêu tháng lương?",
+      "gold_answer": "1,5 tháng mức bình quân tiền lương cho năm đóng trước 2014 và 02 tháng cho năm đóng từ 2014 trở đi.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 70:3"
+      ],
+      "closed_book": {
+        "answer": "Rút bảo hiểm xã hội một lần không ảnh hưởng đến số tháng lương được tính khi đóng bảo hiểm xã hội hàng năm.",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 1,
+        "numbers": "0/3"
+      },
+      "rag": {
+        "answer": "Không tìm thấy thông tin này trong tài liệu.",
+        "status": "abstained",
+        "grounded": 0.0,
+        "claims_ok": 0,
+        "claims": 0,
+        "numbers": "0/3"
+      }
+    },
+    {
+      "id": "a060",
+      "question": "Đóng bảo hiểm xã hội bao nhiêu lâu thì thân nhân được hưởng trợ cấp tuất hằng tháng?",
+      "gold_answer": "Từ đủ 15 năm đóng bảo hiểm xã hội bắt buộc trở lên.",
+      "gold_chunks": [
+        "luat_bao_hiem_xa_hoi_2024:Điều 86:1"
+      ],
+      "closed_book": {
+        "answer": "Được hưởng trợ cấp tử tế ngay khi người lao động đóng BHXH đủ 15 năm.",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      },
+      "rag": {
+        "answer": "Đối tượng được hưởng trợ cấp tuất hằng tháng phải đóng bảo hiểm xã hội từ đủ 15 năm trở lên. [C1]",
+        "status": "answered",
+        "grounded": 1.0,
+        "claims_ok": 1,
+        "claims": 1,
+        "numbers": "1/1"
+      }
+    }
+  ]
+}
