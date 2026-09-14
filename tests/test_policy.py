@@ -4,6 +4,7 @@ from grounded_rag.config import GuardConfig
 from grounded_rag.guard.policy import (
     apply_policy,
     is_abstention,
+    regeneration_feedback,
     should_regenerate,
     verify_claims,
 )
@@ -109,3 +110,18 @@ def test_guard_off_still_returns_the_model_text_verbatim():
     out = apply_policy(claims, [], GuardConfig(enabled=False), raw_text="Báo trước 45 ngày. [C1]")
     assert out.status is AnswerStatus.ANSWERED
     assert out.answer == "Báo trước 45 ngày. [C1]"
+
+
+def test_a_generation_with_no_claims_is_retried():
+    """The model can answer "[C1]": a valid citation with no sentence attached.
+    Citation validation has nothing to strip and the guard has nothing to
+    verify, so without this the one allowed regeneration was never spent."""
+    cfg = GuardConfig(enabled=True, max_regenerations=1)
+    assert should_regenerate([], cfg, attempts=1) is True
+    assert should_regenerate([], cfg, attempts=2) is False  # budget respected
+    assert "chỉ gồm mã trích dẫn" in regeneration_feedback([])
+
+
+def test_a_fully_supported_answer_is_not_retried():
+    claims = [Claim(text="Ít nhất 85%.", citations=["C1"], verdict=Verdict.SUPPORTED)]
+    assert should_regenerate(claims, GuardConfig(enabled=True), attempts=1) is False

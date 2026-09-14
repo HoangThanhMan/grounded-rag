@@ -121,10 +121,23 @@ def _join(claims: list[Claim]) -> str:
 
 
 def should_regenerate(claims: list[Claim], cfg: GuardConfig, attempts: int) -> bool:
-    return cfg.enabled and bool(unsupported(claims)) and attempts <= cfg.max_regenerations
+    if not cfg.enabled or attempts > cfg.max_regenerations:
+        return False
+    # No claims at all is a failed generation, not a refusal: the model answered
+    # "[C1]" - a valid label with no sentence attached, so citation validation
+    # has nothing to catch and there is nothing to verify. A refusal would have
+    # been caught earlier by is_abstention(). Spend the retry the budget allows.
+    return not claims or bool(unsupported(claims))
 
 
 def regeneration_feedback(claims: list[Claim]) -> str:
+    if not claims:
+        return (
+            "Câu trả lời trước chỉ gồm mã trích dẫn, không có câu văn nào. "
+            "Hãy viết lại thành câu hoàn chỉnh, mỗi câu kết thúc bằng mã trích dẫn "
+            "của đoạn chứng minh câu đó. Nếu tài liệu không đủ thông tin, trả lời "
+            f'đúng một câu: "{ABSTAIN_TEXT}"'
+        )
     bad = unsupported(claims)
     listed = "\n".join(f"- {c.text}" for c in bad)
     return (

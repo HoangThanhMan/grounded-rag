@@ -75,7 +75,9 @@ def main() -> int:
             # A question is only unanswerable if the corpus really is silent.
             hits = [ref for ref, text in gold_text.items() if covered(r["question"], text)]
             if hits:
-                warnings.append(f"{qid}: corpus may answer this - {hits[:3]} - {r['question'][:60]}")
+                warnings.append(
+                    f"{qid}: corpus may answer this - {hits[:3]} - {r['question'][:60]}"
+                )
             continue
 
         if not r["gold_chunks"]:
