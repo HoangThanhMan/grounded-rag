@@ -27,6 +27,9 @@ GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
 ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 _RETRYABLE = {408, 429, 500, 502, 503, 504}
 _BACKOFF_S = 0.5
+# 5xx means the provider is overloaded, not that we asked too fast: backing off
+# half a second just spends a retry. 429 is different - it carries its own hint.
+_SERVER_BACKOFF_S = 5.0
 _MAX_WAIT_S = 60.0
 _sleep = asyncio.sleep  # tests replace it to see the waits without waiting
 # the block of the first source; its header is "[C1]" or "[C1 (Điều 35, Khoản 1)]"
@@ -276,10 +279,11 @@ def _retry_wait(r: httpx.Response, attempt: int) -> float:
     hint = r.headers.get("retry-after")
     if hint is None and (m := re.search(r'"retryDelay":\s*"(\d+(?:\.\d+)?)s"', r.text)):
         hint = m.group(1)
+    base = _SERVER_BACKOFF_S if r.status_code >= 500 else _BACKOFF_S
     try:
-        return min(float(hint), _MAX_WAIT_S) if hint is not None else _BACKOFF_S * 2**attempt
+        return min(float(hint), _MAX_WAIT_S) if hint is not None else base * 2**attempt
     except ValueError:  # Retry-After can also be an HTTP date
-        return _BACKOFF_S * 2**attempt
+        return base * 2**attempt
 
 
 def _response(

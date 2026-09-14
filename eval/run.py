@@ -21,10 +21,16 @@ from eval.instrument import ClauseIndex, judge_claims
 from eval.metrics import Case, Row, aggregate, hallucinated
 from grounded_rag.config import RunConfig, settings
 from grounded_rag.generation.citation import extract_citations
+from grounded_rag.generation.llm_client import LLMUnavailable
 from grounded_rag.guard.nli_verifier import get_verifier
 from grounded_rag.ingest.pipeline import ingest
 from grounded_rag.retrieval.corrective import search
 from grounded_rag.service import answer_question
+
+# Outer retry, on top of the client's own: rides out an outage that lasts
+# longer than one question.
+_CASE_RETRIES = 3
+_CASE_BACKOFF_S = 15.0
 
 DEFAULT_GATES = {"hallucination_rate": 0.10, "false_abstention": 0.15}
 
@@ -48,7 +54,7 @@ async def run(
     # configuration runs second.
     search("khởi động", config, as_of)
     verifier.entailment("khởi động", "khởi động")
-    records = []
+    records, errored = [], []
     for raw in load_cases(dataset):
         case = Case(
             id=raw["id"],
@@ -57,7 +63,15 @@ async def run(
             type=raw.get("type", "answerable"),
             tags=raw.get("tags", []),
         )
-        answer = await answer_question(raw["question"], config, as_of=as_of)
+        try:
+            answer = await _answer_with_retries(raw["question"], config, as_of)
+        except LLMUnavailable as e:
+            # A provider outage is not a property of the configuration. Losing
+            # an hour of benchmark to one 503 is worse than reporting n < 100,
+            # so the case is recorded as errored and the run continues.
+            print(f"[error] {raw['id']}: {e}", flush=True)
+            errored.append({"id": raw["id"], "error": str(e)[:300]})
+            continue
         judged = judge_claims(answer, verifier, judge_threshold, index)
         records.append((raw, Row(case=case, answer=answer, judged=judged)))
 
@@ -70,8 +84,22 @@ async def run(
             "threshold": judge_threshold,
         },
         "metrics": aggregate([row for _, row in records], index.gold_text()),
+        "errored": errored,
         "cases": [_case_record(raw, row) for raw, row in records],
     }
+
+
+async def _answer_with_retries(question: str, config: RunConfig, as_of: date):
+    """The client already retries inside one call. This is the outer loop, for
+    an outage that outlives a single question."""
+    for attempt in range(_CASE_RETRIES + 1):
+        try:
+            return await answer_question(question, config, as_of=as_of)
+        except LLMUnavailable:
+            if attempt == _CASE_RETRIES:
+                raise
+            await asyncio.sleep(_CASE_BACKOFF_S * 2**attempt)
+    raise AssertionError("unreachable")
 
 
 def _case_record(raw: dict, row: Row) -> dict:
