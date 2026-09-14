@@ -72,17 +72,21 @@ def apply_policy(
     guard's benefit and make the comparison table meaningless.
     """
     if not cfg.enabled:
-        out = Answer(answer=raw_text or _join(claims), status=AnswerStatus.ANSWERED,
-                     claims=claims, sources=sources)
-        out.meta.regenerated = regenerated
-        return out
+        text = raw_text if raw_text is not None else _join(claims)
+        return _answer(text, claims, sources, regenerated)
 
     bad = unsupported(claims)
     kept = [c for c in claims if c.verdict is Verdict.SUPPORTED]
 
-    if not bad:
+    if not kept:
+        # Nothing survived. Either the guard dropped every claim, or the model
+        # never produced a citable one: a weak model that answers "[1]" leaves
+        # an empty string once that invalid citation is stripped, and an empty
+        # answer reported as `answered` is worse than an honest refusal.
+        status = AnswerStatus.ABSTAINED
+    elif not bad:
         status = AnswerStatus.ANSWERED
-    elif not kept or cfg.on_unsupported == "abstain_all":
+    elif cfg.on_unsupported == "abstain_all":
         status = AnswerStatus.ABSTAINED
     else:
         status = AnswerStatus.PARTIAL
@@ -90,6 +94,22 @@ def apply_policy(
     text = ABSTAIN_TEXT if status is AnswerStatus.ABSTAINED else _join(kept)
 
     out = Answer(answer=text, status=status, claims=claims, sources=sources)
+    out.meta.regenerated = regenerated
+    return out
+
+
+def _answer(
+    text: str, claims: list[Claim], sources: list[RetrievedChunk], regenerated: bool
+) -> Answer:
+    """Guard disabled: the answer reaches the user exactly as written, but an
+    answer with no text left is still an abstention, not an empty success."""
+    blank = not text.strip()
+    out = Answer(
+        answer=ABSTAIN_TEXT if blank else text,
+        status=AnswerStatus.ABSTAINED if blank else AnswerStatus.ANSWERED,
+        claims=claims,
+        sources=sources,
+    )
     out.meta.regenerated = regenerated
     return out
 

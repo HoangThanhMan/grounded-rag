@@ -7,7 +7,14 @@ from grounded_rag.guard.policy import (
     should_regenerate,
     verify_claims,
 )
-from grounded_rag.types import ABSTAIN_TEXT, AnswerStatus, Chunk, RetrievedChunk, Verdict
+from grounded_rag.types import (
+    ABSTAIN_TEXT,
+    AnswerStatus,
+    Chunk,
+    Claim,
+    RetrievedChunk,
+    Verdict,
+)
 
 
 class FixedVerifier:
@@ -85,3 +92,20 @@ def test_baseline_does_not_drop_anything(sources):
     assert out.answer == raw
     # verdicts are still reported, they just do not change the answer
     assert out.claims[1].verdict is Verdict.UNCITED
+
+
+def test_no_surviving_claim_is_an_abstention_not_an_empty_answer():
+    """A weak model can answer "[1]": an invalid citation that citation
+    validation strips, leaving nothing. Reporting that as `answered` hands the
+    caller an empty string dressed as a result."""
+    for enabled in (True, False):
+        out = apply_policy([], [], GuardConfig(enabled=enabled), raw_text="")
+        assert out.status is AnswerStatus.ABSTAINED
+        assert out.answer == ABSTAIN_TEXT
+
+
+def test_guard_off_still_returns_the_model_text_verbatim():
+    claims = [Claim(text="Báo trước 45 ngày.", citations=["C1"])]
+    out = apply_policy(claims, [], GuardConfig(enabled=False), raw_text="Báo trước 45 ngày. [C1]")
+    assert out.status is AnswerStatus.ANSWERED
+    assert out.answer == "Báo trước 45 ngày. [C1]"
