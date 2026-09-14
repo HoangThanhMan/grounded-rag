@@ -110,8 +110,12 @@ make ingest
 make run                 # then open http://localhost:8000
 ```
 
-Open models: `make up-gpu` adds vLLM serving Qwen2.5-7B-Instruct (AWQ) behind the
-OpenAI protocol; set `LLM_PROVIDER=vllm`.
+Open models, no GPU: `make up-ollama` serves one on CPU, and a benchmark run
+then costs no API quota. What that trades away is measured in
+[docs/09](docs/09-runbook.md#chạy-bằng-model-mở-ollama) — a 3B model dropped the
+citation format on a question `gemini-3.1-flash-lite` answered from the same
+prompt. With a GPU, `make up-gpu` serves Qwen2.5-7B-Instruct (AWQ) through vLLM;
+set `LLM_PROVIDER=vllm`.
 
 ## API
 

@@ -38,6 +38,20 @@ services:
       POSTGRES_PASSWORD: postgres
     volumes: ["./langfuse_pgdata:/var/lib/postgresql/data"]
 
+  # Optional, CPU is fine:  make up-ollama
+  # An open model served locally, so a benchmark run costs no API quota. On a
+  # small machine mind the total: the pipeline already holds bge-m3, the
+  # reranker and the NLI model in memory before the generator is loaded.
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ollama"]
+    ports: ["11434:11434"]
+    volumes: ["./.cache/ollama:/root/.ollama"]
+    environment:
+      OLLAMA_KEEP_ALIVE: "10m"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+    mem_limit: 3g
+
   # Optional, NVIDIA GPU only:  make up-gpu
   # An open model behind the OpenAI protocol, so switching to it is
   # LLM_PROVIDER=vllm + LLM_MODEL=Qwen/Qwen2.5-7B-Instruct-AWQ. AWQ weights are

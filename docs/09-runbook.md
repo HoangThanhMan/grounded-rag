@@ -135,3 +135,36 @@ nên đỏ.
 - Mỗi lần sửa prompt hoặc τ → chạy lại `make eval-all`, cập nhật bảng README.
 - Đổi quyết định kiến trúc → thêm ADR mới, không sửa ADR cũ. ADR cũ chuyển
   trạng thái sang `Superseded by ADR-XXXX`.
+
+
+## Chạy bằng model mở (Ollama)
+
+```bash
+make up-ollama
+docker exec grounded-rag-ollama-1 ollama pull qwen2.5:3b-instruct-q4_K_M
+LLM_PROVIDER=ollama LLM_MODEL=qwen2.5:3b-instruct-q4_K_M make eval
+```
+
+Biến môi trường ghi đè `.env`, nên không cần sửa file để đổi provider tạm thời.
+
+### Đo thật, 2026-09-14 — máy 7 GB RAM, CPU
+
+Provider chạy được qua endpoint OpenAI-compatible của Ollama, không phải sửa
+dòng code nào. Nhưng có hai điều phải biết trước khi dùng nó cho benchmark.
+
+**Bộ nhớ là ràng buộc, không phải tốc độ.** Pipeline giữ đồng thời bge-m3
+(~2,2 GB), bge-reranker-v2-m3 (~2,2 GB) và mDeBERTa (~1,1 GB). Cộng thêm 1,9 GB
+cho qwen2.5:3b là ~7,4 GB trên máy 7 GB: lượt chạy 6 câu đã đẩy swap lên 2,3 GB.
+Muốn chạy đủ 100 câu × 4 cấu hình bằng model mở thì phải bỏ bớt một model —
+rẻ nhất là tắt reranker, và cái giá của việc đó đo được bằng chính eval.
+
+**Model 3B không giữ được định dạng trích dẫn.** Với câu "thời giờ làm việc
+bình thường tối đa một ngày", qwen2.5:3b trả về đúng chuỗi `[1]` ở cả 4 lần
+chạy với temperature 0. Cùng prompt đó, `gemini-3.1-flash-lite` trả lời đúng —
+nên đây là giới hạn của model, không phải của prompt. Nếu dùng model mở, hãy
+kiểm tra định dạng trích dẫn trước khi tin bảng số.
+
+Lượt chạy này có ích ngoài dự kiến: `[1]` là mã trích dẫn không hợp lệ, bị lớp
+kiểm tra trích dẫn xoá đi, và câu trả lời thành chuỗi rỗng mà vẫn mang trạng
+thái `answered`. Đó là lỗi của `apply_policy`, đã sửa — không còn mệnh đề nào
+sống sót thì đó là từ chối, không phải thành công rỗng.

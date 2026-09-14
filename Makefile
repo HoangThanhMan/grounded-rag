@@ -1,4 +1,4 @@
-.PHONY: python install check-dataset dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+.PHONY: python install check-dataset up-ollama dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
 
 CONFIGS := baseline threshold full agentic
 
@@ -20,6 +20,9 @@ dev-install:  ## everything needed to actually run the pipeline
 
 up:           ## qdrant + langfuse
 	docker compose up -d
+
+up-ollama:    ## + Ollama serving an open model on CPU (set LLM_PROVIDER=ollama)
+	docker compose --profile ollama up -d ollama
 
 up-gpu:       ## + vLLM serving an open model (NVIDIA GPU only)
 	docker compose --profile gpu up -d
