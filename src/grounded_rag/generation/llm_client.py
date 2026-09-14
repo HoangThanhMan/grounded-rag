@@ -33,7 +33,8 @@ _SERVER_BACKOFF_S = 5.0
 _MAX_WAIT_S = 60.0
 _sleep = asyncio.sleep  # tests replace it to see the waits without waiting
 # the block of the first source; its header is "[C1]" or "[C1 (Điều 35, Khoản 1)]"
-_FIRST_SOURCE = re.compile(r"^\[C1\b[^\]]*\]\n(.*?)(?=\n\n|\Z)", re.MULTILINE | re.DOTALL)
+# "[C1] Điều 105, Khoản 1\n<clause>" - the label, then where it came from
+_FIRST_SOURCE = re.compile(r"^\[C1\][^\n]*\n(.*?)(?=\n\n|\Z)", re.MULTILINE | re.DOTALL)
 
 
 class LLMUnavailable(RuntimeError):

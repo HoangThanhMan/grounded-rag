@@ -21,3 +21,22 @@ def test_citation_to_a_label_never_supplied_is_flagged():
 
 def test_no_citation_is_not_an_invalid_citation():
     assert invalid_citations("Không có trích dẫn.", ["C1"]) == []
+
+
+def test_only_the_label_sits_inside_brackets():
+    """A source header of "[C1 (Điều 105, Khoản 1)]" put two citable-looking
+    tokens in one pair of brackets, and small models cited the article number.
+    Every claim then came back uncited and the guard dropped the answer."""
+    from grounded_rag.generation.prompts import build_user_prompt
+    from grounded_rag.types import Chunk, RetrievedChunk
+
+    src = RetrievedChunk(
+        chunk=Chunk(chunk_id="x", doc_id="d", text="1. Không quá 08 giờ.",
+                    article="Điều 105", clause="Khoản 1"),
+        score=0.9, label="C1",
+    )
+    prompt = build_user_prompt("Bao nhiêu giờ?", [src])
+    assert "[C1] Điều 105, Khoản 1" in prompt
+    assert "[C1 (" not in prompt
+    # the only bracketed token in the documents block is the label itself
+    assert extract_citations(prompt) == ["C1"]

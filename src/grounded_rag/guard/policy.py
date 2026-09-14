@@ -133,6 +133,7 @@ def should_regenerate(claims: list[Claim], cfg: GuardConfig, attempts: int) -> b
 def regeneration_feedback(claims: list[Claim]) -> str:
     if not claims:
         return (
+            "[YÊU CẦU SỬA - không chép lại đoạn này]\n"
             "Câu trả lời trước chỉ gồm mã trích dẫn, không có câu văn nào. "
             "Hãy viết lại thành câu hoàn chỉnh, mỗi câu kết thúc bằng mã trích dẫn "
             "của đoạn chứng minh câu đó. Nếu tài liệu không đủ thông tin, trả lời "
@@ -141,6 +142,7 @@ def regeneration_feedback(claims: list[Claim]) -> str:
     bad = unsupported(claims)
     listed = "\n".join(f"- {c.text}" for c in bad)
     return (
+        "[YÊU CẦU SỬA - không chép lại đoạn này]\n"
         "Câu trả lời trước có những mệnh đề KHÔNG được tài liệu chứng minh:\n"
         f"{listed}\n"
         "Hãy viết lại, chỉ dùng thông tin có trong tài liệu được cung cấp. "

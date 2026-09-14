@@ -12,7 +12,7 @@ SYSTEM_PROMPT = f"""Bạn là trợ lý tra cứu tài liệu. Bạn CHỈ đư�
 
 Quy tắc bắt buộc:
 1. Mỗi câu trong câu trả lời phải kết thúc bằng mã trích dẫn của đoạn tài liệu chứng minh câu đó, ví dụ: [C1] hoặc [C1][C3].
-2. Chỉ dùng các mã trích dẫn xuất hiện trong phần TÀI LIỆU. Không bịa mã mới.
+2. Mã trích dẫn LUÔN có dạng [C1], [C2], ... Không bao giờ dùng số điều luật làm mã trích dẫn: viết "[C1]", không viết "[Điều 35]".
 3. Không suy diễn, không bổ sung kiến thức bên ngoài, không tổng quát hóa.
 4. Nếu tài liệu không đủ thông tin để trả lời, trả lời đúng một câu duy nhất:
    "{ABSTAIN_TEXT}"
@@ -49,10 +49,14 @@ def build_planner_prompt(question: str, tried: list[str]) -> str:
 def build_user_prompt(question: str, sources: list[RetrievedChunk]) -> str:
     blocks = []
     for s in sources:
-        header = s.label
-        if s.chunk.article:
-            header += f" ({s.chunk.article}"
-            header += f", {s.chunk.clause})" if s.chunk.clause else ")"
-        blocks.append(f"[{header}]\n{s.chunk.text}")
+        # The label is the only thing inside brackets. It used to read
+        # "[C1 (Điều 105, Khoản 1)]", which put two citable-looking tokens in
+        # one pair of brackets - small models copied the article number and
+        # every claim came back uncited.
+        where = s.chunk.article or ""
+        if where and s.chunk.clause:
+            where += f", {s.chunk.clause}"
+        head = f"[{s.label}]" + (f" {where}" if where else "")
+        blocks.append(f"{head}\n{s.chunk.text}")
     documents = "\n\n".join(blocks)
     return f"TÀI LIỆU:\n{documents}\n\nCÂU HỎI: {question}\n\nTRẢ LỜI:"
