@@ -115,5 +115,32 @@ ngày") đã đọc tay và giữ nguyên nhãn — Điều 14 chỉ quy định
 lời nói hoặc dữ liệu điện tử, và từ "công chứng" không xuất hiện lần nào trong
 Bộ luật Lao động.
 
-**Chưa làm: kiểm tra chéo lần hai** (quy trình bước 6) và **chấm tay 30 câu**.
-Số liệu sinh ra từ tập này phải được đọc kèm hai điều đó.
+### 2026-09-17 — kiểm tra chéo lần hai
+
+Đọc lại cả 100 câu cạnh nguyên văn khoản gold, tìm toàn văn corpus cho các câu
+không trả lời được. Lượt này do trợ lý AI làm, không phải
+người gán nhãn ban đầu — một cặp mắt khác, nhưng không phải chuyên gia pháp lý.
+Sửa 4/100 câu, trong khoảng 5–10% mà bước 6 dự kiến. Cả ba câu đổi loại lại
+rơi đúng vào cái bẫy của quy tắc 5, dù lần một đã biết cái bẫy đó:
+
+| Trước | Sau | Lý do |
+|---|---|---|
+| u021 `false_premise` — nghỉ không báo trước "bị phạt bao nhiêu tiền" | a061 `answerable`, Điều 40:2 | Luật không phạt tiền, nhưng quy định rõ khoản bồi thường. Bác tiền đề kèm trích dẫn là câu trả lời đúng |
+| u029 `false_premise` — lộ thông tin nội bộ "phạt bao nhiêu tháng lương" | a062 `answerable`, Điều 127:2 | Cùng khuôn với a020: phạt tiền thay kỷ luật bị cấm |
+| u040 `near_miss` — sinh con lần thứ ba nghỉ thai sản bao lâu | a063 `answerable`, Điều 139:1 | "06 tháng" không phụ thuộc con thứ mấy; corpus trả lời được |
+| a026 tag `colloquial` | bỏ tag | Câu dùng đúng thuật ngữ "nghỉ hằng năm" |
+
+Id mới giữ `relabelled_from` để đối chiếu với report cũ. Tập nay là 63
+`answerable`, 15 `out_of_scope`, 13 `false_premise`, 9 `near_miss`; 11 câu
+`colloquial`, 11 câu `multi_part`. Mọi report trước ngày này dùng nhãn cũ và
+không so trực tiếp được.
+
+Giữ nguyên, sau khi cân nhắc: u028 ("làm việc tối thiểu bao nhiêu năm mới được
+ký hợp đồng không xác định thời hạn") — Điều 20 không đặt điều kiện thâm niên
+nào, và không có khoản nào bác tiền đề trực tiếp như Điều 127:2.
+
+### 2026-09-17 — tách tập dev
+
+20 câu có `"split": "dev"`, lấy phân tầng (câu thứ 5, 10, ... trong mỗi loại
+theo thứ tự ban đầu). Chỉ dùng để hiệu chỉnh τ (`scripts/calibrate_tau.py`);
+`eval.run` mặc định chấm trên 80 câu `test` còn lại.

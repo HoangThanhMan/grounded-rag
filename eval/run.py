@@ -45,6 +45,7 @@ async def run(
     index: ClauseIndex,
     judge_threshold: float,
     as_of: date,
+    split: str = "all",
 ) -> dict:
     # The measuring instrument: same verifier, same threshold, every config.
     verifier = get_verifier()
@@ -56,6 +57,10 @@ async def run(
     verifier.entailment("khởi động", "khởi động")
     records, errored = [], []
     for raw in load_cases(dataset):
+        # dev questions calibrate τ (scripts/calibrate_tau.py); a number
+        # reported on them would be scored on its own training data
+        if split != "all" and raw.get("split", "test") != split:
+            continue
         case = Case(
             id=raw["id"],
             answerable=raw["answerable"],
@@ -78,7 +83,11 @@ async def run(
     return {
         "config": config.name,
         "dataset": str(dataset),
+        "split": split,
         "as_of": as_of.isoformat(),
+        # the model that wrote the answers - a report without it cannot be
+        # compared with anything, and the conclusions flip between models
+        "generator": {"provider": settings.llm_provider, "model": settings.llm_model},
         "judge": {
             "verifier": "mock" if settings.llm_provider == "mock" else settings.nli_model,
             "threshold": judge_threshold,
@@ -154,6 +163,12 @@ def main() -> None:
     )
     ap.add_argument("--judge-threshold", type=float, default=settings.entailment_threshold)
     ap.add_argument("--as-of", type=date.fromisoformat, default=date.today())
+    ap.add_argument(
+        "--split",
+        choices=["test", "dev", "all"],
+        default="test",
+        help="test (default): the questions τ was not calibrated on",
+    )
     args = ap.parse_args()
 
     SAMPLE = Path("eval/dataset/questions.sample.jsonl")
@@ -183,7 +198,9 @@ def main() -> None:
         print(f"[ingest] files={stats['files']} chunks={stats['chunks']}")
 
     index = ClauseIndex(args.corpus or args.ingest or Path("data/corpus"))
-    report = asyncio.run(run(config, dataset, index, args.judge_threshold, args.as_of))
+    report = asyncio.run(
+        run(config, dataset, index, args.judge_threshold, args.as_of, args.split)
+    )
 
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

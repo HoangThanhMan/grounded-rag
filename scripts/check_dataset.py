@@ -31,10 +31,10 @@ CORPUS = Path("data/corpus")
 
 # LABELING.md - the split the README reports
 EXPECTED = {
-    "answerable": 60,
+    "answerable": 63,
     "unanswerable_out_of_scope": 15,
-    "unanswerable_false_premise": 15,
-    "unanswerable_near_miss": 10,
+    "unanswerable_false_premise": 13,
+    "unanswerable_near_miss": 9,
 }
 
 NUM = re.compile(r"\d+(?:[.,]\d+)?")

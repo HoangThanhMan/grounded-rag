@@ -8,22 +8,32 @@ Nếu chỉ làm được một thứ trong ba tuần, làm cái này.
 
 | Loại | Số câu | Kiểm tra điều gì |
 |---|---|---|
-| `answerable` | 60 | Trả lời đúng và trích dẫn đúng |
+| `answerable` | 63 | Trả lời đúng và trích dẫn đúng |
 | `unanswerable_out_of_scope` | 15 | Có biết im lặng khi câu hỏi thuộc luật khác |
-| `unanswerable_false_premise` | 15 | Có bịa ra quy định không tồn tại |
-| `unanswerable_near_miss` | 10 | **Bẫy khó nhất** — đúng chủ đề, sai chi tiết |
+| `unanswerable_false_premise` | 13 | Có bịa ra quy định không tồn tại |
+| `unanswerable_near_miss` | 9 | **Bẫy khó nhất** — đúng chủ đề, sai chi tiết |
 
-Tỉ lệ 60/40 là cố ý. Benchmark RAG thông thường chỉ có câu trả lời được, nên
+Con số ban đầu là 60/15/15/10. Lượt kiểm tra chéo ngày 2026-09-17 chuyển ba câu
+`unanswerable` thành `answerable` vì corpus bác được tiền đề của chúng — bác
+tiền đề kèm trích dẫn *là* câu trả lời, không phải từ chối
+([LABELING.md](../eval/dataset/LABELING.md)).
+
+Tỉ lệ xấp xỉ 60/40 là cố ý. Benchmark RAG thông thường chỉ có câu trả lời được, nên
 không bao giờ đo được điều quan trọng nhất: model có biết dừng lại không.
 
 `near_miss` là loại model bịa nhiều nhất. Thiếu thời gian thì cắt `out_of_scope`
 trước, giữ nguyên `near_miss`.
 
-Trong 60 câu `answerable`, gắn `tags` cho khoảng 10 câu `multi_part` (nhiều ý)
-và 10 câu `colloquial` (cách nói đời thường). Đây là hai lát cắt mà vòng truy
+Trong các câu `answerable`, gắn `tags` cho 11 câu `multi_part` (nhiều ý)
+và 11 câu `colloquial` (cách nói đời thường). Đây là hai lát cắt mà vòng truy
 xuất sửa lỗi sinh ra để xử lý; một con số trung bình sẽ che mất tác dụng của nó.
 
 Quy trình gán nhãn: [eval/dataset/LABELING.md](../eval/dataset/LABELING.md).
+
+**Tách dev/test.** 20 câu mang `"split": "dev"`, lấy phân tầng theo loại, và chỉ
+dùng để hiệu chỉnh τ (`scripts/calibrate_tau.py`). `eval.run` mặc định
+`--split test`, tức chấm trên 80 câu còn lại. Báo cáo một con số trên tập dev
+là chấm trên chính dữ liệu đã dùng để chọn ngưỡng.
 
 ## Công cụ đo: một thước cho mọi cấu hình
 
