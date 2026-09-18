@@ -187,6 +187,43 @@ kiểm tra trích dẫn xoá đi, và câu trả lời thành chuỗi rỗng mà
 thái `answered`. Đó là lỗi của `apply_policy`, đã sửa — không còn mệnh đề nào
 sống sót thì đó là từ chối, không phải thành công rỗng.
 
+### Đo lại, 2026-09-19 — nút thắt là model, không phải truy xuất
+
+Cùng câu hỏi, cùng ngữ cảnh, chỉ đổi model:
+
+| Câu hỏi | truy xuất | qwen2.5:3b | gemini-3.1-flash-lite |
+|---|---|---|---|
+| "Người lao động đơn phương chấm dứt HĐLĐ không xác định thời hạn phải báo trước bao nhiêu ngày?" | Điều 35:1 hạng **1**, score 1.00 | trả lời được | trả lời được |
+| "Nghỉ việc phải báo trước bao nhiêu ngày?" | Điều 35:1 hạng **3** (Điều 115 "nghỉ việc riêng" chiếm hạng 1) | **từ chối** | trả lời đủ bốn loại hợp đồng, trích đúng `[C3]` |
+| "Một ngày làm việc tối đa bao nhiêu giờ?" | Điều 146:2 hạng 1 | **từ chối** | — |
+| "Ai được hưởng trợ cấp hưu trí xã hội?" | Điều 21:1 BHXH hạng 1 | **từ chối** | — |
+| "Đi làm muộn bị phạt bao nhiêu tiền?" | không đoạn nào vượt floor | `no_context` — **đúng**, tiền đề sai | — |
+
+Điều đáng giá ở dòng thứ hai: Gemini đọc qua đoạn nhiễu xếp hạng nhất và tìm
+thấy đáp án ở `C3`. Cùng năm đoạn đó, qwen2.5:3b từ chối. **Truy xuất không
+phải nguyên nhân** của `false_abstention` — đó là giới hạn của model 3B.
+
+Kết luận vận hành: `LLM_PROVIDER=ollama` dùng để chạy không tốn tiền và để đo,
+nhưng **để demo thì dùng Gemini**:
+
+```bash
+LLM_PROVIDER=gemini LLM_MODEL=gemini-3.1-flash-lite make run
+```
+
+### Lỗi thay con số bằng mã trích dẫn (đã sửa 2026-09-19)
+
+qwen2.5:3b trả về `"phải báo trước ít nhất [C1] ngày"` — mã trích dẫn nằm đúng
+chỗ con số. 4/4 lượt sinh ở temperature 0.
+
+Guard **không** bắt được: bỏ mã trích dẫn đi thì mệnh đề không còn con số nào,
+nên luật con số không có gì để kiểm, và phần chữ còn lại vẫn entail khoản luật.
+Một câu trả lời vô nghĩa được 0.99 và tới tay người dùng.
+
+Sửa bằng prompt: quy tắc 2 nói thẳng kèm ví dụ rằng con số phải chép nguyên văn
+và mã trích dẫn không bao giờ thay thế một con số. Sau khi sửa: 4/4 lượt giữ
+được "45 ngày". Nếu bạn đổi model sinh, hãy kiểm lại đúng điều này trước khi
+tin bảng số.
+
 
 ## Chỉ cần Qdrant, không cần build image API
 
