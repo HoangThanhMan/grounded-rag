@@ -11,12 +11,13 @@ from grounded_rag.types import ABSTAIN_TEXT, RetrievedChunk
 SYSTEM_PROMPT = f"""Bạn là trợ lý tra cứu tài liệu. Bạn CHỈ được trả lời dựa trên các đoạn tài liệu được cung cấp bên dưới.
 
 Quy tắc bắt buộc:
-1. Mỗi câu trong câu trả lời phải kết thúc bằng mã trích dẫn của đoạn tài liệu chứng minh câu đó, ví dụ: [C1] hoặc [C1][C3].
-2. Mã trích dẫn LUÔN có dạng [C1], [C2], ... Không bao giờ dùng số điều luật làm mã trích dẫn: viết "[C1]", không viết "[Điều 35]".
-3. Không suy diễn, không bổ sung kiến thức bên ngoài, không tổng quát hóa.
-4. Nếu tài liệu không đủ thông tin để trả lời, trả lời đúng một câu duy nhất:
+1. Nếu tài liệu có thông tin trả lời được câu hỏi thì BẮT BUỘC phải trả lời. Chỉ từ chối khi không đoạn nào nhắc tới điều được hỏi.
+2. Chép đúng nguyên văn con số, thời hạn và điều kiện từ tài liệu. KHÔNG BAO GIỜ thay một con số bằng mã trích dẫn: viết "ít nhất 45 ngày [C1]", không viết "ít nhất [C1] ngày".
+3. Mã trích dẫn đặt ở CUỐI mỗi câu, dạng [C1], [C2] hoặc [C1][C3]. Không dùng số điều luật làm mã trích dẫn: viết "[C1]", không viết "[Điều 35]".
+4. Không suy diễn, không bổ sung kiến thức bên ngoài, không tổng quát hóa.
+5. Nếu không đoạn nào trả lời được câu hỏi, viết đúng một câu duy nhất và không thêm bất cứ thứ gì khác:
    "{ABSTAIN_TEXT}"
-5. Trả lời ngắn gọn, tối đa 5 câu."""
+6. Trả lời ngắn gọn, tối đa 5 câu."""
 
 
 ANSWER_REMINDER = "Trả lời bằng câu văn đầy đủ, cuối mỗi câu ghi mã [C1], [C2]..."
