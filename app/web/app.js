@@ -1,4 +1,9 @@
-/* grounded-rag demo UI. Talks to the same origin that serves it. */
+/* grounded-rag demo UI. Talks to the same origin that serves it.
+
+   One idea runs through the whole page: the gradient is the entailment scale.
+   The band in the hero is the legend; every gauge below it is the same scale at
+   row size, so a claim that only just cleared τ looks different from one that
+   sailed over it. */
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -9,9 +14,13 @@ const configEl = $("#config");
 const asOfEl = $("#as-of");
 const resultEl = $("#result");
 const healthEl = $("#health");
+const scaleEl = $("#scale");
+const scaleTauEl = $("#scale-tau");
+const scaleTauLabelEl = $("#scale-tau-label");
+const scaleNoteEl = $("#scale-note");
 
 // Filled from GET /configs; the fallback keeps the page usable if that 404s.
-let CONFIGS = { full: { guard: true, threshold: 0.6 } };
+let CONFIGS = { full: { guard_enabled: true, entailment_threshold: 0.5 } };
 
 const STATUS = {
   answered: "Đã trả lời",
@@ -45,7 +54,13 @@ const STEP_NAME = {
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
 
-const seconds = (ms) => (ms >= 1000 ? `${(ms / 1000).toFixed(1)} giây` : `${ms} ms`);
+const seconds = (ms) => (ms >= 1000 ? `${(ms / 1000).toFixed(1).replace(".", ",")} giây` : `${ms} ms`);
+
+// Vietnamese writes the decimal separator as a comma, including on scores.
+const num2 = (x) => x.toFixed(2).replace(".", ",");
+
+const tauOf = (name) => CONFIGS[name]?.entailment_threshold ?? 0.5;
+const guardOf = (name) => CONFIGS[name]?.guard_enabled ?? true;
 
 /* -------------------------------------------------------------- startup -- */
 
@@ -69,6 +84,22 @@ $("#samples").addEventListener("click", (e) => {
   autoGrow();
   form.requestSubmit();
 });
+
+/* The hero band is the legend for every gauge on the page, so it has to show
+   the threshold the selected configuration actually runs at. */
+function paintScale() {
+  const name = configEl.value || "full";
+  const tau = tauOf(name);
+  const on = guardOf(name);
+
+  scaleEl.classList.toggle("guard-off", !on);
+  scaleTauEl.style.left = `${(tau * 100).toFixed(1)}%`;
+  scaleTauLabelEl.textContent = `τ ${num2(tau)}`;
+  scaleNoteEl.textContent = on
+    ? `Mệnh đề dưới vạch τ bị loại khỏi câu trả lời. Cấu hình “${name}” chấm ở ${num2(tau)}.`
+    : `Cấu hình “${name}” tắt guard: mệnh đề được liệt kê nhưng không mệnh đề nào bị chặn.`;
+}
+configEl.addEventListener("change", paintScale);
 
 async function boot() {
   try {
@@ -96,6 +127,9 @@ async function boot() {
   const params = new URLSearchParams(location.search);
   if (params.get("config") && names.includes(params.get("config"))) configEl.value = params.get("config");
   if (params.get("as_of")) asOfEl.value = params.get("as_of");
+
+  paintScale();
+
   if (params.get("q")) {
     questionEl.value = params.get("q");
     autoGrow();
@@ -120,8 +154,11 @@ form.addEventListener("submit", async (e) => {
   submitEl.disabled = true;
   submitEl.textContent = "Đang hỏi";
   resultEl.hidden = false;
-  resultEl.innerHTML = `<div class="waiting"><p>Đang <em>truy xuất</em>, rồi <em>sinh câu trả lời</em>,
-    rồi <em>kiểm chứng</em> từng mệnh đề. Trên CPU bước xếp hạng lại thường mất 5–15 giây.</p></div>`;
+  resultEl.innerHTML = `<div class="waiting">
+    <div class="waiting-band"></div>
+    <p>Đang <em>truy xuất</em>, rồi <em>sinh câu trả lời</em>, rồi <em>kiểm chứng</em> từng
+       mệnh đề. Trên CPU bước xếp hạng lại thường mất 5–15 giây.</p>
+  </div>`;
 
   const started = performance.now();
   try {
@@ -163,8 +200,8 @@ function renderFailure(status, detail) {
 /* --------------------------------------------------------------- render -- */
 
 function render(res, configName) {
-  const tau = CONFIGS[configName]?.entailment_threshold ?? 0.6;
-  const guardOn = CONFIGS[configName]?.guard_enabled ?? true;
+  const tau = tauOf(configName);
+  const guardOn = guardOf(configName);
   const meta = res.meta ?? {};
   const claims = res.claims ?? [];
   const sources = res.sources ?? [];
@@ -212,7 +249,7 @@ function withCitations(text) {
 
 function ledger(claims, tau, guardOn) {
   const note = guardOn
-    ? `Ngưỡng của guard là ${tau.toFixed(2)} — vạch dọc trên thước.`
+    ? `Cùng thang màu với dải ở trên; vạch đen là τ ${num2(tau)}.`
     : "Cấu hình này tắt guard: mệnh đề được liệt kê nhưng không được kiểm chứng.";
 
   return `<section class="ledger">
@@ -227,8 +264,12 @@ function ledger(claims, tau, guardOn) {
 function claimRow(claim, tau) {
   const verdict = claim.verdict ?? "null";
   const score = claim.entailment;
-  const pct = score == null ? 0 : Math.max(0, Math.min(1, score)) * 100;
   const cites = (claim.citations ?? []).join(",");
+
+  // The fill scales the gradient so it still spans the whole track: the colour
+  // a claim ends on is its position on the scale, not a verdict swatch.
+  const pct = score == null ? 0 : Math.max(1, Math.min(100, score * 100));
+  const fill = score == null ? "" : `<span class="fill" style="--pct:${pct.toFixed(1)}"></span>`;
 
   return `<button type="button" class="claim" data-verdict="${esc(verdict)}"
       data-cites="${esc(cites)}" aria-pressed="false">
@@ -236,12 +277,13 @@ function claimRow(claim, tau) {
     <div class="claim-foot">
       <span class="tag">${esc(VERDICT[verdict] ?? verdict)}</span>
       ${(claim.citations ?? []).map((l) => `<span class="cite">${esc(l)}</span>`).join("")}
+      ${claim.cited_as ? `<span class="recited">model trích ${esc(claim.cited_as.join(", "))}</span>` : ""}
       <span class="gauge">
         <span class="track">
-          <span class="fill" style="width:${pct.toFixed(1)}%"></span>
+          ${fill}
           <span class="tau" style="left:${(tau * 100).toFixed(1)}%"></span>
         </span>
-        <span class="score${score == null ? " none" : ""}">${score == null ? "—" : score.toFixed(2)}</span>
+        <span class="score${score == null ? " none" : ""}">${score == null ? "—" : num2(score)}</span>
       </span>
     </div>
   </button>`;
@@ -284,7 +326,7 @@ function sourceCard(s) {
     <div class="source-head">
       <span class="source-label">${esc(s.label)}</span>
       <span class="source-ref">${esc(where)}</span>
-      <span class="source-score">${Number(s.score).toFixed(2)}</span>
+      <span class="source-score">${num2(Number(s.score))}</span>
     </div>
     ${doc ? `<p class="source-doc">${esc(doc)}</p>` : ""}
     <p class="source-text">${esc(text)}</p>
@@ -306,6 +348,7 @@ function pipeline(meta) {
     const times = steps.filter((x) => x.name === s.name).length;
     return times > 1 ? `${base} (lần ${runs[i]})` : base;
   };
+
   return `<section class="pipeline">
     <h2>Thời gian dùng ở đâu</h2>
     <div class="timeline">
@@ -321,7 +364,7 @@ function pipeline(meta) {
       ${steps
         .map(
           (s, i) =>
-            `<li><span class="swatch" style="background:${spanColor(s.name)}"></span>
+            `<li><span class="swatch" data-name="${esc(s.name)}"></span>
              ${esc(label(s, i))} <b>${seconds(s.ms)}</b></li>`,
         )
         .join("")}
@@ -329,9 +372,6 @@ function pipeline(meta) {
     </ul>
   </section>`;
 }
-
-const SPAN_COLORS = { retrieve: "#9aa793", plan: "#b9a06a", generate: "#6f7a8c", verify: "#4e7a63" };
-const spanColor = (name) => SPAN_COLORS[name] ?? "#c7ccc1";
 
 /* --------------------------------------------------------- interactions -- */
 
