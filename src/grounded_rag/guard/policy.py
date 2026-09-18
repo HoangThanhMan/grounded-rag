@@ -7,6 +7,7 @@ sentence reach the user unmarked.
 
 from __future__ import annotations
 
+import itertools
 import re
 
 from grounded_rag.config import GuardConfig
@@ -44,12 +45,52 @@ def verify_claims(
             claim.entailment = 0.0
             continue
 
-        premise = "\n".join(by_label.get(label, "") for label in claim.citations).strip()
-        score = verifier.entailment(premise, claim.text) if premise else 0.0
+        score = max(
+            (verifier.entailment(p, claim.text) for p in _cited_premises(claim, by_label)),
+            default=0.0,
+        )
+        if score < threshold:
+            score = _recite(claim, by_label, verifier, threshold) or score
         claim.entailment = round(score, 4)
         claim.verdict = Verdict.SUPPORTED if score >= threshold else Verdict.UNSUPPORTED
 
     return claims
+
+
+def _cited_premises(claim: Claim, by_label: dict[str, str]) -> list[str]:
+    """Everything the claim cites, joined - and, when it cites three or more,
+    each pair as well. Three clauses joined pass the NLI model's 512 tokens,
+    and the one that is cut off is often the one the claim needed."""
+    texts = [by_label[label] for label in claim.citations if by_label.get(label)]
+    if not texts:
+        return []
+    premises = ["\n".join(texts)]
+    if len(texts) > 2:
+        premises += ["\n".join(pair) for pair in itertools.combinations(texts, 2)]
+    return premises
+
+
+def _recite(
+    claim: Claim, by_label: dict[str, str], verifier: Verifier, threshold: float
+) -> float | None:
+    """The claim is not supported by what it cites - is it by another source
+    the model was shown? Then the model mislabelled a true sentence, and the
+    fix is the label, not the sentence: small models cite [C1] for what [C2]
+    says. The claim still has to be entailed by one retrieved chunk on its own,
+    so nothing outside the context gets through. The label the model wrote is
+    kept in `cited_as`."""
+    best, best_label = 0.0, None
+    for label, text in by_label.items():
+        if label in claim.citations:
+            continue
+        score = verifier.entailment(text, claim.text)
+        if score > best:
+            best, best_label = score, label
+    if best_label is None or best < threshold:
+        return None
+    claim.cited_as = claim.citations
+    claim.citations = [best_label]
+    return best
 
 
 def unsupported(claims: list[Claim]) -> list[Claim]:

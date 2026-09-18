@@ -29,7 +29,6 @@ def test_list_items_are_claims_and_their_numbers_are_not():
     answer = "Theo tài liệu:\n1. Phải báo trước 45 ngày [C1]\n- Nghỉ hằng năm 12 ngày [C2]"
     claims = split_claims(answer)
     assert [(c.text, c.citations) for c in claims] == [
-        ("Theo tài liệu:", []),
         ("Phải báo trước 45 ngày", ["C1"]),
         ("Nghỉ hằng năm 12 ngày", ["C2"]),
     ]
@@ -48,3 +47,31 @@ def test_the_guards_output_splits_back_into_the_same_claims():
     claims = split_claims("Phải báo trước 45 ngày [C1]. Không áp dụng với thử việc [C2].")
     again = split_claims(_join(claims))
     assert [(c.text, c.citations) for c in again] == [(c.text, c.citations) for c in claims]
+
+
+def test_a_bracketed_answer_is_unwrapped_not_deleted():
+    # qwen2.5:3b writes the number it found in brackets; deleting the brackets'
+    # content left "tối đa là." and the guard refused a correct answer
+    claims = split_claims("Thời gian thử việc tối đa là [60 ngày] [C1]. Trừ tối đa [30%] [C2].")
+    assert [c.text for c in claims] == ["Thời gian thử việc tối đa là 60 ngày.", "Trừ tối đa 30%."]
+
+
+def test_an_article_number_in_brackets_is_not_a_claim_or_part_of_one():
+    # what qwen2.5:3b wrote for a third of the answerable questions
+    assert split_claims("[Điều 105, Khoản 1][C1]") == []
+    assert [c.text for c in split_claims("[CR1] Không quá 04 giờ [C1].")] == ["Không quá 04 giờ."]
+    assert [c.text for c in split_claims("[TRẢ LỜI] Là 30 ngày [C1].")] == ["Là 30 ngày."]
+    assert [c.text for c in split_claims("Theo [khoản 2 Điều 46], 10 ngày [C1].")] == [
+        "Theo khoản 2 Điều 46, 10 ngày."
+    ]
+    claims = split_claims("[Điều 26] Lương thử việc ít nhất bằng 85% [C1].")
+    assert [(c.text, c.citations) for c in claims] == [("Lương thử việc ít nhất bằng 85%.", ["C1"])]
+
+
+def test_an_echoed_answer_slot_is_dropped():
+    claims = split_claims("Câu trả lời: Tối đa 08 giờ một ngày [C2].")
+    assert [(c.text, c.citations) for c in claims] == [("Tối đa 08 giờ một ngày.", ["C2"])]
+
+
+def test_a_cited_sentence_ending_in_a_colon_is_still_a_claim():
+    assert len(split_claims("Người lao động được nghỉ trong các trường hợp sau [C1]:")) == 1

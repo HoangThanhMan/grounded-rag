@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 from enum import StrEnum
 from typing import Any
 
@@ -69,6 +69,9 @@ class Claim(BaseModel):
     citations: list[str] = Field(default_factory=list)
     entailment: float | None = None
     verdict: Verdict | None = None  # None = not verified (guard disabled)
+    # set when the guard moved the citation to the source that does support
+    # the claim: what the model originally cited
+    cited_as: list[str] | None = None
 
 
 class AnswerStatus(StrEnum):
@@ -96,6 +99,8 @@ class Step(BaseModel):
     name: str                       # retrieve | plan | generate | verify
     ms: int
     detail: dict[str, Any] = Field(default_factory=dict)
+    # wall-clock start, for exporting the span to Langfuse; not part of the API
+    started: datetime | None = Field(default=None, exclude=True)
 
 
 class AnswerMeta(BaseModel):

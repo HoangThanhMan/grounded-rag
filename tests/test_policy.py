@@ -125,3 +125,55 @@ def test_a_generation_with_no_claims_is_retried():
 def test_a_fully_supported_answer_is_not_retried():
     claims = [Claim(text="Ít nhất 85%.", citations=["C1"], verdict=Verdict.SUPPORTED)]
     assert should_regenerate(claims, GuardConfig(enabled=True), attempts=1) is False
+
+
+class ByPremise:
+    """Supports a claim only against the premise that contains `needle`."""
+
+    def __init__(self, needle):
+        self.needle = needle
+
+    def entailment(self, premise, hypothesis):
+        return 0.95 if self.needle in premise else 0.05
+
+
+def _two_sources():
+    return [
+        RetrievedChunk(chunk=Chunk(chunk_id="a", doc_id="d", text="Khoản 3: điều khác."),
+                       score=0.9, label="C1"),
+        RetrievedChunk(chunk=Chunk(chunk_id="b", doc_id="d", text="Khoản 2: bằng 75%."),
+                       score=0.8, label="C2"),
+    ]
+
+
+def test_a_true_claim_cited_to_the_wrong_source_is_relabelled_not_dropped():
+    sources = _two_sources()
+    claims = verify_claims("Trợ cấp bằng 75% [C1].", sources, ByPremise("75%"), 0.6)
+    assert claims[0].verdict is Verdict.SUPPORTED
+    assert claims[0].citations == ["C2"] and claims[0].cited_as == ["C1"]
+    out = apply_policy(claims, sources, GuardConfig(enabled=True))
+    assert out.status is AnswerStatus.ANSWERED and "[C2]" in out.answer
+
+
+def test_relabelling_never_rescues_a_claim_no_source_supports():
+    sources = _two_sources()
+    claims = verify_claims("Trợ cấp bằng 90% [C1].", sources, ByPremise("90%"), 0.6)
+    assert claims[0].verdict is Verdict.UNSUPPORTED
+    assert claims[0].citations == ["C1"] and claims[0].cited_as is None
+
+
+def test_a_claim_citing_three_sources_is_also_read_against_each_pair():
+    seen = []
+
+    class Recorder:
+        def entailment(self, premise, hypothesis):
+            seen.append(premise)
+            return 0.9 if premise == "A\nC" else 0.1
+
+    sources = [
+        RetrievedChunk(chunk=Chunk(chunk_id=x, doc_id="d", text=x), score=0.9, label=f"C{i + 1}")
+        for i, x in enumerate("ABC")
+    ]
+    claims = verify_claims("Hai ý [C1][C2][C3].", sources, Recorder(), 0.6)
+    assert claims[0].verdict is Verdict.SUPPORTED
+    assert seen[0] == "A\nB\nC"

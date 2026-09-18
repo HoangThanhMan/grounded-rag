@@ -85,3 +85,35 @@ async def test_agentic_config_splits_a_two_part_question():
     assert {"bo_luat_lao_dong_2019:Điều 35:1", "bo_luat_lao_dong_2019:Điều 113:1"} <= refs
     assert "plan" in [s.name for s in answer.meta.steps]
     assert answer.meta.llm_calls <= _config("agentic").max_llm_calls
+
+
+class Scripted:
+    """Answers with each text in turn."""
+
+    def __init__(self, *texts):
+        self.texts = list(texts)
+
+    async def complete(self, system, user, **kw):
+        return LLMResponse(text=self.texts.pop(0), tokens=5)
+
+
+GOOD = "Thời giờ làm việc bình thường không quá 08 giờ trong 01 ngày [C1]."
+BAD = "Thưởng Tết bằng hai tháng lương [C1]."
+
+
+@pytest.mark.asyncio
+async def test_giving_up_on_regeneration_keeps_the_claims_already_verified(monkeypatch):
+    monkeypatch.setattr(service, "get_llm_client", lambda: Scripted(f"{GOOD} {BAD}", ABSTAIN_TEXT))
+    answer = await answer_question(HOURS, _config("full"))
+    assert answer.status is AnswerStatus.PARTIAL
+    assert "08 giờ" in answer.answer and "Tết" not in answer.answer
+    assert answer.meta.regenerated and answer.meta.llm_calls == 2
+
+
+@pytest.mark.asyncio
+async def test_a_refusal_after_regeneration_still_shows_what_the_guard_rejected(monkeypatch):
+    monkeypatch.setattr(service, "get_llm_client", lambda: Scripted(BAD, ABSTAIN_TEXT))
+    answer = await answer_question(HOURS, _config("full"))
+    assert answer.status is AnswerStatus.ABSTAINED
+    assert answer.meta.abstain_reason is AbstainReason.GUARD
+    assert [c.verdict for c in answer.claims] == ["unsupported"]

@@ -1,3 +1,5 @@
+import re
+
 from grounded_rag.generation.citation import (
     extract_citations,
     invalid_citations,
@@ -24,9 +26,9 @@ def test_no_citation_is_not_an_invalid_citation():
 
 
 def test_only_the_label_sits_inside_brackets():
-    """A source header of "[C1 (Điều 105, Khoản 1)]" put two citable-looking
-    tokens in one pair of brackets, and small models cited the article number.
-    Every claim then came back uncited and the guard dropped the answer."""
+    """A source header of "[C1 (Điều 105, Khoản 1)]", and later "[C1] Điều 105,
+    Khoản 1", put an article number next to the label, and small models cited
+    the article number. Every claim then came back uncited."""
     from grounded_rag.generation.prompts import build_user_prompt
     from grounded_rag.types import Chunk, RetrievedChunk
 
@@ -36,7 +38,9 @@ def test_only_the_label_sits_inside_brackets():
         score=0.9, label="C1",
     )
     prompt = build_user_prompt("Bao nhiêu giờ?", [src])
-    assert "[C1] Điều 105, Khoản 1" in prompt
-    assert "[C1 (" not in prompt
+    assert "[C1]\n1. Không quá 08 giờ." in prompt
+    assert "Khoản 1" not in prompt
     # the only bracketed token in the documents block is the label itself
-    assert extract_citations(prompt) == ["C1"]
+    documents = prompt.split("CÂU HỎI:")[0]
+    assert extract_citations(documents) == ["C1"]
+    assert re.findall(r"\[[^\]]*\]", documents) == ["[C1]"]

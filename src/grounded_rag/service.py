@@ -28,6 +28,7 @@ from grounded_rag.guard.policy import (
 )
 from grounded_rag.observability import metrics
 from grounded_rag.observability.tracing import collect_steps, trace
+from grounded_rag.observability.tracing import export as export_trace
 from grounded_rag.retrieval.corrective import retrieve
 from grounded_rag.types import (
     ABSTAIN_TEXT,
@@ -36,6 +37,7 @@ from grounded_rag.types import (
     AnswerStatus,
     Claim,
     RetrievedChunk,
+    Verdict,
 )
 
 log = logging.getLogger("grounded_rag.service")
@@ -59,6 +61,7 @@ async def answer_question(
     out.meta.config = config.name
     out.meta.steps = steps
     metrics.observe_answer(out)
+    export_trace(question, out)
     return out
 
 
@@ -111,8 +114,18 @@ async def _answer(question: str, config: RunConfig, llm: MeteredLLM, as_of: date
         # The model declined on its own. After a regeneration, it declined
         # because the guard told it what was unsupported - the guard's credit.
         if is_abstention(text):
+            if attempts > 1 and any(c.verdict is Verdict.SUPPORTED for c in claims):
+                # Asked to fix its unsupported claims, the model gave up on the
+                # whole answer. The claims the guard already verified are still
+                # verified: answer with those rather than refuse.
+                break
             reason = AbstainReason.MODEL if attempts == 1 else AbstainReason.GUARD
-            return _declined(AnswerStatus.ABSTAINED, reason, sources, regenerated=attempts > 1)
+            # After a regeneration, `claims` are the ones the guard rejected on
+            # the first attempt. Kept, so a report can show what was refused -
+            # without them a guard that rejects correct sentences is invisible.
+            out = _declined(AnswerStatus.ABSTAINED, reason, sources, regenerated=attempts > 1)
+            out.claims = claims
+            return out
 
         if not config.guard.enabled:
             # No verification at all, so the baseline pays nothing for the

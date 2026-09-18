@@ -15,6 +15,7 @@ chunk size, not about the guard.
 
 from __future__ import annotations
 
+import itertools
 from pathlib import Path
 
 from eval.metrics import ABSTAIN_STATES, covers
@@ -79,6 +80,8 @@ def judge_claims(
         premises = [p for chunk in cited for p in index.premises(chunk)]
         if len(cited) > 1:  # a claim may need its sources together, as the guard reads them
             premises.append("\n".join(c.text for c in cited))
+        if len(cited) > 2:  # and three joined can pass 512 tokens, as in the guard
+            premises += ["\n".join((a.text, b.text)) for a, b in itertools.combinations(cited, 2)]
         score = max(verifier.entailment(p, claim.text) for p in premises)
         claim.entailment = round(score, 4)
         claim.verdict = Verdict.SUPPORTED if score >= threshold else Verdict.UNSUPPORTED

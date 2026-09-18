@@ -19,6 +19,9 @@ Quy tắc bắt buộc:
 5. Trả lời ngắn gọn, tối đa 5 câu."""
 
 
+ANSWER_REMINDER = "Trả lời bằng câu văn đầy đủ, cuối mỗi câu ghi mã [C1], [C2]..."
+
+
 _PLANNER_PROMPT = """Bạn là bộ lập kế hoạch truy vấn cho hệ thống tra cứu văn bản pháp luật Việt Nam. Bạn KHÔNG trả lời câu hỏi.
 
 Lần tìm kiếm với câu hỏi gốc chưa tìm được đoạn tài liệu đủ liên quan. Hãy viết lại thành truy vấn tìm kiếm tốt hơn:
@@ -47,16 +50,13 @@ def build_planner_prompt(question: str, tried: list[str]) -> str:
 
 
 def build_user_prompt(question: str, sources: list[RetrievedChunk]) -> str:
-    blocks = []
-    for s in sources:
-        # The label is the only thing inside brackets. It used to read
-        # "[C1 (Điều 105, Khoản 1)]", which put two citable-looking tokens in
-        # one pair of brackets - small models copied the article number and
-        # every claim came back uncited.
-        where = s.chunk.article or ""
-        if where and s.chunk.clause:
-            where += f", {s.chunk.clause}"
-        head = f"[{s.label}]" + (f" {where}" if where else "")
-        blocks.append(f"{head}\n{s.chunk.text}")
-    documents = "\n\n".join(blocks)
-    return f"TÀI LIỆU:\n{documents}\n\nCÂU HỎI: {question}\n\nTRẢ LỜI:"
+    # The label is the only thing in the header. "[C1] Điều 105, Khoản 1" was
+    # copied by small models as "[Điều 105][C1]", an answer with no sentence
+    # in it; the chunk text already opens with its article heading.
+    documents = "\n\n".join(f"[{s.label}]\n{s.chunk.text}" for s in sources)
+    # Restated right before the answer slot: qwen2.5:3b followed the system
+    # prompt's citation rule in 1 of 4 answers, and in 3 of 4 with this line.
+    return (
+        f"TÀI LIỆU:\n{documents}\n\nCÂU HỎI: {question}\n\n"
+        f"{ANSWER_REMINDER}\n\nTRẢ LỜI:"
+    )

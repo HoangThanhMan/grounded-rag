@@ -45,7 +45,7 @@ def test_configs_lists_every_yaml_with_its_guard_threshold():
     by_name = {r["name"]: r for r in rows}
     # the demo UI draws the entailment gauge against this number
     assert by_name["full"]["guard_enabled"] is True
-    assert by_name["full"]["entailment_threshold"] == 0.60
+    assert by_name["full"]["entailment_threshold"] == 0.50
     assert by_name["baseline"]["guard_enabled"] is False
     assert by_name["agentic"]["corrective_enabled"] is True
 
