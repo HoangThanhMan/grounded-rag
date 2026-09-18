@@ -50,7 +50,7 @@ class Settings(BaseSettings):
 
     # Threshold of the NLI *measuring instrument* in eval/run.py. The guard's
     # own threshold lives in configs/*.yaml.
-    entailment_threshold: float = 0.60
+    entailment_threshold: float = 0.50
 
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

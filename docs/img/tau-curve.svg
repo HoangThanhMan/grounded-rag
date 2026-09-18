@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" font-family="system-ui, sans-serif" font-size="12" role="img" aria-label="Tỉ lệ chặn của guard theo ngưỡng tau">
+<style>.bg{fill:#fcfcfb}.ink{fill:#0b0b0b}.muted{fill:#52514e}.grid{stroke:#e4e3de}.line{fill:none}.series-1{stroke:#2a78d6}.series-2{stroke:#eb6834}.dot.series-1{fill:#2a78d6}.dot.series-2{fill:#eb6834}.pick{stroke:#52514e}@media (prefers-color-scheme: dark){.bg{fill:#1a1a19}.ink{fill:#fff}.muted{fill:#c3c2b7}.grid{stroke:#383835}.series-1{stroke:#3987e5}.series-2{stroke:#d95926}.dot.series-1{fill:#3987e5}.dot.series-2{fill:#d95926}.pick{stroke:#c3c2b7}}</style>
+<rect class="bg" width="640" height="360" rx="8"/>
+<text class="ink" x="56" y="24" font-size="14" font-weight="600">Guard trên tập dev theo τ</text>
+<text class="muted" x="56" y="40">23 mệnh đề gán nhãn tay (6 không căn cứ), 20 câu dev, cấu hình full và baseline</text>
+<line class="grid" x1="56" x2="490" y1="312" y2="312"/>
+<text class="muted" x="48" y="316" text-anchor="end">0%</text>
+<line class="grid" x1="56" x2="490" y1="246.0" y2="246.0"/>
+<text class="muted" x="48" y="250.0" text-anchor="end">25%</text>
+<line class="grid" x1="56" x2="490" y1="180.0" y2="180.0"/>
+<text class="muted" x="48" y="184.0" text-anchor="end">50%</text>
+<line class="grid" x1="56" x2="490" y1="114.0" y2="114.0"/>
+<text class="muted" x="48" y="118.0" text-anchor="end">75%</text>
+<line class="grid" x1="56" x2="490" y1="48" y2="48"/>
+<text class="muted" x="48" y="52" text-anchor="end">100%</text>
+<text class="muted" x="56" y="330" text-anchor="middle">0.0</text>
+<text class="muted" x="142.8" y="330" text-anchor="middle">0.2</text>
+<text class="muted" x="229.60000000000002" y="330" text-anchor="middle">0.4</text>
+<text class="muted" x="316.4" y="330" text-anchor="middle">0.6</text>
+<text class="muted" x="403.20000000000005" y="330" text-anchor="middle">0.8</text>
+<text class="muted" x="490" y="330" text-anchor="middle">1.0</text>
+<text class="muted" x="273.0" y="352" text-anchor="middle">ngưỡng τ</text>
+<line class="pick" stroke-dasharray="4 4" x1="273.0" x2="273.0" y1="48" y2="312"/>
+<text class="muted" x="279.0" y="60">τ = 0.50</text>
+<polyline class="line series-1" stroke-width="2" points="77.7,312.0 99.4,312.0 121.1,312.0 142.8,312.0 164.5,312.0 186.2,312.0 207.9,312.0 229.6,312.0 251.3,312.0 273.0,312.0 294.7,312.0 316.4,312.0 338.1,312.0 359.8,312.0 381.5,268.0 403.2,268.0 424.9,268.0 446.6,136.0 468.3,136.0"/>
+<circle class="dot series-1" cx="77.7" cy="312.0" r="4"><title>τ=0.05: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="99.4" cy="312.0" r="4"><title>τ=0.10: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="121.1" cy="312.0" r="4"><title>τ=0.15: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="142.8" cy="312.0" r="4"><title>τ=0.20: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="164.5" cy="312.0" r="4"><title>τ=0.25: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="186.2" cy="312.0" r="4"><title>τ=0.30: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="207.9" cy="312.0" r="4"><title>τ=0.35: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="229.6" cy="312.0" r="4"><title>τ=0.40: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="251.3" cy="312.0" r="4"><title>τ=0.45: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="273.0" cy="312.0" r="4"><title>τ=0.50: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="294.7" cy="312.0" r="4"><title>τ=0.55: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="316.4" cy="312.0" r="4"><title>τ=0.60: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="338.1" cy="312.0" r="4"><title>τ=0.65: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="359.8" cy="312.0" r="4"><title>τ=0.70: 0% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="381.5" cy="268.0" r="4"><title>τ=0.75: 17% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="403.2" cy="268.0" r="4"><title>τ=0.80: 17% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="424.9" cy="268.0" r="4"><title>τ=0.85: 17% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="446.6" cy="136.0" r="4"><title>τ=0.90: 67% câu không căn cứ bị chặn</title></circle>
+<circle class="dot series-1" cx="468.3" cy="136.0" r="4"><title>τ=0.95: 67% câu không căn cứ bị chặn</title></circle>
+<text class="ink" x="478.3" y="140.0">câu không căn cứ bị chặn</text>
+<polyline class="line series-2" stroke-width="2" points="77.7,312.0 99.4,312.0 121.1,312.0 142.8,312.0 164.5,312.0 186.2,312.0 207.9,312.0 229.6,312.0 251.3,312.0 273.0,312.0 294.7,296.5 316.4,296.5 338.1,281.0 359.8,249.9 381.5,218.8 403.2,203.3 424.9,187.8 446.6,187.8 468.3,187.8"/>
+<circle class="dot series-2" cx="77.7" cy="312.0" r="4"><title>τ=0.05: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="99.4" cy="312.0" r="4"><title>τ=0.10: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="121.1" cy="312.0" r="4"><title>τ=0.15: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="142.8" cy="312.0" r="4"><title>τ=0.20: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="164.5" cy="312.0" r="4"><title>τ=0.25: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="186.2" cy="312.0" r="4"><title>τ=0.30: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="207.9" cy="312.0" r="4"><title>τ=0.35: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="229.6" cy="312.0" r="4"><title>τ=0.40: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="251.3" cy="312.0" r="4"><title>τ=0.45: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="273.0" cy="312.0" r="4"><title>τ=0.50: 0% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="294.7" cy="296.5" r="4"><title>τ=0.55: 6% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="316.4" cy="296.5" r="4"><title>τ=0.60: 6% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="338.1" cy="281.0" r="4"><title>τ=0.65: 12% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="359.8" cy="249.9" r="4"><title>τ=0.70: 24% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="381.5" cy="218.8" r="4"><title>τ=0.75: 35% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="403.2" cy="203.3" r="4"><title>τ=0.80: 41% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="424.9" cy="187.8" r="4"><title>τ=0.85: 47% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="446.6" cy="187.8" r="4"><title>τ=0.90: 47% câu đúng bị chặn nhầm</title></circle>
+<circle class="dot series-2" cx="468.3" cy="187.8" r="4"><title>τ=0.95: 47% câu đúng bị chặn nhầm</title></circle>
+<text class="ink" x="478.3" y="191.8">câu đúng bị chặn nhầm</text>
+</svg>

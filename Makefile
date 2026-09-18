@@ -1,4 +1,4 @@
-.PHONY: python install check-dataset closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+.PHONY: python install check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
 
 CONFIGS := baseline threshold full agentic
 
@@ -49,7 +49,14 @@ ingest:       ## index the real corpus in data/corpus/ (both chunkers)
 check-dataset: ## resolve every gold ref against the corpus before trusting a number
 	$(PY) scripts/check_dataset.py
 
-eval:         ## full benchmark -> reports/full.json
+nli-probe:    ## day-9 check: does the NLI model catch changed numbers, subjects, conditions?
+	$(PY) scripts/nli_probe.py
+
+calibrate:    ## tau on the 20 dev questions: collect claims, label them by hand, then sweep
+	@test -f reports/tau-dev-claims.json || $(PY) scripts/calibrate_tau.py collect
+	$(PY) scripts/calibrate_tau.py sweep
+
+eval:         ## full benchmark on the 80 test questions -> reports/full.json
 	$(PY) -m eval.run --config configs/full.yaml --ingest data/corpus --out reports/full.json
 
 eval-all:     ## the four-configuration comparison table

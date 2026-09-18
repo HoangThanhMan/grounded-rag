@@ -27,7 +27,7 @@ generation:
 
 guard:
   enabled: true
-  entailment_threshold: 0.60
+  entailment_threshold: 0.50   # calibrated on the dev split - docs/06-guard-design.md
   max_regenerations: 1
   on_unsupported: drop_claim
 

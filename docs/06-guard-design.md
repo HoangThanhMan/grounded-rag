@@ -33,6 +33,18 @@ Hai cái bẫy nữa, đến từ cách LLM viết chứ không phải từ văn
 - **Trả lời dạng danh sách:** mỗi dòng là ít nhất một mệnh đề; ký hiệu đầu dòng
   (`1.`, `-`, `•`) bị bỏ; mảnh không có chữ nào không phải là mệnh đề.
 
+Và ba cái bẫy lộ ra khi chạy `qwen2.5:3b` trên 100 câu (2026-09-17):
+
+- **Ngoặc vuông không phải `[C1]`:** model viết `[Điều 105][C1]` — không câu
+  nào, chỉ mã — và tự chế `[CR1]`, `[TRẢ LỜI]`. Hai loại đó bị bỏ. Nhưng model
+  cũng đặt chính đáp án trong ngoặc, "tối đa là [60 ngày] [C1]": loại này chỉ
+  bỏ ngoặc, giữ chữ. Lần đầu sửa đã xóa cả nội dung, biến câu đúng thành "tối
+  đa là." — và guard loại nó, đúng như phải làm.
+- **Chép lại ô trả lời:** tiền tố "Câu trả lời:" bị bỏ.
+- **Dòng dẫn nhập:** "Theo tài liệu:" không có trích dẫn và kết thúc bằng dấu
+  hai chấm không phải mệnh đề. Trước đây nó bị tính là `uncited` và đẩy mọi câu
+  trả lời dạng danh sách vào vòng sinh lại.
+
 Có unit test riêng cho từng trường hợp (`test_claim_splitter.py`).
 
 ### 2. Kiểm chứng — `nli_verifier.py`
@@ -44,7 +56,30 @@ Model: `MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7`
 - Cache theo `sha256(premise || hypothesis)`; trong eval, cùng một cặp lặp lại
   rất nhiều nên cache tiết kiệm đáng kể
 
-Mệnh đề trích dẫn nhiều đoạn thì premise là các đoạn nối lại.
+Mệnh đề trích dẫn nhiều đoạn thì premise là các đoạn nối lại; trích từ ba đoạn
+trở lên thì chấm thêm từng cặp, vì ba khoản nối lại dễ vượt 512 token và khoản
+bị cắt thường chính là khoản mệnh đề cần.
+
+Hai lớp bọc quanh model, cả hai trong `NLIVerifier.entailment`:
+
+- **Chấm theo từng phần của khoản luật, lấy điểm cao nhất.** Một khoản là tiêu
+  đề Điều + câu dẫn + danh sách a), b), c), hoặc vài câu liền nhau. Mệnh đề
+  thường chỉ nhắc lại một mục. Đọc cả khoản, model chấm câu đúng "được ký tối đa
+  36 tháng" 0.46 — bằng chứng là một dòng giữa những dòng không liên quan. Mỗi
+  "view" giữ tiêu đề Điều và câu dẫn của danh sách, để một mục không bao giờ bị
+  đọc tách khỏi chủ thể và điều kiện của nó (`premise_views`).
+- **Luật con số.** Mọi con số trong mệnh đề phải xuất hiện trong premise ("08"
+  và "8" là một số), nếu không điểm là 0 và model không cần chạy. Câu trả lời
+  pháp luật *chính là* con số, và NLI chấm "48 giờ → 40 giờ" tới 0.72.
+
+### 2b. Sửa trích dẫn — `policy.py::_recite`
+
+Model nhỏ hay trích `[C1]` cho nội dung của `[C2]`. Khi mệnh đề không được đoạn
+nó trích chứng minh, guard thử từng đoạn *khác đã đưa cho model*; nếu một đoạn
+đơn lẻ đạt τ, trích dẫn được chuyển sang đoạn đó (`cited_as` giữ nhãn gốc, giao
+diện hiển thị). Không có gì ngoài context lọt qua được — mệnh đề vẫn phải được
+một đoạn đã truy xuất chứng minh. Mệnh đề không có trích dẫn nào thì không được
+sửa: đó vẫn là vi phạm hợp đồng của prompt.
 
 ### 3. Chính sách — `policy.py`
 
@@ -52,6 +87,7 @@ Mệnh đề trích dẫn nhiều đoạn thì premise là các đoạn nối l�
 |---|---|
 | Mọi mệnh đề `≥ τ` | Trả lời, `status: answered` |
 | Có mệnh đề `< τ`, chưa sinh lại | Sinh lại 1 lần kèm phản hồi cụ thể |
+| Sinh lại mà model từ chối, lượt đầu có mệnh đề `≥ τ` | Giữ các mệnh đề đã kiểm chứng, `status: partial` |
 | Sau sinh lại vẫn còn mệnh đề `< τ`, còn mệnh đề tốt | Bỏ mệnh đề xấu, `status: partial` |
 | Không còn mệnh đề nào tốt | Từ chối, `status: abstained`, `abstain_reason: guard` |
 | Mệnh đề không có trích dẫn | `verdict: uncited` — luôn bị coi là không có căn cứ |
@@ -80,25 +116,69 @@ Hãy viết lại, chỉ dùng thông tin có trong tài liệu được cung c�
 4. Quét τ từ 0.1 đến 0.9, vẽ precision–recall của guard
 5. Chọn τ tại điểm mà `false_abstention` còn dưới 15%
 
-Đường cong này **phải có trong README**. Nó là bằng chứng phân biệt người làm
-kỹ với người ghép thư viện.
+```bash
+make calibrate     # = scripts/calibrate_tau.py collect, gán nhãn tay, rồi sweep
+```
 
-## Guard sai ở đâu
+#### Kết quả 2026-09-17 — τ = 0.50, và guard không tách được lỗi trên dev
 
-Biết giới hạn của giải pháp mình làm quan trọng ngang việc làm ra nó.
+20 câu dev (`"split": "dev"`, phân tầng theo loại), trả lời bằng `qwen2.5:3b`
+với truy xuất của `full` và của `baseline`, guard tắt để giữ mọi mệnh đề. 23
+mệnh đề, gán nhãn tay bằng cách đọc premise (lượt gán do trợ lý AI làm; lý do của
+từng nhãn "không căn cứ" nằm trong `reports/tau-dev-claims.json`). Điểm chấm
+bằng verifier hiện tại (`calibrate_tau.py rescore` sau mỗi lần đổi verifier).
+Kết quả: `reports/tau-sweep.json`.
 
-| Loại lỗi | Vì sao | Xử lý |
+![Guard trên tập dev theo τ](img/tau-curve.svg)
+
+| τ | mệnh đề sai bị chặn (6) | mệnh đề đúng bị chặn nhầm (17) |
 |---|---|---|
-| Mệnh đề đúng, cần suy luận nhiều bước | NLI cho `neutral` | Chấp nhận, tính vào `false_abstention` |
-| Mệnh đề đúng nhưng diễn đạt lại xa nguyên văn | NLI yếu với paraphrase dài | Prompt yêu cầu bám sát từ ngữ tài liệu |
-| Mệnh đề tổng hợp từ nhiều đoạn | Premise ghép có thể nhiễu | Chấp nhận; ghi nhận trong phần hạn chế |
-| NLI đa ngữ yếu với tiếng Việt | Model huấn luyện chủ yếu trên XNLI | Kiểm tra sớm ở ngày 9 trên 20 cặp thủ công (`scripts/nli_probe.py`) |
-| **Mệnh đề giữ gần hết từ ngữ nhưng đổi chủ thể hoặc thêm điều kiện** | NLI thiên về trùng từ vựng. Thử 11 cặp: đổi chủ thể 0.84, "thử việc" 0.73 — cả hai lọt qua τ = 0.60 ([08](08-roadmap.md#tín-hiệu-sớm-cho-rủi-ro-ngày-9)) | Model NLI lớn hơn, fine-tune ViNLI ([ADR-0007](adr/0007-no-generator-fine-tuning.md)); đo riêng `by_type.unanswerable_near_miss` |
+| **0.50** | **0%** | **0%** |
+| 0.60 | 0% | 6% |
+| 0.65 | 0% | 12% |
+| 0.70 | 0% | 24% |
+| 0.75 | 17% | 35% |
+| 0.90 | 67% | 47% |
 
-**Chi phí của guard là `false_abstention`** — từ chối nhầm câu trả lời được.
-Đây là chỉ số bắt buộc báo cáo cùng `hallucination_rate`. Một guard chặn 100%
-câu bịa bằng cách từ chối mọi thứ là guard vô dụng, và bảng số liệu phải cho
-thấy được điều đó.
+**Không có τ nào tách được hai nhóm.** Cả sáu mệnh đề sai được chấm ≥ 0.70:
+đảo điều kiện, bỏ điều kiện, đổi chủ thể nam → nữ, lấy nhầm con số của mục bên
+cạnh (40 thay vì 30 ngày — cả hai đều có trong khoản), nhầm chế độ, "15 tháng"
+thay "15 năm". Muốn chặn được 2/3 số đó phải chặn nhầm gần một nửa số câu đúng.
+
+Vì tỉ lệ bắt lỗi bằng 0 trên cả dải 0.05–0.70, nâng τ trong dải đó chỉ mua thêm
+chặn nhầm. τ được chọn là **0.50**: thấp nhất mà probe 24 cặp bên dưới vẫn cho
+đúng kết quả như ở 0.60 (không cặp nào rơi vào khoảng 0.50–0.60; dưới 0.30 thì
+cặp "khuyến khích → bắt buộc" bắt đầu lọt), và trên dev không chặn nhầm câu nào.
+Trước đó τ = 0.60 là con số chọn trước khi có dữ liệu.
+
+Đọc đúng con số này: trên dev, **NLI không bắt được lỗi nào** trong số những
+lỗi model thật sự mắc. Phần guard bắt được nằm ở chỗ khác: luật con số, mệnh đề
+không trích dẫn, nhãn trích dẫn không tồn tại. Hai mươi ba mệnh đề là mẫu nhỏ;
+kết luận "NLI yếu với kiểu lỗi này" khớp với probe, còn con số phần trăm thì
+không nên trích riêng.
+
+### Probe NLI — 24 cặp, 2026-09-17
+
+`make nli-probe` (`--model` để đổi model). Premise là khoản luật thật; bảy cặp
+"khoản dài" là câu đúng mà lượt chạy 100 câu đầu tiên đã loại. `raw` = model đọc
+cả khoản; `guard` = verifier (view tốt nhất + luật con số). Sai ở τ = 0.60 (ở 0.50 giống hệt):
+
+| Nhóm (số cặp) | mDeBERTa raw | mDeBERTa guard | xlm-roberta-large guard |
+|---|---|---|---|
+| Câu đúng, khoản ngắn (3) | 0 | 0 | 0 |
+| Câu đúng, một mục của khoản dài (7) | 1 | **0** | 1 |
+| Đổi con số (4) | 1 | **0** | 0 |
+| Con số của mục bên cạnh (2) | 1 | 2 | 2 |
+| Phủ định (1) | 0 | 0 | 0 |
+| Đổi chủ thể (2) | 1 | 1 | 1 |
+| Đổi/bỏ điều kiện, near-miss (5) | 2 | 2 | 4 |
+| **Tổng sai** | **6** | **5** | **8** |
+
+View theo mục sửa hết lỗi "chặn nhầm câu đúng"; luật con số sửa hết lỗi đổi số.
+View cũng có giá: "con đẻ kết hôn được nghỉ 03 ngày" từ 0.51 lên 0.80, vì đọc
+riêng mục "c) ... chết: nghỉ 03 ngày" cạnh câu dẫn thì con số khớp. Hai lớp đó
+không chạm được vào nhóm còn lại, và model lớn hơn gấp đôi còn tệ
+hơn ở nhóm đó — nên giữ mDeBERTa.
 
 ## Vì sao không dùng LLM để chấm
 
