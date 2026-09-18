@@ -3,7 +3,7 @@
 ~3h/ngày, một người. Mốc cuối mỗi tuần là thứ phải chạy được, không phải thứ
 "gần xong".
 
-## Trạng thái — 2026-09-14
+## Trạng thái — 2026-09-19
 
 Code của tuần 1 và phần lớn tuần 3 đã được viết trong đợt đối chiếu với tài
 liệu tham khảo ([10](10-doi-chieu-tham-khao.md)). **Cột "Xong khi" vẫn phải
@@ -18,12 +18,13 @@ nghĩa là ngày đó đã xong.
 | Provider Gemini / Ollama / vLLM / OpenAI / Anthropic | ✅ | Gemini thật (`gemini-3.1-flash-lite`). Các provider khác: unit test với transport giả |
 | NLI verifier (cắt premise dài, định dạng output) | ✅ | Chạy với mDeBERTa-v3 thật — xem bên dưới |
 | Vòng truy xuất sửa lỗi (`agentic`) | ✅ | Chạy thật trên 7 câu — xem bên dưới |
-| Eval: một công cụ đo, gold theo nội dung, RAGAS | ✅ | Eval thật trên 7 câu. RAGAS với giám khảo thật: chưa |
+| Eval: một công cụ đo, gold theo nội dung, RAGAS | ✅ | Eval thật trên 80 câu. RAGAS với giám khảo thật: chưa |
 | `meta.steps`, `/metrics` | ✅ | Unit test |
-| Langfuse | ❌ | — |
-| Tập 100 câu có nhãn | ✅ | 60 answerable + 40 unanswerable, `make check-dataset` giải được mọi gold ref qua đúng `ClauseIndex` mà eval chấm. **Chưa kiểm tra chéo lần hai, chưa chấm tay 30 câu** |
+| Langfuse | ✅ | Export một trace/câu trả lời: span mỗi bước, generation mỗi lời gọi LLM, verdict của guard thành score. Unit test với client giả — **chưa xem trace trên UI thật** |
+| Tập 100 câu có nhãn | ✅ | 63 answerable + 37 unanswerable sau kiểm tra chéo lần hai (đổi nhãn 3 câu, xem LABELING.md); tách 20 câu `dev` để hiệu chỉnh τ, chấm trên 80 câu `test`. `make check-dataset` giải được mọi gold ref. **Chưa chấm tay 30 câu** |
 | Giao diện web | ✅ | `app/web/`, do API phục vụ ở `/`; mệnh đề tô màu theo verdict, thước entailment có vạch τ |
-| Hiệu chỉnh τ, bảng số thật trong README | ❌ | Cần `make eval-all` với model thật (~7 GB RAM) |
+| Hiệu chỉnh τ | ✅ | `make calibrate` trên 20 câu dev, đường cong ở `docs/img/tau-curve.svg`, τ = 0.50. Kết luận quan trọng hơn con số: trên dev **không có τ nào tách được mệnh đề đúng khỏi mệnh đề sai** ([06](06-guard-design.md)) |
+| Bảng số thật trong README | ⏳ | Đang chạy `eval.run` bốn cấu hình trên 80 câu `test` với `qwen2.5:3b` |
 
 ### Lượt chạy thật đầu tiên — 7 câu, 2026-09-11
 
@@ -85,14 +86,16 @@ tra 20 cặp của ngày 9**, mới là dấu hiệu đầu tiên:
 
 Model mạnh với phủ định và phần lớn các thay đổi số, nhưng yếu với đổi chủ thể
 và thêm điều kiện — kiểu "trùng từ vựng cao nhưng sai nghĩa". Đó chính là lỗi
-của câu `near_miss`, loại khó nhất trong tập đánh giá. Ngày 9 vì thế có việc cụ
-thể:
+của câu `near_miss`, loại khó nhất trong tập đánh giá.
 
-1. Mở rộng `scripts/nli_probe.py` lên ≥ 20 cặp, cố tình nhiều đổi chủ thể và near-miss.
-2. Thử `xlm-roberta-large-xnli` trên cùng bộ cặp.
-3. Nếu vẫn yếu: fine-tune NLI trên ViNLI ([ADR-0007](adr/0007-no-generator-fine-tuning.md)).
-   Riêng lỗi số có thể thêm một kiểm tra rẻ bằng luật: con số trong mệnh đề phải
-   xuất hiện trong premise.
+**Đã xử lý (2026-09-17).** Probe mở rộng lên 24 cặp, thử cả
+`xlm-roberta-large-xnli`, kết quả và bảng lỗi theo nhóm nằm ở
+[06](06-guard-design.md#probe-nli--24-cặp-2026-09-17). Tóm tắt: chấm theo từng
+mục của khoản sửa hết lỗi chặn nhầm câu đúng, luật con số sửa hết lỗi đổi số —
+đúng phương án dự phòng số 3 ở đây, nhưng bằng một quy tắc rẻ thay vì fine-tune.
+Đổi chủ thể và near-miss thì **không lớp nào chạm tới được**, và model lớn gấp
+đôi còn tệ hơn ở đúng nhóm đó, nên giữ mDeBERTa. Fine-tune ViNLI vẫn là việc
+chưa làm ([ADR-0007](adr/0007-no-generator-fine-tuning.md)).
 
 ## Tuần 1 — RAG chạy được đầu-cuối
 

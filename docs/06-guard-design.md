@@ -180,6 +180,32 @@ riêng mục "c) ... chết: nghỉ 03 ngày" cạnh câu dẫn thì con số kh
 không chạm được vào nhóm còn lại, và model lớn hơn gấp đôi còn tệ
 hơn ở nhóm đó — nên giữ mDeBERTa.
 
+## Guard sai ở đâu
+
+Biết giới hạn của giải pháp mình làm quan trọng ngang việc làm ra nó. Bảng này
+là những gì hai phép đo bên trên — hiệu chỉnh τ trên 23 mệnh đề dev và probe 24
+cặp — thật sự cho thấy, không phải dự đoán:
+
+| Loại lỗi | Guard xử lý được? | Ghi chú |
+|---|---|---|
+| Mệnh đề không trích dẫn, hoặc trích nhãn không tồn tại | ✅ | Bắt được mà không cần chạy model nào |
+| Con số bị đổi | ✅ | Luật con số, không phải NLI. NLI chấm "48 → 40 giờ/tuần" tới 0.72 |
+| Câu đúng diễn đạt lại một mục của khoản dài | ✅ | Chấm theo `premise_views` sửa hết 7/7 cặp trong probe |
+| Lấy con số của mục bên cạnh trong cùng khoản | ❌ | Con số *có* trong premise nên luật con số không chặn; NLI cho qua |
+| Đổi chủ thể ("người sử dụng lao động" thay "người lao động") | ❌ | NLI thiên về trùng từ vựng. Model lớn gấp đôi cũng không khá hơn |
+| Thêm hoặc bỏ điều kiện, near-miss | ❌ | Loại khó nhất trong tập đánh giá, và `xlm-roberta-large` còn tệ hơn |
+| Mệnh đề đúng cần suy luận nhiều bước | ❌ | NLI cho `neutral`; tính vào `false_abstention` |
+
+Đọc hàng ❌ cho đúng: trên tập dev, **NLI không bắt được lỗi nào** trong số những
+lỗi model thật sự mắc. Phần guard thật sự bảo vệ được nằm ở ba hàng ✅ đầu, và
+hai trong ba hàng đó không dùng NLI. Đó là kết luận trung thực của dự án này,
+không phải là kết luận nó muốn có.
+
+**Chi phí của guard là `false_abstention`** — từ chối nhầm câu trả lời được. Đây
+là chỉ số bắt buộc báo cáo cùng `hallucination_rate`. Một guard chặn 100% câu
+bịa bằng cách từ chối mọi thứ là guard vô dụng, và bảng số liệu phải cho thấy
+được điều đó.
+
 ## Vì sao không dùng LLM để chấm
 
 Xem [ADR-0001](adr/0001-nli-over-llm-judge.md).
