@@ -33,8 +33,10 @@ Which layer of defence caught the unanswerable questions:
 |---|---|---|---|---|
 | … | – | – | – | – |
 
-Benchmark: 100 hand-labelled questions — 60 answerable, 40 unanswerable across
+Benchmark: 100 hand-labelled questions — 63 answerable, 37 unanswerable across
 three adversarial types, in [`eval/dataset/questions.jsonl`](eval/dataset/questions.jsonl).
+Twenty of them are a `dev` split used only to calibrate the guard threshold; the
+numbers above are scored on the 80 `test` questions τ was never fitted on.
 Labelling protocol and the decisions taken while building it:
 [`eval/dataset/LABELING.md`](eval/dataset/LABELING.md).
 
@@ -152,10 +154,12 @@ abstain reason, LLM calls and tokens.
 no CORS. It is built around the one thing a RAG demo usually hides: each
 sentence of the answer sits next to the passage it was checked against, with
 its entailment score drawn against the guard threshold, so a claim that only
-just cleared the bar looks different from one that sailed over it. Dropped
-claims stay on screen, struck through, with the score that killed them. When
-the answer is a refusal, the four layers of defence are listed and the one that
-fired is marked.
+just cleared the bar looks different from one that sailed over it. That scale is
+the page's only colour, and it is shown full width above the question with the τ
+of the selected configuration marked on it, so every gauge below has a legend.
+Dropped claims stay on screen, struck through, with the score that killed them.
+When the answer is a refusal, the four layers of defence are listed and the one
+that fired is marked.
 
 `?q=...&config=...` asks straight away, so a demo run is a shareable link.
 
