@@ -96,6 +96,24 @@ make eval-all                            # bốn cấu hình + hai bảng markdo
 python -m eval.run --config configs/full.yaml --ingest data/corpus \
     --out reports/full.json --gate
 make ragas                               # ý kiến thứ hai, cần JUDGE_* - docs/07
+python -m eval.ragas_eval reports/full.json --limit 10   # khi giám khảo bị giới hạn quota
+```
+
+**Mặc định chấm trên 80 câu `test`.** 20 câu `dev` chỉ dùng để hiệu chỉnh τ;
+`--split dev` hoặc `--split all` có ích khi gỡ lỗi, nhưng một con số báo cáo từ
+đó là chấm trên chính dữ liệu đã chọn ngưỡng.
+
+**`--corpus` thay vì `--ingest` khi chỉ mục đã có.** `--ingest` nhúng lại toàn
+bộ corpus bằng bge-m3 trước mỗi cấu hình; trên CPU đó là hàng chục phút nhân
+bốn. Nếu Qdrant đã có sẵn collection (`curl localhost:6333/collections`), dùng
+`--corpus data/corpus` — nó chỉ dựng `ClauseIndex` để giải gold ref:
+
+```bash
+for c in baseline threshold full agentic; do
+  python -m eval.run --config configs/$c.yaml --corpus data/corpus \
+      --out reports/$c.json --split test || break
+done
+python -m eval.report reports/{baseline,threshold,full,agentic}.json
 ```
 
 Hai thư mục corpus, khác nhau có chủ đích:
