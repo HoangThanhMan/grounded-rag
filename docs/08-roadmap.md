@@ -90,7 +90,7 @@ của câu `near_miss`, loại khó nhất trong tập đánh giá.
 
 **Đã xử lý (2026-09-17).** Probe mở rộng lên 24 cặp, thử cả
 `xlm-roberta-large-xnli`, kết quả và bảng lỗi theo nhóm nằm ở
-[06](06-guard-design.md#probe-nli--24-cặp-2026-09-17). Tóm tắt: chấm theo từng
+[06](06-guard-design.md#probe-nli-trên-24-cặp-2026-09-17). Tóm tắt: chấm theo từng
 mục của khoản sửa hết lỗi chặn nhầm câu đúng, luật con số sửa hết lỗi đổi số —
 đúng phương án dự phòng số 3 ở đây, nhưng bằng một quy tắc rẻ thay vì fine-tune.
 Đổi chủ thể và near-miss thì **không lớp nào chạm tới được**, và model lớn gấp

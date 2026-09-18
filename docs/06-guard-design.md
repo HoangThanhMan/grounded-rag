@@ -157,7 +157,7 @@ không trích dẫn, nhãn trích dẫn không tồn tại. Hai mươi ba mệnh
 kết luận "NLI yếu với kiểu lỗi này" khớp với probe, còn con số phần trăm thì
 không nên trích riêng.
 
-### Probe NLI — 24 cặp, 2026-09-17
+### Probe NLI trên 24 cặp (2026-09-17)
 
 `make nli-probe` (`--model` để đổi model). Premise là khoản luật thật; bảy cặp
 "khoản dài" là câu đúng mà lượt chạy 100 câu đầu tiên đã loại. `raw` = model đọc
