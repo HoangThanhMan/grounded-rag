@@ -95,8 +95,14 @@ pipeline end to end:
 
 ```bash
 make install && make test
-make run                 # API and the demo UI on http://localhost:8000
+LLM_PROVIDER=mock make run        # API and the demo UI on http://localhost:8000
+make seed                         # in another shell: index the sample corpus
 ```
+
+The mock provider keeps its index inside the process, so `make seed` has to run
+against the server that is already up, and again after every restart. Without
+it every question answers `no_context`, correctly — there is nothing indexed to
+answer from.
 
 Every `make` target runs through `.venv/bin/python` when that directory exists,
 so there is nothing to activate first; `make python` prints the interpreter it
@@ -108,9 +114,11 @@ The real thing:
 make up-qdrant           # Qdrant. The API itself runs natively, not in a container
 cp .env.example .env     # LLM_PROVIDER = gemini | ollama | vllm | openai | anthropic
 make dev-install
-make ingest
+make ingest              # once; skip it if Qdrant already holds the collections
 make run                 # then open http://localhost:8000
 ```
+
+The first question takes 5–15 seconds: the cross-encoder reranker runs on CPU.
 
 Open models, no GPU: `make up-ollama` serves one on CPU, and a benchmark run
 then costs no API quota. What that trades away is measured in
@@ -161,6 +169,11 @@ Dropped claims stay on screen, struck through, with the score that killed them.
 When the answer is a refusal, the four layers of defence are listed and the one
 that fired is marked.
 
+![The demo UI answering a question, with the claim checked against the clause it cites](docs/img/ui.png)
+
+The run above is real: `qwen2.5:3b` on CPU through Ollama, one LLM call, the
+claim scored 0.99 against Điều 35 Khoản 1.
+
 `?q=...&config=...` asks straight away, so a demo run is a shareable link.
 
 The older `app/streamlit_demo.py` still works (`make demo`) if you prefer it.
@@ -197,6 +210,9 @@ first one is the finding this project did not want:
   actually made.** Calibrating τ over 23 hand-labelled claims found no threshold
   that separates grounded from ungrounded: all six ungrounded claims score ≥ 0.70,
   and blocking two thirds of them would block nearly half the correct sentences.
+
+  ![Guard on the dev split as τ moves: the catch rate stays at zero while the false-block rate climbs](docs/img/tau-curve.svg)
+
   What does protect the answer is the cheaper machinery around the NLI model —
   the number rule, uncited claims, and citations to labels that were never
   supplied — and two of those three never run a model at all.

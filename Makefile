@@ -1,6 +1,7 @@
-.PHONY: python install check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+.PHONY: python install seed check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
 
 CONFIGS := baseline threshold full agentic
+PORT ?= 8000
 
 # Use the project venv when there is one, so no target depends on you having
 # remembered to activate it. VIRTUAL_ENV wins if you did activate something.
@@ -36,8 +37,8 @@ up-gpu:       ## + vLLM serving an open model (NVIDIA GPU only)
 down:
 	docker compose down
 
-run:          ## api + demo UI on :8000 (open http://localhost:8000)
-	$(PY) -m uvicorn grounded_rag.api.main:app --reload --port 8000
+run:          ## api + demo UI on :$(PORT) (open http://localhost:8000)
+	$(PY) -m uvicorn grounded_rag.api.main:app --reload --port $(PORT)
 
 corpus:       ## download the laws from Công báo -> data/corpus/*.md
 	$(PY) scripts/prepare_corpus.py
@@ -45,6 +46,16 @@ corpus:       ## download the laws from Công báo -> data/corpus/*.md
 ingest:       ## index the real corpus in data/corpus/ (both chunkers)
 	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --config configs/full.yaml
 	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --config configs/baseline.yaml
+
+# Refuses unless the server reports the mock provider, and never passes
+# `recreate`: pointed at a real run this would otherwise drop the ingested
+# collection and replace 1,241 chunks with the four in the sample corpus.
+seed:         ## load the sample corpus into a RUNNING mock server (in-memory, lost on restart)
+	@curl -fsS localhost:$(PORT)/healthz 2>/dev/null | grep -q '"provider":"mock"' \
+	  || { echo "refusing: :$(PORT) is not running the mock provider (or is not up)."; \
+	       echo "  start it with:  LLM_PROVIDER=mock make run"; exit 1; }
+	@curl -fsS -X POST localhost:$(PORT)/ingest -H 'content-type: application/json' \
+	  -d '{"source":"data/sample_corpus","config":"full"}' && echo ""
 
 check-dataset: ## resolve every gold ref against the corpus before trusting a number
 	$(PY) scripts/check_dataset.py
