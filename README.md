@@ -190,14 +190,28 @@ that had a real alternative:
 
 ## Limitations
 
-Written up honestly in [docs/06](docs/06-guard-design.md#guard-sai-ở-đâu). In short:
+Written up honestly in [docs/06](docs/06-guard-design.md#guard-sai-ở-đâu). The
+first one is the finding this project did not want:
 
-- The guard is weak on claims that need multi-step reasoning, and it costs a
-  measurable rate of wrongly refused answers.
-- An early probe of the multilingual NLI model ([`scripts/nli_probe.py`](scripts/nli_probe.py),
-  11 pairs) shows it lets through claims that keep most of the wording but swap
-  the subject or add a condition — the exact shape of the `near_miss` questions.
+- **On the dev split, the NLI model caught none of the errors the generator
+  actually made.** Calibrating τ over 23 hand-labelled claims found no threshold
+  that separates grounded from ungrounded: all six ungrounded claims score ≥ 0.70,
+  and blocking two thirds of them would block nearly half the correct sentences.
+  What does protect the answer is the cheaper machinery around the NLI model —
+  the number rule, uncited claims, and citations to labels that were never
+  supplied — and two of those three never run a model at all.
+- A 24-pair probe ([`scripts/nli_probe.py`](scripts/nli_probe.py)) says the same
+  thing more precisely: the model lets through claims that keep the wording but
+  swap the subject, drop a condition, or take the number from the neighbouring
+  item — the exact shape of the `near_miss` questions. Doubling the model size
+  (`xlm-roberta-large-xnli`) made that group worse, not better.
 - Measuring hallucination with the same NLI model that powers the guard is
-  circular — which is why RAGAS and 30 hand-scored answers are reported too.
+  circular, and the point above means the circularity is not harmless. The
+  hand-graded sample is the check that matters; a second opinion from an LLM
+  judge is not in yet, because the only local model available is the one that
+  wrote the answers and the hosted free tier allows 20 requests a day.
 - The corrective loop spends one extra LLM call on every weak retrieval,
   including the out-of-scope questions it cannot rescue.
+- 23 dev claims and 24 probe pairs are small samples. The direction is
+  consistent across both and matches the per-question reading, but no percentage
+  here should be quoted on its own.
