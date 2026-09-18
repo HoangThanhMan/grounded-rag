@@ -1,6 +1,7 @@
 """A second opinion on a report: the four RAGAS metrics, scored by an LLM judge.
 
     python -m eval.ragas_eval reports/full.json         # -> reports/full.ragas.json
+    python -m eval.ragas_eval reports/full.json --limit 10   # a sample, on a free tier
 
 Why, when eval/run.py already measures hallucination: that number comes from
 the NLI model the guard itself uses, which is circular. RAGAS faithfulness is
@@ -149,6 +150,20 @@ async def score_case(case: dict, metrics: dict, sem: asyncio.Semaphore) -> dict:
     return out
 
 
+def pick(cases: list[dict], limit: int | None) -> list[dict]:
+    """Evenly spaced judgeable cases. A hosted free tier is measured in requests
+    per day and one judged answer costs several, so a full run is often not
+    affordable; spacing the sample means a quota-limited run still spans the
+    set instead of stopping at the first few ids."""
+    if limit is None:
+        return cases
+    judgeable = [c for c in cases if c["status"] in ANSWERED and c["sources"]]
+    if limit >= len(judgeable):
+        return judgeable
+    stride = len(judgeable) / limit
+    return [judgeable[int(i * stride)] for i in range(limit)]
+
+
 async def _score_all(cases: list[dict], metrics: dict, concurrency: int) -> list[dict]:
     sem = asyncio.Semaphore(concurrency)
     return list(await asyncio.gather(*(score_case(c, metrics, sem) for c in cases)))
@@ -159,16 +174,28 @@ def main() -> None:
     ap.add_argument("report", type=Path, help="a report written by eval.run")
     ap.add_argument("--out", type=Path, default=None)
     ap.add_argument("--concurrency", type=int, default=4)
+    ap.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="judge only N answers, spaced evenly across the judgeable ones. "
+        "For a judge on a free tier: a sample labelled n=N, not a benchmark.",
+    )
     args = ap.parse_args()
 
     if not os.environ.get("JUDGE_MODEL"):
         raise SystemExit("set JUDGE_MODEL (and JUDGE_BASE_URL / JUDGE_API_KEY) - see the docstring")
 
     report = json.loads(args.report.read_text(encoding="utf-8"))
-    scored = asyncio.run(_score_all(report["cases"], _build_metrics(), args.concurrency))
+    cases = pick(report["cases"], args.limit)
+    scored = asyncio.run(_score_all(cases, _build_metrics(), args.concurrency))
     result = {
         "config": report["config"],
         "judge_model": os.environ["JUDGE_MODEL"],
+        # a sample is not the benchmark, and a report that does not say so
+        # will be read as one
+        "limit": args.limit,
+        "of_cases": len(report["cases"]),
         "summary": summarize(scored),
         "cases": scored,
     }
