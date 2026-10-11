@@ -21,6 +21,7 @@ import re
 from dataclasses import dataclass
 from datetime import date
 
+from grounded_rag.compute import run_model
 from grounded_rag.config import RunConfig
 from grounded_rag.generation.llm_client import MeteredLLM
 from grounded_rag.generation.prompts import build_planner_prompt, planner_system_prompt
@@ -62,7 +63,7 @@ async def retrieve(
 ) -> Retrieval:
     c, r = config.corrective, config.retrieval
     with trace("retrieve", query=question) as span:
-        results = [search(question, config, as_of)]
+        results = [await run_model(search, question, config, as_of)]
         span["top_score"] = round(_best(results), 4)
     tried = [question]
 
@@ -86,7 +87,7 @@ async def retrieve(
             break
         for q in fresh:
             with trace("retrieve", query=q) as span:
-                results.append(search(q, config, as_of))
+                results.append(await run_model(search, q, config, as_of))
                 span["top_score"] = round(_best(results[-1:]), 4)
         tried.extend(fresh)
 

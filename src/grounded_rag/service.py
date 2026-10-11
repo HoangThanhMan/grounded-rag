@@ -12,6 +12,7 @@ import logging
 import time
 from datetime import date
 
+from grounded_rag.compute import mark_arrival, run_model
 from grounded_rag.config import RunConfig
 from grounded_rag.generation.citation import invalid_citations
 from grounded_rag.generation.llm_client import MeteredLLM, get_llm_client
@@ -49,6 +50,7 @@ async def answer_question(
     """`as_of` is the day the law is read on: regulations not in force that
     day are never retrieved. Defaults to today."""
     started = time.perf_counter()
+    mark_arrival()
     llm = MeteredLLM(get_llm_client(), config.max_llm_calls)
 
     with collect_steps() as steps:
@@ -135,8 +137,8 @@ async def _answer(question: str, config: RunConfig, llm: MeteredLLM, as_of: date
             break
 
         with trace("verify") as span:
-            claims = verify_claims(
-                text, sources, get_verifier(), config.guard.entailment_threshold
+            claims = await run_model(
+                verify_claims, text, sources, get_verifier(), config.guard.entailment_threshold
             )
             span.update(claims=len(claims), unsupported=len(unsupported(claims)))
 

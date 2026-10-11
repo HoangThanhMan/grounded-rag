@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     embedding_model: str = "BAAI/bge-m3"
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
     nli_model: str = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
+    # Model calls (embed, rerank, NLI) running at once - see compute.py. Each
+    # already uses every core through torch's intra-op threads, so 1 is right
+    # on a CPU box; more only helps with spare cores and a smaller torch pool.
+    model_workers: int = Field(default=1, ge=1)
 
     # Threshold of the NLI *measuring instrument* in eval/run.py. The guard's
     # own threshold lives in configs/*.yaml.
