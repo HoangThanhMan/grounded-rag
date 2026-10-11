@@ -14,7 +14,7 @@ import functools
 import uuid
 from collections.abc import Iterator, Sequence
 from datetime import UTC, date, datetime
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
 
 from grounded_rag.config import settings
 from grounded_rag.retrieval.embedder import Embedder, get_embedder
@@ -240,10 +240,7 @@ def _point_id(chunk_id: str) -> str:
     return str(uuid.uuid5(uuid.NAMESPACE_URL, chunk_id))
 
 
-T = TypeVar("T")
-
-
-def _batched(items: Sequence[T], n: int) -> Iterator[list[T]]:
+def _batched[T](items: Sequence[T], n: int) -> Iterator[list[T]]:
     for i in range(0, len(items), n):
         yield list(items[i : i + n])
 

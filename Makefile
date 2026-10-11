@@ -89,7 +89,7 @@ test:
 	$(PY) -m pytest -q
 
 lint:
-	$(PY) -m ruff check src eval tests app
+	$(PY) -m ruff check src eval tests app scripts
 
 fmt:
 	$(PY) -m ruff format src eval tests app
