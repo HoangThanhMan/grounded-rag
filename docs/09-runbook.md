@@ -132,8 +132,12 @@ nên đỏ.
 | Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
 |---|---|---|
 | `ModuleNotFoundError: sentence_transformers` / `transformers` / `torch` | Provider thật cần model thật, thuộc extra `models` | `make dev-install`, hoặc `LLM_PROVIDER=mock` |
+| `ModuleNotFoundError: grounded_rag` khi chạy `python -m eval.run` (pytest vẫn xanh) | Repo đã bị chuyển thư mục: bản cài editable trong `.venv` vẫn trỏ tới `src/` ở chỗ cũ. pytest không bị vì tự thêm `src` vào `pythonpath` | `.venv/bin/python -m pip install --no-deps -e .` |
 | Lỗi khởi động `llm_provider ... Input should be` | Tên provider sai chính tả — cố tình không rơi về mock | Sửa `LLM_PROVIDER` trong `.env` |
 | API trả `503` | Provider LLM không phản hồi sau khi đã thử lại | Kiểm tra key, `*_BASE_URL`, Ollama/vLLM có đang chạy không |
+| `POST /ingest` trả `403` / `401` / `400` | Endpoint tắt khi chưa đặt `ADMIN_API_KEY` (403); thiếu/sai header `X-API-Key` (401); `source` không nằm dưới `DATA_ROOT` (400) | Đặt `ADMIN_API_KEY` cho server và gửi cùng key; với `make seed`: `ADMIN_API_KEY=dev make seed`. Muốn xoá index thì dùng CLI `--recreate` |
+| Claude trả `400` nhắc tới `temperature` | Opus 4.7 trở đi từ chối mọi `temperature`; Sonnet 5.x, Haiku 5.5 từ chối giá trị khác mặc định | Mặc định không gửi. Chỉ đặt `ANTHROPIC_SEND_TEMPERATURE=true` cho model còn nhận (dòng 4.5/4.6) |
+| `/healthz` chậm khi đang tải nặng | Không còn xảy ra: lời gọi model chạy trên pool riêng (`compute.py`). Nếu thấy lại, có chỗ gọi model đồng bộ ngoài `run_model` | `tests/test_concurrency.py` bắt lỗi này |
 | Ingest xong `written=0` | Chunk đã có trong chỉ mục (đúng như thiết kế) | Đổi corpus, hoặc xoá collection nếu muốn dựng lại |
 | Eval trả `no_context` cho mọi câu | Đang dùng `InMemoryStore` (provider `mock`): store sống trong một process, ingest ở process khác không thấy được | Thêm `--ingest data/sample_corpus` vào lệnh eval |
 | Mọi câu đều `no_context` | `min_score` quá cao so với thang điểm reranker (cả `mock` lẫn thật đều là 0–1) | Xem `meta.steps[0].detail.top_score`, hạ ngưỡng trong `configs/*.yaml` |

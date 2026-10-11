@@ -17,6 +17,7 @@ viết bằng tiếng Anh vì đó là mặt tiền của repo với người tu
 | 08 | [Lộ trình 3 tuần](08-roadmap.md) | Làm gì vào ngày nào |
 | 09 | [Runbook](09-runbook.md) | Cài đặt, chạy, xử lý sự cố |
 | 10 | [Đối chiếu tài liệu tham khảo](10-doi-chieu-tham-khao.md) | Lấy gì từ `tham_khao.md`, bỏ gì, vì sao |
+| 11 | [Spec nâng cấp v2](11-spec-v2.md) | Nâng dự án lên v2: verifier, đánh giá thống kê, serving, luật theo thời điểm — kế hoạch 12 tuần |
 
 ## Quyết định kiến trúc (ADR)
 
