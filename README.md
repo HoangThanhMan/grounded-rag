@@ -1,5 +1,7 @@
 # grounded-rag
 
+[![ci](https://github.com/HoangThanhMan/grounded-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThanhMan/grounded-rag/actions/workflows/ci.yml)
+
 **A RAG API that verifies every claim it generates against the passage it cites — and refuses to answer when the documents do not support it.**
 
 Most RAG demos retrieve, generate, and stop there. This one adds the part that

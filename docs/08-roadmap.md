@@ -160,14 +160,14 @@ chưa làm ([ADR-0007](adr/0007-no-generator-fine-tuning.md)).
 - [ ] RAGAS 10 câu bằng Gemini (cần report trước)
 - [ ] Video demo 90 giây, link trong README
 
-Bốn mục dưới đây phụ thuộc vào một remote GitHub, chưa tạo (quyết định
-2026-09-19: hoãn). Không mục nào chặn việc chạy dự án:
+Bốn mục dưới đây phụ thuộc vào một remote GitHub. Hoãn ngày 2026-09-19,
+làm xong ngày 2026-10-12 (WS0 trong [11](11-spec-v2.md)):
 
-- [ ] `git remote` + push
-- [ ] CI badge xanh trong README (workflow đã có bước `--gate`)
-- [ ] Repo có description
-- [ ] Topics: `rag`, `hallucination-detection`, `nli`, `qdrant`, `fastapi`,
-      `vietnamese-nlp`
+- [x] `git remote` + push — <https://github.com/HoangThanhMan/grounded-rag>
+- [x] CI badge trong README (CI chạy test trên Python 3.12 và 3.14, kèm bước `--gate`)
+- [x] Repo có description
+- [x] Topics: `rag`, `hallucination-detection`, `nli`, `qdrant`, `fastapi`,
+      `vietnamese`, `legal-ai`, `llm-evaluation`
 
 ## Rủi ro
 
