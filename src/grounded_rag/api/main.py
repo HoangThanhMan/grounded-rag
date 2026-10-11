@@ -6,6 +6,8 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -13,15 +15,25 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from grounded_rag.api import routes_admin, routes_chat
-from grounded_rag.generation.llm_client import LLMUnavailable
+from grounded_rag.generation.llm_client import LLMUnavailable, get_llm_client
 from grounded_rag.observability import metrics
 
 logging.basicConfig(level=logging.INFO)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    yield
+    # the provider client keeps a connection pool open for the life of the app
+    if close := getattr(get_llm_client(), "aclose", None):
+        await close()
+
 
 app = FastAPI(
     title="grounded-rag",
     version="0.2.0",
     description="A RAG API that verifies every generated claim against its cited source.",
+    lifespan=lifespan,
 )
 app.include_router(routes_admin.router)
 app.include_router(routes_chat.router)

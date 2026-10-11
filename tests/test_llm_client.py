@@ -185,3 +185,39 @@ async def test_the_call_budget_is_a_hard_ceiling():
 def test_a_misspelt_provider_is_a_startup_error_not_a_silent_mock():
     with pytest.raises(ValidationError):
         Settings(llm_provider="antropic")
+
+
+def _anthropic(seen: dict, **kw) -> AnthropicClient:
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen["body"] = json.loads(request.content)
+        return httpx.Response(200, json={"content": [{"type": "text", "text": "Có [C1]."}]})
+
+    return AnthropicClient("key", "model", transport=httpx.MockTransport(handler), retries=0, **kw)
+
+
+@pytest.mark.asyncio
+async def test_anthropic_sends_no_temperature_unless_told_to():
+    # Opus 4.7 and later reject `temperature` with a 400 whatever its value;
+    # the pipeline asks for 0.0 everywhere, so passing it through breaks them.
+    seen: dict = {}
+    await _anthropic(seen).complete("sys", "user", temperature=0.0, max_tokens=64)
+    assert "temperature" not in seen["body"]
+    assert seen["body"]["max_tokens"] == 64
+
+
+@pytest.mark.asyncio
+async def test_anthropic_sends_temperature_for_models_that_still_take_it():
+    seen: dict = {}
+    await _anthropic(seen, send_temperature=True).complete("sys", "user", temperature=0.0)
+    assert seen["body"]["temperature"] == 0.0
+
+
+@pytest.mark.asyncio
+async def test_calls_share_one_connection_pool_until_closed():
+    client = _client(lambda request: httpx.Response(200, json=_reply()), retries=0)
+    await client.complete("s", "u")
+    pool = client._http.get()
+    await client.complete("s", "u")
+    assert client._http.get() is pool
+    await client.aclose()
+    assert pool.is_closed

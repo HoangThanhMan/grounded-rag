@@ -90,6 +90,33 @@ class MockClient:
             yield token + " "
 
 
+class _ConnectionPool:
+    """One httpx.AsyncClient per provider client, so calls reuse connections
+    and TLS sessions instead of opening a new one for every completion.
+
+    An AsyncClient belongs to the event loop it first ran on, and the eval
+    scripts and the tests each run their own loop - so it is re-created when
+    the loop changes rather than shared across loops."""
+
+    def __init__(self, timeout: float, transport: httpx.AsyncBaseTransport | None) -> None:
+        self._timeout = timeout
+        self._transport = transport  # tests inject httpx.MockTransport
+        self._client: httpx.AsyncClient | None = None
+        self._loop: asyncio.AbstractEventLoop | None = None
+
+    def get(self) -> httpx.AsyncClient:
+        loop = asyncio.get_running_loop()
+        if self._client is None or self._client.is_closed or self._loop is not loop:
+            self._client = httpx.AsyncClient(timeout=self._timeout, transport=self._transport)
+            self._loop = loop
+        return self._client
+
+    async def aclose(self) -> None:
+        if self._client is not None and self._loop is asyncio.get_running_loop():
+            await self._client.aclose()
+        self._client = None
+
+
 class OpenAICompatClient:
     """POST {base_url}/chat/completions - vLLM, Ollama, Gemini, OpenAI."""
 
@@ -110,7 +137,10 @@ class OpenAICompatClient:
         self.timeout = timeout or settings.llm_timeout_s
         self.retries = settings.llm_max_retries if retries is None else retries
         self.reasoning_effort = reasoning_effort
-        self._transport = transport  # tests inject httpx.MockTransport
+        self._http = _ConnectionPool(self.timeout, transport)
+
+    async def aclose(self) -> None:
+        await self._http.aclose()
 
     def _body(self, system: str, user: str, temperature: float, max_tokens: int) -> dict:
         body = {
@@ -130,9 +160,7 @@ class OpenAICompatClient:
         self, system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 512
     ) -> LLMResponse:
         body = self._body(system, user, temperature, max_tokens)
-        data = await _post_json(
-            self.url, body, self.headers, self.timeout, self.retries, self._transport
-        )
+        data = await _post_json(self._http.get(), self.url, body, self.headers, self.retries)
         try:
             choice = data["choices"][0]
             text = choice["message"]["content"] or ""
@@ -151,10 +179,9 @@ class OpenAICompatClient:
     ) -> AsyncIterator[str]:
         body = {**self._body(system, user, temperature, max_tokens), "stream": True}
         try:
-            async with (
-                httpx.AsyncClient(timeout=self.timeout, transport=self._transport) as client,
-                client.stream("POST", self.url, json=body, headers=self.headers) as r,
-            ):
+            async with self._http.get().stream(
+                "POST", self.url, json=body, headers=self.headers
+            ) as r:
                 if r.status_code >= 400:
                     raise LLMUnavailable(f"{self.url} -> HTTP {r.status_code}")
                 async for line in r.aiter_lines():
@@ -171,36 +198,45 @@ class OpenAICompatClient:
 
 
 class AnthropicClient:
-    """POST /v1/messages."""
+    """POST /v1/messages.
+
+    `temperature` is dropped unless `send_temperature` is set: Opus 4.7 and
+    later answer 400 to any value, Sonnet 5 / 5.5 and Haiku 5.5 to anything
+    but the default. Set it only for a model that still takes one (the 4.5 /
+    4.6 line), where it is what makes a benchmark run repeatable."""
 
     def __init__(
         self,
         api_key: str,
         model: str,
         *,
+        send_temperature: bool = False,
         timeout: float | None = None,
         retries: int | None = None,
         transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self.headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
         self.model = model
+        self.send_temperature = send_temperature
         self.timeout = timeout or settings.llm_timeout_s
         self.retries = settings.llm_max_retries if retries is None else retries
-        self._transport = transport
+        self._http = _ConnectionPool(self.timeout, transport)
+
+    async def aclose(self) -> None:
+        await self._http.aclose()
 
     async def complete(
         self, system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 512
     ) -> LLMResponse:
-        body = {
+        body: dict[str, Any] = {
             "model": self.model,
             "max_tokens": max_tokens,
-            "temperature": temperature,
             "system": system,
             "messages": [{"role": "user", "content": user}],
         }
-        data = await _post_json(
-            ANTHROPIC_URL, body, self.headers, self.timeout, self.retries, self._transport
-        )
+        if self.send_temperature:
+            body["temperature"] = temperature
+        data = await _post_json(self._http.get(), ANTHROPIC_URL, body, self.headers, self.retries)
         blocks = data.get("content") or []
         text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
         usage = data.get("usage") or {}
@@ -243,33 +279,31 @@ class MeteredLLM:
 
 
 async def _post_json(
+    client: httpx.AsyncClient,
     url: str,
     body: dict,
     headers: dict[str, str],
-    timeout: float,
     retries: int,
-    transport: httpx.AsyncBaseTransport | None = None,
 ) -> dict[str, Any]:
     """POST with retries on transient failures (timeouts, 429, 5xx). Anything
     else fails fast."""
     error = "no attempt made"
     wait = 0.0
-    async with httpx.AsyncClient(timeout=timeout, transport=transport) as client:
-        for attempt in range(retries + 1):
-            if attempt:
-                await _sleep(wait)
-            try:
-                r = await client.post(url, json=body, headers=headers)
-            except httpx.TransportError as e:
-                error = f"{type(e).__name__}: {e}"
-                wait = _BACKOFF_S * 2**attempt
-                continue
-            if r.status_code < 400:
-                return r.json()
-            error = f"HTTP {r.status_code}: {r.text[:200]}"
-            if r.status_code not in _RETRYABLE:
-                break
-            wait = _retry_wait(r, attempt)
+    for attempt in range(retries + 1):
+        if attempt:
+            await _sleep(wait)
+        try:
+            r = await client.post(url, json=body, headers=headers)
+        except httpx.TransportError as e:
+            error = f"{type(e).__name__}: {e}"
+            wait = _BACKOFF_S * 2**attempt
+            continue
+        if r.status_code < 400:
+            return r.json()
+        error = f"HTTP {r.status_code}: {r.text[:200]}"
+        if r.status_code not in _RETRYABLE:
+            break
+        wait = _retry_wait(r, attempt)
     raise LLMUnavailable(f"{url} -> {error}")
 
 
@@ -308,7 +342,11 @@ def get_llm_client() -> LLMClient:
     if provider == "mock":
         return MockClient()
     if provider == "anthropic":
-        return AnthropicClient(settings.anthropic_api_key, settings.llm_model)
+        return AnthropicClient(
+            settings.anthropic_api_key,
+            settings.llm_model,
+            send_temperature=settings.anthropic_send_temperature,
+        )
     base_url, key = {
         "ollama": (f"{settings.ollama_base_url.rstrip('/')}/v1", ""),
         "vllm": (settings.vllm_base_url, settings.vllm_api_key),

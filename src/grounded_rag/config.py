@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
+    # Opus 4.7+ reject `temperature` outright, Sonnet 5.x / Haiku 5.5 reject
+    # non-default values: true only for a model that still accepts it.
+    anthropic_send_temperature: bool = False
 
     # ":memory:" runs Qdrant's embedded mode - the real code path, no server
     qdrant_url: str = "http://localhost:6333"
