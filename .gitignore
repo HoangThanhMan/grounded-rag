@@ -21,3 +21,5 @@ reports/*
 !reports/floor-sweep.json
 qdrant_storage/
 .cache/
+# the optional langfuse service in docker-compose.yml keeps its database here
+langfuse_pgdata/

@@ -43,7 +43,9 @@ services:
   # small machine mind the total: the pipeline already holds bge-m3, the
   # reranker and the NLI model in memory before the generator is loaded.
   ollama:
-    image: ollama/ollama:latest
+    # pinned: the 2026-09-15 benchmark ran on 0.34.0, and `latest` would
+    # quietly change the runtime under the numbers in the README
+    image: ollama/ollama:0.34.0
     profiles: ["ollama"]
     ports: ["11434:11434"]
     volumes: ["./.cache/ollama:/root/.ollama"]
