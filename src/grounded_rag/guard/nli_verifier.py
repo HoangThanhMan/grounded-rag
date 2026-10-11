@@ -13,6 +13,8 @@ from __future__ import annotations
 import functools
 import hashlib
 import re
+import threading
+from collections import OrderedDict
 from typing import Protocol
 
 from grounded_rag.config import settings
@@ -93,10 +95,15 @@ def premise_views(premise: str) -> list[str]:
 class NLIVerifier:
     """The real thing. Requires the `models` extra."""
 
-    def __init__(self, model_name: str | None = None) -> None:
+    def __init__(self, model_name: str | None = None, cache_size: int | None = None) -> None:
         self.model_name = model_name or settings.nli_model
         self._pipe = None
-        self._cache: dict[str, float] = {}
+        # LRU, bounded: a server that runs for weeks sees every claim once
+        # and most of them never again. Locked, since verification runs on
+        # the model pool (compute.py) and may run on more than one thread.
+        self._cache: OrderedDict[str, float] = OrderedDict()
+        self._cache_size = settings.nli_cache_size if cache_size is None else cache_size
+        self._lock = threading.Lock()
 
     def _load(self):
         if self._pipe is None:
@@ -114,9 +121,19 @@ class NLIVerifier:
     def raw_entailment(self, premise: str, hypothesis: str) -> float:
         """The model alone, on the premise as given."""
         key = hashlib.sha256(f"{premise}||{hypothesis}".encode()).hexdigest()
-        if key in self._cache:
-            return self._cache[key]
+        with self._lock:
+            if key in self._cache:
+                self._cache.move_to_end(key)
+                return self._cache[key]
 
+        value = self._score(premise, hypothesis)
+        with self._lock:
+            self._cache[key] = value
+            while len(self._cache) > self._cache_size:
+                self._cache.popitem(last=False)
+        return value
+
+    def _score(self, premise: str, hypothesis: str) -> float:
         pipe = self._load()
         # Truncate the premise, never the claim: several cited chunks joined
         # together easily pass the model's 512-token limit.
@@ -124,11 +141,9 @@ class NLIVerifier:
         # A single input comes back as a flat list of label scores in current
         # transformers, nested one level deeper in older ones.
         scores = out[0] if out and isinstance(out[0], list) else out
-        value = next(
+        return next(
             (s["score"] for s in scores if s["label"].lower().startswith("entail")), 0.0
         )
-        self._cache[key] = value
-        return value
 
 
 @functools.lru_cache(maxsize=1)

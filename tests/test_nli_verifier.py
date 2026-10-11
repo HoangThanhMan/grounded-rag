@@ -58,3 +58,18 @@ def test_a_rule_and_its_exception_joined_by_a_semicolon_are_separate_views():
     assert "Điều 29. Chuyển người lao động\n1. Không được quá 60 ngày trong 01 năm;" in (
         premise_views(premise)
     )
+
+
+def test_the_score_cache_is_bounded_and_keeps_the_recently_used(monkeypatch):
+    nli = NLIVerifier("unused", cache_size=2)
+    calls = []
+    monkeypatch.setattr(nli, "_score", lambda p, h: calls.append(h) or 0.9)
+
+    nli.raw_entailment("P", "a")
+    nli.raw_entailment("P", "b")
+    nli.raw_entailment("P", "a")        # a is now the most recent
+    nli.raw_entailment("P", "c")        # evicts b, the least recent
+    assert len(nli._cache) == 2
+    nli.raw_entailment("P", "a")
+    nli.raw_entailment("P", "b")
+    assert calls == ["a", "b", "c", "b"]

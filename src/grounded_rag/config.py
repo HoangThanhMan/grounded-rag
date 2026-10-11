@@ -54,6 +54,9 @@ class Settings(BaseSettings):
     # already uses every core through torch's intra-op threads, so 1 is right
     # on a CPU box; more only helps with spare cores and a smaller torch pool.
     model_workers: int = Field(default=1, ge=1)
+    # (premise, claim) pairs the NLI verifier remembers. A regeneration
+    # re-checks most of the same pairs; an unbounded cache is a leak.
+    nli_cache_size: int = Field(default=4096, ge=0)
 
     # Threshold of the NLI *measuring instrument* in eval/run.py. The guard's
     # own threshold lives in configs/*.yaml.
