@@ -19,6 +19,10 @@ reports/*
 # cited by docs/07-evaluation-plan.md
 !reports/closed-book.json
 !reports/floor-sweep.json
+# the README Results table is generated from these; docs/11-spec-v2.md cites 2026-09-15
+!reports/2026-10-12-gemini/
+reports/2026-10-12-gemini/*.log
+!reports/2026-09-15/
 qdrant_storage/
 .cache/
 # the optional langfuse service in docker-compose.yml keeps its database here

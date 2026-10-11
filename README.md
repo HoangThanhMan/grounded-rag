@@ -17,23 +17,63 @@ is worse than no answer.
 
 ## Results
 
-> The dataset is built and checked (`make check-dataset`); the numbers are not
-> in yet. Run `make eval-all` and paste the generated tables here. Until then
-> every cell below is a placeholder, and nothing in this section should be
-> believed.
+Generator `gemini-3.1-flash-lite` (free tier, temperature 0), law read as of
+2026-10-12, scored on the 80 `test` questions (50 answerable, 30 unanswerable)
+by the guard's NLI model at τ 0.5. Every answer, citation and per-step timing
+is in [`reports/2026-10-12-gemini/`](reports/2026-10-12-gemini/); the tables
+come from `python -m eval.report` over those files.
 
-| Configuration | Halluc. ↓ | Correct abst. ↑ | False abst. ↓ | Cite prec. ↑ | Retr. recall ↑ | LLM calls/q | p95 (ms) |
+| Configuration | Halluc. ↓ | Correct abst. ↑ | False abst. ↓ | Cite prec. ↑ | Retr. recall ↑ | LLM calls/q | p95 |
 |---|---|---|---|---|---|---|---|
-| `baseline` — plain RAG | – | – | – | – | – | – | – |
-| `threshold` — retrieval floor | – | – | – | – | – | – | – |
-| `full` — NLI guard | – | – | – | – | – | – | – |
-| `agentic` — full + corrective retrieval | – | – | – | – | – | – | – |
+| `baseline` — plain RAG | 0.088 (7/80) | 0.93 (28/30) | 0.02 (1/50) | 0.87 | 0.97 | 1.00 | 40 s |
+| `threshold` — retrieval floor | 0.075 (6/80) | 0.97 (29/30) | 0.06 (3/50) | 0.83 | 0.89 | 0.76 | 34 s |
+| `full` — NLI guard | 0.000 (0/80)\* | 0.93 (28/30) | 0.08 (4/50) | 0.86 | 0.93 | 0.86 | 69 s |
+| `agentic` — full + corrective retrieval | 0.000 (0/80)\* | 0.93 (28/30) | 0.08 (4/50) | 0.86 | 0.95 | 1.26 | 71 s |
 
-Which layer of defence caught the unanswerable questions:
+Which layer of defence caught the unanswerable questions (share of all 30):
 
 | Configuration | retrieval floor | out of domain | model refusal | guard |
 |---|---|---|---|---|
-| … | – | – | – | – |
+| `baseline` | – | – | 0.93 | – |
+| `threshold` | 0.57 | 0 | 0.40 | – |
+| `full` | 0.53 | 0 | 0.40 | 0 |
+| `agentic` | 0.37 | 0 | 0.53 | 0.03 |
+
+How to read it:
+
+- **\* The guard's zero is not an independent measurement.** The judge is the
+  guard's own model at the guard's own τ, so whatever the judge would flag the
+  guard has already removed. What the table can show is what that removal
+  cost. Of the six answers `threshold` lets through that the judge flags,
+  under `full` two came out clean on the first attempt (different chunks, a
+  different answer), two were regenerated and trimmed to the claims the guard
+  accepts, and two were refused after the regeneration — two answerable
+  questions lost. Whether those six were wrong in the first place is for the
+  30-answer hand-graded sample to say, and that is not done yet (see
+  [Limitations](#limitations)).
+- **The retrieval floor is the cheap win.** It turns away 17 of the 30
+  unanswerable questions before any LLM call, which is why `threshold` makes
+  fewer calls than there are questions. The price is two answerable questions
+  whose retrieval falls under the floor (false abstention 1 → 3 of 50); an
+  answer that never retrieves anything also scores zero retrieval recall,
+  hence 0.97 → 0.89.
+- **`full` changes two things at once:** the guard, and the chunker
+  (`recursive` → `structural`, split on Điều / Khoản). The recall and citation
+  columns move with the chunker as much as with the guard.
+- **Corrective retrieval did not pay for itself on this run.** It made 24
+  rewrite calls; 21 went to questions with no answer to find. It lifted
+  retrieval recall on colloquial questions from 0.89 to 1.00, but recovered no
+  answer: the one colloquial question it pulled over the floor (`a004`) was
+  then refused by the guard. Net, 0.4 more LLM calls per question for the same
+  abstention rates.
+- **Latency is this machine, not the design.** Everything but the generator
+  runs on a laptop CPU: retrieval and reranking take ~8–11 s per question and
+  each free-tier Gemini call ~12 s, so p50 is ~24 s in every configuration.
+  The guard's p95 comes from the questions it catches — verification, a
+  regeneration and a second verification, all on CPU; the slowest took 142 s.
+- 30 unanswerable and 50 answerable questions are small samples. One question
+  moves a rate by 0.02 or 0.03, and none of the differences above is more than
+  a few questions.
 
 Benchmark: 100 hand-labelled questions — 63 answerable, 37 unanswerable across
 three adversarial types, in [`eval/dataset/questions.jsonl`](eval/dataset/questions.jsonl).

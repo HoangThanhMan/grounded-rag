@@ -24,7 +24,7 @@ nghĩa là ngày đó đã xong.
 | Tập 100 câu có nhãn | ✅ | 63 answerable + 37 unanswerable sau kiểm tra chéo lần hai (đổi nhãn 3 câu, xem LABELING.md); tách 20 câu `dev` để hiệu chỉnh τ, chấm trên 80 câu `test`. `make check-dataset` giải được mọi gold ref. **Chưa chấm tay 30 câu** |
 | Giao diện web | ✅ | `app/web/`, do API phục vụ ở `/`; mệnh đề tô màu theo verdict, thước entailment có vạch τ |
 | Hiệu chỉnh τ | ✅ | `make calibrate` trên 20 câu dev, đường cong ở `docs/img/tau-curve.svg`, τ = 0.50. Kết luận quan trọng hơn con số: trên dev **không có τ nào tách được mệnh đề đúng khỏi mệnh đề sai** ([06](06-guard-design.md)) |
-| Bảng số thật trong README | ❌ | Đã chạy thử 2026-09-19 rồi dừng: đo được ~42 giây/câu, tức ~4 giờ cho bốn cấu hình × 80 câu trên máy này. Việc còn lại lớn nhất |
+| Bảng số thật trong README | ✅ | Chạy 2026-10-12 (WS0): `gemini-3.1-flash-lite`, 4 cấu hình × 80 câu `test`, ~4 giờ trên CPU. Report ở `reports/2026-10-12-gemini/`. Retrieval floor là lợi ích rẻ nhất; vòng corrective tốn thêm 0.4 lời gọi/câu mà không cứu được câu nào. Số 0 hallucination của guard là đo vòng tròn — cần chấm tay |
 | Prompt sinh | ✅ | Sửa lỗi model thay con số bằng mã trích dẫn ([09](09-runbook.md)); 4/4 lượt giữ đúng con số sau khi sửa |
 
 ### Lượt chạy thật đầu tiên — 7 câu, 2026-09-11
@@ -151,13 +151,13 @@ chưa làm ([ADR-0007](adr/0007-no-generator-fine-tuning.md)).
       đầu-cuối bằng stack thật: `answered`, mệnh đề `supported` 0.9949, trích
       đúng Điều 35:1
 - [x] Quick start bằng `mock` thật sự trả lời được (`make seed`)
-- [ ] README có bảng so sánh bốn cấu hình với số thật ← **việc lớn nhất còn lại**
+- [x] README có bảng so sánh bốn cấu hình với số thật (2026-10-12, Gemini)
 - [x] README có ảnh demo hiện mệnh đề tô màu theo verdict
 - [x] README có đường cong hiệu chỉnh τ
 - [x] `eval/dataset/questions.jsonl` đủ 100 câu + `LABELING.md`
 - [x] Mục "Limitations" trong README — nói rõ guard sai ở đâu
-- [ ] Chấm tay 30 câu (script có, cần report trước)
-- [ ] RAGAS 10 câu bằng Gemini (cần report trước)
+- [ ] Chấm tay 30 câu (script có; report đã có ở `reports/2026-10-12-gemini/`) ← **việc lớn nhất còn lại**
+- [ ] RAGAS 10 câu bằng Gemini (report đã có)
 - [ ] Video demo 90 giây, link trong README
 
 Bốn mục dưới đây phụ thuộc vào một remote GitHub. Hoãn ngày 2026-09-19,
