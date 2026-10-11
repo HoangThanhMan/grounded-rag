@@ -95,12 +95,14 @@ pipeline end to end:
 
 ```bash
 make install && make test
-LLM_PROVIDER=mock make run        # API and the demo UI on http://localhost:8000
-make seed                         # in another shell: index the sample corpus
+LLM_PROVIDER=mock ADMIN_API_KEY=dev make run   # API and demo UI on http://localhost:8000
+ADMIN_API_KEY=dev make seed                    # in another shell: index the sample corpus
 ```
 
 The mock provider keeps its index inside the process, so `make seed` has to run
-against the server that is already up, and again after every restart. Without
+against the server that is already up, and again after every restart. `POST
+/ingest` is an admin call: off until the server has an `ADMIN_API_KEY`, and it
+reads only directories under `data/`. Without
 it every question answers `no_context`, correctly — there is nothing indexed to
 answer from.
 

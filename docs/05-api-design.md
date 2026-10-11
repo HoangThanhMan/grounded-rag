@@ -105,15 +105,31 @@ kiện: `event: error` với `{"detail": "..."}`.
 
 ## `POST /ingest`
 
-```json
-{ "source": "data/corpus", "config": "full", "recreate": false }
+```http
+POST /ingest
+X-API-Key: <ADMIN_API_KEY>
+
+{ "source": "data/corpus", "config": "full" }
 → { "files": 2, "chunks": 1847, "written": 1847 }
 ```
 
 `config` quyết định chunker, và vì thế quyết định ghi vào index nào.
 `written` < `chunks` nghĩa là phần lớn nội dung đã có trong chỉ mục — bằng
-chứng ingest idempotent hoạt động. `recreate: true` xoá index của chunker đó
-trước khi ghi.
+chứng ingest idempotent hoạt động.
+
+Đây là thao tác quản trị, vì nó đọc thư mục trên chính máy chủ:
+
+| Điều kiện | Mã |
+|---|---|
+| Máy chủ chưa đặt `ADMIN_API_KEY` (endpoint tắt) | `403` |
+| Thiếu hoặc sai header `X-API-Key` | `401` |
+| `source` không phải thư mục nằm dưới `DATA_ROOT` (mặc định `data/`). Cả hai phía được `resolve()` trước khi so, nên `..` hay symlink đều không thoát ra được | `400` |
+| Có trường lạ trong body, kể cả `recreate` | `422` |
+
+Endpoint chỉ **thêm** vào index, không bao giờ xoá. Xoá index của một chunker
+(`--recreate`) chỉ làm được qua CLI `python -m grounded_rag.ingest.pipeline`,
+tức là chỉ người có quyền vào máy chủ. Việc embedding chạy trên cùng pool với
+các truy vấn (`compute.py`), nên ingest không làm nghẽn event loop.
 
 ## `GET /configs`
 

@@ -56,6 +56,11 @@ class Settings(BaseSettings):
     # own threshold lives in configs/*.yaml.
     entailment_threshold: float = 0.50
 
+    # POST /ingest reads directories on the server, so it is an admin call:
+    # off until a key is set, and only below data_root even then.
+    admin_api_key: str = ""
+    data_root: Path = Path("data")
+
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""
     langfuse_host: str = "http://localhost:3000"

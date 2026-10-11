@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from grounded_rag.types import Answer
 
@@ -20,9 +20,12 @@ class ChatResponse(Answer):
 
 
 class IngestRequest(BaseModel):
-    source: str = "data/corpus"
+    # An unknown field is an error, not ignored: `recreate` used to be one,
+    # and a client still sending it must learn it no longer drops the index.
+    model_config = ConfigDict(extra="forbid")
+
+    source: str = "data/corpus"     # a directory under settings.data_root
     config: str = Field(default="full", pattern=CONFIG_NAME)
-    recreate: bool = False
 
 
 class IngestResponse(BaseModel):

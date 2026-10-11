@@ -47,14 +47,17 @@ ingest:       ## index the real corpus in data/corpus/ (both chunkers)
 	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --config configs/full.yaml
 	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --config configs/baseline.yaml
 
-# Refuses unless the server reports the mock provider, and never passes
-# `recreate`: pointed at a real run this would otherwise drop the ingested
-# collection and replace 1,241 chunks with the four in the sample corpus.
+# Refuses unless the server reports the mock provider. /ingest itself only
+# ever adds to an index (`recreate` is CLI-only) and is off until the server
+# has an ADMIN_API_KEY - the same key has to be in this shell.
 seed:         ## load the sample corpus into a RUNNING mock server (in-memory, lost on restart)
 	@curl -fsS localhost:$(PORT)/healthz 2>/dev/null | grep -q '"provider":"mock"' \
 	  || { echo "refusing: :$(PORT) is not running the mock provider (or is not up)."; \
-	       echo "  start it with:  LLM_PROVIDER=mock make run"; exit 1; }
+	       echo "  start it with:  LLM_PROVIDER=mock ADMIN_API_KEY=dev make run"; exit 1; }
+	@test -n "$$ADMIN_API_KEY" \
+	  || { echo "refusing: set ADMIN_API_KEY to the key the server was started with."; exit 1; }
 	@curl -fsS -X POST localhost:$(PORT)/ingest -H 'content-type: application/json' \
+	  -H "x-api-key: $$ADMIN_API_KEY" \
 	  -d '{"source":"data/sample_corpus","config":"full"}' && echo ""
 
 check-dataset: ## resolve every gold ref against the corpus before trusting a number
