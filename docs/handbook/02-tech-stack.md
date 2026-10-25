@@ -61,11 +61,10 @@ Phiên bản "khai báo" lấy từ `pyproject.toml` / `docker-compose.yml`; phi
 | prometheus-client | `>=0.21` | `/metrics`: histogram từng bước, counter câu trả lời, token, lời gọi LLM (`observability/metrics.py`). Không cài thì mọi hàm là no-op |
 | langfuse | `>=2.53,<3` (SDK v2) | Đẩy mỗi câu trả lời thành một trace (`observability/tracing.py`). **Lưu ý:** `.venv` local đang có langfuse 4.15, không khớp khai báo — xem [13](13-known-gaps.md) |
 
-## Extra `demo` và `dev`
+## Extra `dev`
 
 | Thư viện | Dùng để |
 |---|---|
-| streamlit | Demo cũ `app/streamlit_demo.py` — web UI ở `/` đã thay thế; kế hoạch xóa ở S0 |
 | pytest + pytest-asyncio | Test, kể cả async |
 | ruff | Lint (`E`, `F`, `I`, `UP`, `B`), độ dài dòng 100 |
 

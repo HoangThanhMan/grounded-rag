@@ -220,8 +220,6 @@ claim scored 0.99 against Điều 35 Khoản 1.
 
 `?q=...&config=...` asks straight away, so a demo run is a shareable link.
 
-The older `app/streamlit_demo.py` still works (`make demo`) if you prefer it.
-
 ## Stack
 
 FastAPI · Qdrant (dense + BM25 sparse) · bge-m3 · bge-reranker-v2-m3 ·

@@ -48,7 +48,6 @@ grounded-rag/
 ├── scripts/                     công cụ một lần: corpus, τ, probe NLI, floor, chấm tay
 ├── tests/                       18 file, 135 test, chạy trên mock
 ├── app/web/                     UI một trang: index.html, app.js, styles.css
-├── app/streamlit_demo.py        demo cũ (sẽ xóa)
 ├── configs/                     baseline · threshold · full · agentic
 ├── data/corpus/                 2 văn bản luật (commit)
 ├── data/sample_corpus/          trích 3 điều luật cho test/CI

@@ -7,7 +7,7 @@ cd ~/Data/project/grounded-rag
 python -m venv .venv && source .venv/bin/activate
 
 make install        # chỉ runtime, đủ để chạy test và mock pipeline
-make dev-install    # thêm torch/transformers/ragas/streamlit - nặng, vài GB
+make dev-install    # thêm torch/transformers/ragas - nặng, vài GB
 
 cp .env.example .env
 ```
@@ -37,8 +37,7 @@ make up                                  # qdrant :6333, langfuse :3000
 # sửa .env: LLM_PROVIDER=gemini | ollama | vllm | openai | anthropic, điền key
 make corpus                              # Bộ luật LĐ 2019 + Luật BHXH 2024 từ Công báo
 make ingest                              # index cả hai chunker
-make run
-make demo                                # streamlit :8501
+make run                                 # API + UI ở http://localhost:8000
 ```
 
 Đổi chunker hoặc sửa corpus nhiều: `python -m grounded_rag.ingest.pipeline

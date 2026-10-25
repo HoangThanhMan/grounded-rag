@@ -164,11 +164,6 @@ render
 `esc()` thoát HTML ở mọi chỗ chèn dữ liệu. Số thập phân hiển thị dấu phẩy kiểu
 Việt Nam.
 
-### Demo cũ
-
-`app/streamlit_demo.py` (`make demo`, cổng 8501) — vẫn chạy được nhưng đã bị UI
-web thay thế; kế hoạch xóa ở S0.
-
 ## Ví dụ nhanh bằng mock
 
 ```bash

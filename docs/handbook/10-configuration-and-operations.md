@@ -80,10 +80,9 @@ thì `.venv/bin/python` nếu có, không thì `python3`. `make python` in ra c�
 | Nhóm | Target | Làm gì |
 |---|---|---|
 | Cài đặt | `install` | `pip install -e .` (chỉ runtime) |
-| | `dev-install` | `pip install -e ".[models,eval,obs,demo,dev]"` |
+| | `dev-install` | `pip install -e ".[models,eval,obs,dev]"` |
 | Chạy | `run` | `uvicorn grounded_rag.api.main:app --reload --port $(PORT)` (mặc định 8000) |
 | | `seed` | `POST /ingest data/sample_corpus` vào server mock đang chạy (cần `ADMIN_API_KEY`) |
-| | `demo` | Streamlit (cũ) |
 | Dữ liệu | `corpus` | `scripts/prepare_corpus.py` — tải từ Công báo |
 | | `ingest` | Index `data/corpus` cho cả `full` (structural) và `baseline` (recursive) |
 | | `check-dataset` | Kiểm tra dataset với corpus |

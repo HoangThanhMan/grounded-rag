@@ -52,13 +52,12 @@ Khi đọc `docs/01`–`docs/11` và ADR, lưu ý các chỗ sau:
 | Tài liệu | Nói | Thực tế |
 |---|---|---|
 | [../03-architecture.md](../03-architecture.md), mục Quan sát | Langfuse: "đẩy trace lên vẫn là TODO tuần 3" | Đã cài đặt trong `observability/tracing.py::export` (test bằng client giả, chưa xem trên UI thật) |
-| [../03-architecture.md](../03-architecture.md), bảng công nghệ | Demo: Streamlit | Web UI `app/web/` phục vụ ở `/`; Streamlit là demo cũ |
+| [../03-architecture.md](../03-architecture.md), bảng công nghệ | Demo: Streamlit | Web UI `app/web/` phục vụ ở `/`; Streamlit đã bị xóa ở S0 |
 | [../04-data-design.md](../04-data-design.md), mục Corpus | "`data/corpus/` không commit (xem `.gitignore`)" | **Được commit**; `.gitignore` ghi rõ lý do |
 | [../04-data-design.md](../04-data-design.md), mục Metadata | "Bộ luật Lao động 2012 và 2019 cùng nằm trong corpus" | Corpus chỉ có BLLĐ 2019 và Luật BHXH 2024 |
 | [../05-api-design.md](../05-api-design.md), `GET /configs` | Ví dụ `entailment_threshold: 0.6` | YAML dùng 0.50 |
 | [../adr/0003-verify-before-stream.md](../adr/0003-verify-before-stream.md) | "Có cờ `stream_unverified=true` để so sánh trải nghiệm" | Không có cờ này trong code |
 | [../09-runbook.md](../09-runbook.md), Cài đặt | `cd ~/Data/project/grounded-rag` | Đường dẫn repo khác trên máy hiện tại; dùng gốc repo của bạn |
-| [../09-runbook.md](../09-runbook.md), Chạy thật | `make demo  # streamlit :8501` là bước chính | UI chính ở `http://localhost:8000` |
 | [../02-requirements.md](../02-requirements.md), Ngoài phạm vi | "Frontend hoàn chỉnh — Streamlit là đủ" | Đã có web UI riêng |
 | [../08-roadmap.md](../08-roadmap.md), Tuần 3 ngày 19 | "Streamlit tô màu verdict" | Đã làm trên web UI |
 | `README.md`, Stack | Liệt kê RAGAS và Langfuse | RAGAS chưa chạy với giám khảo thật; Langfuse chưa kiểm chứng trên UI |

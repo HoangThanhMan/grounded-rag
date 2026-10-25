@@ -1,4 +1,4 @@
-.PHONY: python install seed check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt demo
+.PHONY: python install seed check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt
 
 CONFIGS := baseline threshold full agentic
 PORT ?= 8000
@@ -17,7 +17,7 @@ install:      ## runtime deps only
 	$(PY) -m pip install -e .
 
 dev-install:  ## everything needed to actually run the pipeline
-	$(PY) -m pip install -e ".[models,eval,obs,demo,dev]"
+	$(PY) -m pip install -e ".[models,eval,obs,dev]"
 
 up:           ## qdrant + langfuse only - the API runs natively with `make run`
 	docker compose up -d qdrant langfuse
@@ -84,9 +84,6 @@ closed-book:  ## does retrieval buy anything? same questions, no documents
 
 ragas:        ## LLM-judge second opinion on each report (needs JUDGE_* in the env)
 	for c in $(CONFIGS); do $(PY) -m eval.ragas_eval reports/$$c.json || exit 1; done
-
-demo:         ## the old Streamlit demo; the web UI at / replaces it
-	$(PY) -m streamlit run app/streamlit_demo.py
 
 test:
 	$(PY) -m pytest -q
