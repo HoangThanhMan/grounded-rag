@@ -273,7 +273,7 @@ Cập nhật vào ngày cuối mỗi sprint: xong gì, trễ gì, chuyển gì, 
 
 | Sprint | Kết quả | Chuyển sang sau | Ghi chú |
 |---|---|---|---|
-| S0 | | | |
+| S0 | Xong 7/7 ngày 25/10 (trễ 7 ngày); CI xanh | — | Langfuse chưa từng đẩy được trace: `.venv` có SDK 4.15 lệch khai báo v2, lỗi bị export best effort nuốt. Cài lại SDK v2, sửa compose chờ Postgres healthy, có ảnh trace thật. Stack bỏ vLLM (chưa chạy thật), RAGAS ghi rõ là chưa chạy. 51 issue trong 6 milestone |
 | S1 | | | |
 | S2 | | | |
 | S3 | | | |
