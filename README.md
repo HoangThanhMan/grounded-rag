@@ -20,7 +20,7 @@ is worse than no answer.
 Generator `gemini-3.1-flash-lite` (free tier, temperature 0), law read as of
 2026-10-12, scored on the 80 `test` questions (50 answerable, 30 unanswerable)
 by the guard's NLI model at τ 0.5. Every answer, citation and per-step timing
-is in [`reports/2026-10-12-gemini/`](reports/2026-10-12-gemini/); the tables
+is in [`reports/runs/2026-10-12-gemini/`](reports/runs/2026-10-12-gemini/); the tables
 come from `python -m eval.report` over those files.
 
 | Configuration | Halluc. ↓ | Correct abst. ↑ | False abst. ↓ | Cite prec. ↑ | Retr. recall ↑ | LLM calls/q | p95 |

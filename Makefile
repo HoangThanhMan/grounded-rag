@@ -67,7 +67,7 @@ nli-probe:    ## does the NLI model catch changed numbers, subjects, conditions?
 	$(PY) scripts/nli_probe.py
 
 calibrate:    ## tau on the 20 dev questions: collect claims, label them by hand, then sweep
-	@test -f reports/tau-dev-claims.json || $(PY) scripts/calibrate_tau.py collect
+	@test -f reports/calibration/tau-dev-claims.json || $(PY) scripts/calibrate_tau.py collect
 	$(PY) scripts/calibrate_tau.py sweep
 
 eval:         ## full benchmark on the 80 test questions -> reports/full.json
@@ -80,7 +80,7 @@ eval-all:     ## the four-configuration comparison table
 	$(PY) -m eval.report $(foreach c,$(CONFIGS),reports/$(c).json)
 
 closed-book:  ## does retrieval buy anything? same questions, no documents
-	$(PY) -m eval.closed_book --n 20 --out reports/closed-book.json
+	$(PY) -m eval.closed_book --n 20 --out reports/ablations/closed-book.json
 
 ragas:        ## LLM-judge second opinion on each report (needs JUDGE_* in the env)
 	for c in $(CONFIGS); do $(PY) -m eval.ragas_eval reports/$$c.json || exit 1; done

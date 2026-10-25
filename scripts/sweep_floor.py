@@ -6,7 +6,7 @@ answerable questions are refused before anything is generated; too low and the
 That trade is measurable, and retrieval is deterministic - so one pass over the
 corpus scores every threshold at once, with no LLM calls.
 
-    python scripts/sweep_floor.py --out reports/floor-sweep.json
+    python scripts/sweep_floor.py --out reports/ablations/floor-sweep.json
 
 Reported per threshold, over the labelled dataset:
 

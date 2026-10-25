@@ -1,6 +1,6 @@
 """Answers graded by hand - the check on the measuring instrument.
 
-    python scripts/hand_grade.py sample reports/2026-10-12-gemini/*.json
+    python scripts/hand_grade.py sample reports/runs/2026-10-12-gemini/*.json
     # fill in "grade" for every answer: correct | partly | wrong
     python scripts/hand_grade.py score
 
@@ -31,7 +31,8 @@ import random
 from collections import Counter
 from pathlib import Path
 
-SHEET = Path("reports/hand-graded.json")
+SHEET = Path("reports/grading/hand-graded.json")
+SUMMARY = SHEET.with_name("hand-graded.summary.json")
 N = 30
 SEED = 17
 
@@ -120,7 +121,7 @@ def score() -> None:
         },
     }
     print(json.dumps(summary, indent=2, ensure_ascii=False))
-    Path("reports/hand-graded.summary.json").write_text(
+    SUMMARY.write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
 

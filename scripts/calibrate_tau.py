@@ -1,9 +1,11 @@
 """Calibrate the guard's entailment threshold τ on the dev split.
 
-    python scripts/calibrate_tau.py collect      # LLM + models -> reports/tau-dev-claims.json
+    python scripts/calibrate_tau.py collect   # LLM + models -> tau-dev-claims.json
     # label every claim by hand: "grounded": true | false
-    python scripts/calibrate_tau.py sweep        # -> reports/tau-sweep.json, assets/tau-curve.svg
-    python scripts/calibrate_tau.py rescore      # after a verifier change, then sweep again
+    python scripts/calibrate_tau.py sweep     # -> tau-sweep.json, assets/tau-curve.svg
+    python scripts/calibrate_tau.py rescore   # after a verifier change, then sweep again
+
+Both JSON files live in reports/calibration/.
 
 `collect` answers the 20 dev questions with the `full` and the `baseline`
 retrieval and the guard off, so every claim the model writes is kept - the
@@ -33,8 +35,8 @@ from grounded_rag.guard.nli_verifier import get_verifier
 from grounded_rag.service import answer_question
 
 DATASET = Path("eval/dataset/questions.jsonl")
-CLAIMS = Path("reports/tau-dev-claims.json")
-SWEEP = Path("reports/tau-sweep.json")
+CLAIMS = Path("reports/calibration/tau-dev-claims.json")
+SWEEP = Path("reports/calibration/tau-sweep.json")
 FIGURE = Path("assets/tau-curve.svg")
 TAUS = [round(0.05 * i, 2) for i in range(1, 20)]
 

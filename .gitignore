@@ -12,19 +12,15 @@ venv/
 # working corpus without depending on that site still being up, and CI can
 # resolve every gold ref in the evaluation dataset.
 # data/sample_corpus/ IS committed too: the fast path for tests and CI eval.
+# reports/ itself is scratch space for `make eval` and CI; the kept results
+# live in its subfolders, indexed by reports/README.md
 reports/*
-!reports/.gitkeep
-# the first real run, kept as evidence of where the numbers started
-!reports/smoke-2026-09-11/
-# ablations: retrieval without documents, and the retrieval floor sweep
-!reports/closed-book.json
-!reports/floor-sweep.json
-# the README Results table is generated from these; 2026-09-15 is the earlier Ollama run
-!reports/2026-10-12-gemini/
-reports/2026-10-12-gemini/*.log
-# hand-graded labels are the independent check on the NLI instrument
-!reports/hand-graded*.json
-!reports/2026-09-15/
+!reports/README.md
+!reports/runs/
+!reports/ablations/
+!reports/calibration/
+!reports/grading/
+reports/**/*.log
 qdrant_storage/
 .cache/
 # the optional langfuse service in docker-compose.yml keeps its database here

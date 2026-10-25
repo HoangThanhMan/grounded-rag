@@ -1,0 +1,745 @@
+[
+  {
+    "config": "full",
+    "id": "a005",
+    "type": "answerable",
+    "question": "Khi ký hợp đồng lao động, người lao động phải đặt cọc bao nhiêu tiền cho công ty?",
+    "gold_answer": "Không phải đặt cọc. Luật cấm người sử dụng lao động yêu cầu người lao động thực hiện biện pháp bảo đảm bằng tiền hoặc tài sản khác.",
+    "status": "no_context",
+    "abstain_reason": "retrieval_floor",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "a010",
+    "type": "answerable",
+    "question": "Chuyển người lao động sang làm công việc khác thì phải báo trước bao lâu và trả lương thế nào?",
+    "gold_answer": "Báo trước ít nhất 03 ngày làm việc; lương công việc mới ít nhất bằng 85% lương công việc cũ và không thấp hơn mức lương tối thiểu.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Chuyển người lao động sang làm công việc khác phải báo trước ít nhất 03 ngày làm việc [C1]. Người lao động được trả lương theo công việc mới, nhưng nếu tiền lương mới thấp hơn, được giữ nguyên tiền lương cũ trong 30 ngày làm việc [C2]. Nếu tiền lương mới thấp hơn mức lương tối thiểu, phải ít nhất bằng 85% tiền lương cũ [C2].",
+    "claims": [
+      {
+        "text": "Chuyển người lao động sang làm công việc khác phải báo trước ít nhất 03 ngày làm việc.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.9947,
+        "other_label": "C2",
+        "other_score": 0.3442,
+        "premise": "Điều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n2. Khi tạm thời chuyển người lao động làm công việc khác so với hợp đồng lao động quy định tại khoản 1 Điều này, người sử dụng lao động phải báo cho người lao động biết trước ít nhất 03 ngày làm việc, thông báo rõ thời hạn làm tạm thời và bố trí công việc phù hợp với sức khỏe, giới tính của người lao động.",
+        "other_premise": "Điều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n3. Người lao động chuyển sang làm công việc khác so với hợp đồng lao động được trả lương theo công việc mới. Nếu tiền lương của công việc mới thấp hơn tiền lương của công việc cũ thì được giữ nguyên tiền lương của công việc cũ trong thời hạn 30 ngày làm việc. Tiền lương theo công việc mới ít nhất phải bằng 85% tiền lương của công việc cũ nhưng không thấp hơn mức lương tối thiểu.",
+        "grounded": true
+      },
+      {
+        "text": "Người lao động được trả lương theo công việc mới, nhưng nếu tiền lương mới thấp hơn, được giữ nguyên tiền lương cũ trong 30 ngày làm việc.",
+        "citations": [
+          "C2"
+        ],
+        "cited_score": 0.7243,
+        "other_label": "C1",
+        "other_score": 0.0,
+        "premise": "Điều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n3. Người lao động chuyển sang làm công việc khác so với hợp đồng lao động được trả lương theo công việc mới. Nếu tiền lương của công việc mới thấp hơn tiền lương của công việc cũ thì được giữ nguyên tiền lương của công việc cũ trong thời hạn 30 ngày làm việc. Tiền lương theo công việc mới ít nhất phải bằng 85% tiền lương của công việc cũ nhưng không thấp hơn mức lương tối thiểu.",
+        "other_premise": "Điều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n2. Khi tạm thời chuyển người lao động làm công việc khác so với hợp đồng lao động quy định tại khoản 1 Điều này, người sử dụng lao động phải báo cho người lao động biết trước ít nhất 03 ngày làm việc, thông báo rõ thời hạn làm tạm thời và bố trí công việc phù hợp với sức khỏe, giới tính của người lao động.",
+        "grounded": true
+      },
+      {
+        "text": "Nếu tiền lương mới thấp hơn mức lương tối thiểu, phải ít nhất bằng 85% tiền lương cũ.",
+        "citations": [
+          "C2"
+        ],
+        "cited_score": 0.8866,
+        "other_label": "C1",
+        "other_score": 0.0,
+        "premise": "Điều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n3. Người lao động chuyển sang làm công việc khác so với hợp đồng lao động được trả lương theo công việc mới. Nếu tiền lương của công việc mới thấp hơn tiền lương của công việc cũ thì được giữ nguyên tiền lương của công việc cũ trong thời hạn 30 ngày làm việc. Tiền lương theo công việc mới ít nhất phải bằng 85% tiền lương của công việc cũ nhưng không thấp hơn mức lương tối thiểu.",
+        "other_premise": "Điều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n2. Khi tạm thời chuyển người lao động làm công việc khác so với hợp đồng lao động quy định tại khoản 1 Điều này, người sử dụng lao động phải báo cho người lao động biết trước ít nhất 03 ngày làm việc, thông báo rõ thời hạn làm tạm thời và bố trí công việc phù hợp với sức khỏe, giới tính của người lao động.",
+        "grounded": false,
+        "label_note": "đảo điều kiện: 85% áp dụng cho lương công việc mới so với cũ, không phải 'nếu thấp hơn lương tối thiểu'"
+      }
+    ]
+  },
+  {
+    "config": "full",
+    "id": "a015",
+    "type": "answerable",
+    "question": "Tiền lương để tính trợ cấp thôi việc là lương của mấy tháng?",
+    "gold_answer": "Tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi thôi việc.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "[C1]",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "a020",
+    "type": "answerable",
+    "question": "Công ty bắt nộp phạt tiền khi đi làm muộn quá 3 lần một tháng có đúng luật không?",
+    "gold_answer": "Không. Phạt tiền, cắt lương thay việc xử lý kỷ luật lao động là hành vi bị nghiêm cấm.",
+    "status": "no_context",
+    "abstain_reason": "retrieval_floor",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "a025",
+    "type": "answerable",
+    "question": "Mỗi tuần người lao động được nghỉ ít nhất bao nhiêu giờ liên tục?",
+    "gold_answer": "Ít nhất 24 giờ liên tục.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Có thể hiểu rằng mỗi tuần người lao động được nghỉ ít nhất 24 giờ liên tục [C1].",
+    "claims": [
+      {
+        "text": "Có thể hiểu rằng mỗi tuần người lao động được nghỉ ít nhất 24 giờ liên tục.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.9756,
+        "other_label": "C2",
+        "other_score": 0.0,
+        "premise": "Điều 111. Nghỉ hằng tuần\n1. Mỗi tuần, người lao động được nghỉ ít nhất 24 giờ liên tục. Trong trường hợp đặc biệt do chu kỳ lao động không thể nghỉ hằng tuần thì người sử dụng lao động có trách nhiệm bảo đảm cho người lao động được nghỉ tính bình quân 01 tháng ít nhất 04 ngày.",
+        "other_premise": "Điều 109. Nghỉ trong giờ làm việc\n1. Người lao động làm việc theo thời giờ làm việc quy định tại Điều 105 của Bộ luật này từ 06 giờ trở lên trong một ngày thì được nghỉ giữa giờ ít nhất 30 phút liên tục, làm việc ban đêm thì được nghỉ giữa giờ ít nhất 45 phút liên tục. Trường hợp người lao động làm việc theo ca liên tục từ 06 giờ trở lên thì thời gian nghỉ giữa giờ được tính vào giờ làm việc.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "full",
+    "id": "a030",
+    "type": "answerable",
+    "question": "Nghỉ việc phải báo trước bao nhiêu ngày và mỗi năm được nghỉ phép bao nhiêu ngày?",
+    "gold_answer": "Báo trước ít nhất 45 ngày với hợp đồng không xác định thời hạn; nghỉ hằng năm 12 ngày làm việc trong điều kiện bình thường.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Nghỉ việc phải báo trước ít nhất 3 ngày làm việc [C3].\nMỗi năm được nghỉ phép 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm [C1].",
+    "claims": [
+      {
+        "text": "Nghỉ việc phải báo trước ít nhất 3 ngày làm việc.",
+        "citations": [
+          "C3"
+        ],
+        "cited_score": 0.848,
+        "other_label": "C5",
+        "other_score": 0.9968,
+        "premise": "Điều 115. Nghỉ việc riêng, nghỉ không hưởng lương\n1. Người lao động được nghỉ việc riêng mà vẫn hưởng nguyên lương và phải thông báo với người sử dụng lao động trong trường hợp sau đây:\na) Kết hôn: nghỉ 03 ngày;\nb) Con đẻ, con nuôi kết hôn: nghỉ 01 ngày;\nc) Cha đẻ, mẹ đẻ, cha nuôi, mẹ nuôi; cha đẻ, mẹ đẻ, cha nuôi, mẹ nuôi của vợ hoặc chồng; vợ hoặc chồng; con đẻ, con nuôi chết: nghỉ 03 ngày.",
+        "other_premise": "Điều 35. Quyền đơn phương chấm dứt hợp đồng lao động của người lao động\n1. Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước cho người sử dụng lao động như sau:\na) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn;\nb) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng;\nc) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng;\nd) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.",
+        "grounded": false,
+        "label_note": "bỏ điều kiện: 03 ngày làm việc chỉ cho hợp đồng dưới 12 tháng; trích nhầm Điều 115"
+      },
+      {
+        "text": "Mỗi năm được nghỉ phép 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.9746,
+        "other_label": "C2",
+        "other_score": 0.0,
+        "premise": "Điều 113. Nghỉ hằng năm\n1. Người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau:\na) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường;\nb) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm;\nc) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm.",
+        "other_premise": "Điều 113. Nghỉ hằng năm\n4. Người sử dụng lao động có trách nhiệm quy định lịch nghỉ hằng năm sau khi tham khảo ý kiến của người lao động và phải thông báo trước cho người lao động biết. Người lao động có thể thỏa thuận với người sử dụng lao động để nghỉ hằng năm thành nhiều lần hoặc nghỉ gộp tối đa 03 năm một lần.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "full",
+    "id": "a035",
+    "type": "answerable",
+    "question": "Công ty sử dụng bao nhiêu lao động thì phải có nội quy lao động bằng văn bản?",
+    "gold_answer": "Từ 10 người lao động trở lên.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Công ty sử dụng từ 10 người lao động trở lên thì phải có nội quy lao động bằng văn bản. [C1]",
+    "claims": [
+      {
+        "text": "Công ty sử dụng từ 10 người lao động trở lên thì phải có nội quy lao động bằng văn bản.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.724,
+        "other_label": "C2",
+        "other_score": 0.015,
+        "premise": "Điều 118. Nội quy lao động\n1. Người sử dụng lao động phải ban hành nội quy lao động, nếu sử dụng từ 10 người lao động trở lên thì nội quy lao động phải bằng văn bản.",
+        "other_premise": "Điều 121. Hiệu lực của nội quy lao động\nNội quy lao động có hiệu lực sau 15 ngày kể từ ngày cơ quan nhà nước có thẩm quyền quy định tại Điều 119 của Bộ luật này nhận được đầy đủ hồ sơ đăng ký nội quy lao động. Trường hợp người sử dụng lao động sử dụng dưới 10 người lao động ban hành nội quy lao động bằng văn bản thì hiệu lực do người sử dụng lao động quyết định trong nội quy lao động.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "full",
+    "id": "a040",
+    "type": "answerable",
+    "question": "Thời giờ làm việc của người chưa đủ 15 tuổi và của người từ đủ 15 tuổi đến chưa đủ 18 tuổi là bao nhiêu?",
+    "gold_answer": "Chưa đủ 15 tuổi: không quá 04 giờ/ngày và 20 giờ/tuần. Từ đủ 15 đến chưa đủ 18 tuổi: không quá 08 giờ/ngày và 40 giờ/tuần.",
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "a045",
+    "type": "answerable",
+    "question": "Người từ đủ 70 tuổi đến dưới 75 tuổi có được hưởng trợ cấp hưu trí xã hội không?",
+    "gold_answer": "Có, nếu thuộc hộ nghèo, hộ cận nghèo và đáp ứng các điều kiện còn lại.",
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "a050",
+    "type": "answerable",
+    "question": "Thời gian hưởng chế độ ốm đau tối đa trong một năm với người đóng bảo hiểm dưới 15 năm là bao nhiêu?",
+    "gold_answer": "30 ngày làm việc trong điều kiện bình thường.",
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "a055",
+    "type": "answerable",
+    "question": "Trợ cấp một lần khi sinh con là bao nhiêu?",
+    "gold_answer": "Bằng 02 lần mức tham chiếu tại tháng sinh con cho mỗi con.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Trợ cấp một lần khi sinh con là 2 lần mức tham chiếu tại tháng lao động nữ sinh con, nhận con do nhờ mang thai hộ, nhận nuôi con nuôi. [C4][C5]",
+    "claims": [
+      {
+        "text": "Trợ cấp một lần khi sinh con là 2 lần mức tham chiếu tại tháng lao động nữ sinh con, nhận con do nhờ mang thai hộ, nhận nuôi con nuôi.",
+        "citations": [
+          "C4",
+          "C5"
+        ],
+        "cited_score": 0.1964,
+        "other_label": "C3",
+        "other_score": 0.9596,
+        "premise": "Điều 58. Trợ cấp một lần khi sinh con, nhận con khi nhờ mang thai hộ hoặc nhận nuôi con nuôi dưới 06 tháng tuổi\n1. Lao động nữ sinh con có đủ điều kiện quy định tại khoản 2 hoặc khoản 3 hoặc khoản 5 Điều 50 của Luật này thì được trợ cấp một lần khi sinh con. Lao động nữ sinh con nhưng không đủ điều kiện quy định tại khoản 2 hoặc khoản 3 hoặc khoản 5 Điều 50 của Luật này mà người chồng có đủ điều kiện quy định tại khoản 2 Điều 50 của Luật này thì người chồng được trợ cấp một lần.\nĐiều 58. Trợ cấp một lần khi sinh con, nhận con khi nhờ mang thai hộ hoặc nhận nuôi con nuôi dưới 06 tháng tuổi\n3. Người lao động nhận nuôi con nuôi dưới 06 tháng tuổi đủ điều kiện theo quy định tại khoản 2 Điều 50 của Luật này thì được trợ cấp một lần.",
+        "other_premise": "Điều 58. Trợ cấp một lần khi sinh con, nhận con khi nhờ mang thai hộ hoặc nhận nuôi con nuôi dưới 06 tháng tuổi\n4. Mức trợ cấp một lần cho mỗi con quy định tại các khoản 1, 2 và 3 Điều này bằng 02 lần mức tham chiếu tại tháng lao động nữ sinh con, nhận con do nhờ mang thai hộ, nhận nuôi con nuôi.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "full",
+    "id": "a060",
+    "type": "answerable",
+    "question": "Đóng bảo hiểm xã hội bao nhiêu lâu thì thân nhân được hưởng trợ cấp tuất hằng tháng?",
+    "gold_answer": "Từ đủ 15 năm đóng bảo hiểm xã hội bắt buộc trở lên.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Đóng bảo hiểm xã hội từ đủ 15 năm trở lên thì thân nhân được hưởng trợ cấp tuất hằng tháng [C1].",
+    "claims": [
+      {
+        "text": "Đóng bảo hiểm xã hội từ đủ 15 năm trở lên thì thân nhân được hưởng trợ cấp tuất hằng tháng.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.9475,
+        "other_label": "C5",
+        "other_score": 0.9569,
+        "premise": "Điều 86. Các trường hợp hưởng trợ cấp tuất hằng tháng\n1. Đối tượng quy định tại khoản 1 Điều 2 của Luật này khi chết hoặc bị Tòa án tuyên bố là đã chết thuộc một trong các trường hợp sau đây thì thân nhân quy định tại khoản 2 Điều này được hưởng tiền tuất hằng tháng:\na) Có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 15 năm trở lên;\nb) Đang hưởng lương hưu hoặc đang tạm dừng hưởng lương hưu;\nc) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nd) Đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng với mức suy giảm khả năng lao động từ 61% trở lên.",
+        "other_premise": "Điều 111. Chế độ hưu trí và chế độ tử tuất đối với người vừa có thời gian đóng bảo hiểm xã hội bắt buộc vừa có thời gian đóng bảo hiểm xã hội tự nguyện\n1. Chế độ hưu trí và chế độ tử tuất đối với người vừa có thời gian đóng bảo hiểm xã hội bắt buộc vừa có thời gian đóng bảo hiểm xã hội tự nguyện được quy định như sau:\na) Có từ đủ 15 năm đóng bảo hiểm xã hội bắt buộc trở lên nếu thuộc đối tượng quy định tại Điều 64 của Luật này, có từ đủ 20 năm đóng bảo hiểm xã hội bắt buộc trở lên nếu thuộc đối tượng quy định tại Điều 65 của Luật này thì điều kiện, mức hưởng lương hưu thực hiện theo chính sách bảo hiểm xã hội bắt buộc;\nb) Có từ đủ 15 năm đóng bảo hiểm xã hội bắt buộc trở lên thì được hưởng trợ cấp tuất hằng tháng theo chính sách bảo hiểm xã hội bắt buộc;\nc) Có từ đủ 12 tháng đóng bảo hiểm xã hội bắt buộc trở lên thì được hưởng trợ cấp mai táng theo chính sách bảo hiểm xã hội bắt buộc.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "full",
+    "id": "u005",
+    "type": "unanswerable_out_of_scope",
+    "question": "Hộ chiếu phổ thông của công dân Việt Nam có thời hạn bao nhiêu năm?",
+    "gold_answer": null,
+    "status": "no_context",
+    "abstain_reason": "retrieval_floor",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u010",
+    "type": "unanswerable_out_of_scope",
+    "question": "Thủ tục đăng ký thường trú tại thành phố trực thuộc trung ương gồm những giấy tờ gì?",
+    "gold_answer": null,
+    "status": "no_context",
+    "abstain_reason": "retrieval_floor",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u015",
+    "type": "unanswerable_out_of_scope",
+    "question": "Mức phạt đối với hành vi xây dựng nhà ở không có giấy phép xây dựng là bao nhiêu?",
+    "gold_answer": null,
+    "status": "no_context",
+    "abstain_reason": "retrieval_floor",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u020",
+    "type": "unanswerable_false_premise",
+    "question": "Người lao động phải nộp bao nhiêu phần trăm tiền lương vào quỹ phúc lợi của công ty?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u025",
+    "type": "unanswerable_false_premise",
+    "question": "Mức trần số giờ làm việc từ xa của người lao động trong một tuần là bao nhiêu giờ?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u030",
+    "type": "unanswerable_false_premise",
+    "question": "Người sử dụng lao động phải trả bao nhiêu phần trăm tiền lương cho thời gian người lao động đi phỏng vấn ở nơi khác?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u035",
+    "type": "unanswerable_near_miss",
+    "question": "Doanh nghiệp phải tổ chức khám sức khỏe định kỳ cho người lao động đã thành niên mấy lần một năm?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "full",
+    "id": "u040",
+    "type": "answerable",
+    "question": "Lao động nữ sinh con lần thứ ba được nghỉ thai sản bao nhiêu tháng?",
+    "gold_answer": null,
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Lao động nữ sinh con lần thứ ba được nghỉ thêm 03 ngày làm việc [C5].",
+    "claims": [
+      {
+        "text": "Lao động nữ sinh con lần thứ ba được nghỉ thêm 03 ngày làm việc.",
+        "citations": [
+          "C5"
+        ],
+        "cited_score": 0.9589,
+        "other_label": "C1",
+        "other_score": 0.0,
+        "premise": "Điều 53. Thời gian nghỉ việc hưởng chế độ thai sản khi sinh con\n2. Lao động nam đang tham gia bảo hiểm xã hội bắt buộc khi vợ sinh con được nghỉ việc hưởng chế độ thai sản với thời gian như sau:\na) 05 ngày làm việc;\nb) 07 ngày làm việc khi vợ sinh con phải phẫu thuật hoặc sinh con dưới 32 tuần tuổi;\nc) Trường hợp vợ sinh đôi thì được nghỉ 10 ngày làm việc. Trường hợp sinh ba trở lên thì được nghỉ thêm 03 ngày làm việc cho mỗi con tính từ con thứ ba trở đi;\nd) Trường hợp vợ sinh đôi phải phẫu thuật thì được nghỉ 14 ngày làm việc. Trường hợp sinh ba trở lên phải phẫu thuật thì được nghỉ thêm 03 ngày làm việc cho mỗi con tính từ con thứ ba trở đi.",
+        "other_premise": "Điều 139. Nghỉ thai sản\n1. Lao động nữ được nghỉ thai sản trước và sau khi sinh con là 06 tháng; thời gian nghỉ trước khi sinh không quá 02 tháng. Trường hợp lao động nữ sinh đôi trở lên thì tính từ con thứ 02 trở đi, cứ mỗi con, người mẹ được nghỉ thêm 01 tháng.",
+        "grounded": false,
+        "label_note": "đổi chủ thể: 03 ngày là của lao động nam khi vợ sinh ba"
+      }
+    ],
+    "note": "relabelled to a063 on 2026-09-17"
+  },
+  {
+    "config": "baseline",
+    "id": "a005",
+    "type": "answerable",
+    "question": "Khi ký hợp đồng lao động, người lao động phải đặt cọc bao nhiêu tiền cho công ty?",
+    "gold_answer": "Không phải đặt cọc. Luật cấm người sử dụng lao động yêu cầu người lao động thực hiện biện pháp bảo đảm bằng tiền hoặc tài sản khác.",
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "a010",
+    "type": "answerable",
+    "question": "Chuyển người lao động sang làm công việc khác thì phải báo trước bao lâu và trả lương thế nào?",
+    "gold_answer": "Báo trước ít nhất 03 ngày làm việc; lương công việc mới ít nhất bằng 85% lương công việc cũ và không thấp hơn mức lương tối thiểu.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Chuyển người lao động sang làm công việc khác phải báo trước ít nhất 3 ngày làm việc [C1]. Người sử dụng lao động phải trả lương theo công việc mới, nếu tiền lương mới thấp hơn thì giữ nguyên tiền lương cũ trong 30 ngày làm việc [C2].",
+    "claims": [
+      {
+        "text": "Chuyển người lao động sang làm công việc khác phải báo trước ít nhất 3 ngày làm việc.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.9937,
+        "other_label": "C3",
+        "other_score": 0.9877,
+        "premise": "hiện theo hợp đồng lao động, trừ trường hợp hai bên có thỏa thuận khác.\nĐiều 29. Chuyển người lao động làm công việc khác so với hợp đồng lao động\n1. Khi gặp khó khăn đột xuất do thiên tai, hỏa hoạn, dịch bệnh nguy hiểm, áp dụng biện pháp ngăn ngừa, khắc phục tai nạn lao động, bệnh nghề nghiệp, sự cố điện, nước hoặc do nhu cầu sản xuất, kinh doanh thì người sử dụng lao động được quyền tạm thời chuyển người lao động làm công việc khác so với hợp đồng lao động nhưng không được quá 60 ngày làm việc cộng dồn trong 01 năm; trường hợp chuyển người lao động làm công việc khác so với hợp đồng lao động quá 60 ngày làm việc cộng dồn trong 01 năm thì chỉ được thực hiện khi người lao động đồng ý bằng văn bản. Người sử dụng lao động quy định cụ thể trong nội quy lao động những trường hợp do nhu cầu sản xuất, kinh doanh mà người sử dụng lao động được tạm thời chuyển người lao động làm công việc khác so với hợp đồng lao động.\n2. Khi tạm thời chuyển người lao động làm công việc khác so với hợp đồng lao động quy định tại khoản 1 Điều này, người sử dụng lao động phải báo cho người lao động biết trước ít nhất 03 ngày làm việc, thông báo rõ thời hạn làm tạm thời và bố trí công việc phù hợp với sức khỏe, giới tính của người lao động.",
+        "other_premise": "động mà thử việc không đạt yêu cầu hoặc một bên hủy bỏ thỏa thuận thử việc.\nĐiều 35. Quyền đơn phương chấm dứt hợp đồng lao động của người lao động\n1. Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước cho người sử dụng lao động như sau:\na) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn;\nb) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng;\nc) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng;\nd) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.\n2. Người lao động có quyền đơn phương chấm dứt hợp đồng lao động không cần báo trước trong trường hợp sau đây:\na) Không được bố trí theo đúng công việc, địa điểm làm việc hoặc không được bảo đảm điều kiện làm việc theo thỏa thuận, trừ trường hợp quy định tại Điều 29 của Bộ luật này;\nb) Không được trả đủ lương hoặc trả lương không đúng thời hạn, trừ trường hợp quy định tại khoản 4 Điều 97 của Bộ luật này;\nc) Bị người sử dụng lao động ngược đãi, đánh đập hoặc có lời nói, hành vi nhục mạ, hành vi làm ảnh hưởng đến sức khỏe, nhân phẩm, danh dự; bị cưỡng bức lao động;\nd) Bị quấy rối tình dục tại nơi làm việc;",
+        "grounded": true
+      },
+      {
+        "text": "Người sử dụng lao động phải trả lương theo công việc mới, nếu tiền lương mới thấp hơn thì giữ nguyên tiền lương cũ trong 30 ngày làm việc.",
+        "citations": [
+          "C2"
+        ],
+        "cited_score": 0.6354,
+        "other_label": "C4",
+        "other_score": 0.2237,
+        "premise": "động biết trước ít nhất 03 ngày làm việc, thông báo rõ thời hạn làm tạm thời và bố trí công việc phù hợp với sức khỏe, giới tính của người lao động.\n3. Người lao động chuyển sang làm công việc khác so với hợp đồng lao động được trả lương theo công việc mới. Nếu tiền lương của công việc mới thấp hơn tiền lương của công việc cũ thì được giữ nguyên tiền lương của công việc cũ trong thời hạn 30 ngày làm việc. Tiền lương theo công việc mới ít nhất phải bằng 85% tiền lương của công việc cũ nhưng không thấp hơn mức lương tối thiểu.\n4. Người lao động không đồng ý tạm thời làm công việc khác so với hợp đồng lao động quá 60 ngày làm việc cộng dồn trong 01 năm mà phải ngừng việc thì người sử dụng lao động phải trả lương ngừng việc theo quy định tại Điều 99 của Bộ luật này.\nĐiều 30. Tạm hoãn thực hiện hợp đồng lao động\n1. Các trường hợp tạm hoãn thực hiện hợp đồng lao động bao gồm:\na) Người lao động thực hiện nghĩa vụ quân sự, nghĩa vụ tham gia Dân quân tự vệ;\nb) Người lao động bị tạm giữ, tạm giam theo quy định của pháp luật về tố tụng hình sự;\nc) Người lao động phải chấp hành quyết định áp dụng biện pháp đưa vào trường giáo dưỡng, cơ sở cai nghiện bắt buộc hoặc cơ sở giáo dục bắt buộc;\nd) Lao động nữ mang thai theo quy định tại Điều 138 của Bộ luật này;",
+        "other_premise": "của Bộ luật này, trừ trường hợp có thỏa thuận khác;\ne) Người lao động tự ý bỏ việc mà không có lý do chính đáng từ 05 ngày làm việc liên tục trở lên;\ng) Người lao động cung cấp không trung thực thông tin theo quy định tại khoản 2 Điều 16 của Bộ luật này khi giao kết hợp đồng lao động làm ảnh hưởng đến việc tuyển dụng người lao động.\n2. Khi đơn phương chấm dứt hợp đồng lao động trong trường hợp quy định tại các điểm a, b, c, đ và g khoản 1 Điều này, người sử dụng lao động phải báo trước cho người lao động như sau:\na) Ít nhất 45 ngày đối với hợp đồng lao động không xác định thời hạn;\nb) Ít nhất 30 ngày đối với hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng;\nc) Ít nhất 03 ngày làm việc đối với hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng và đối với trường hợp quy định tại điểm b khoản 1 Điều này;\nd) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.\n3. Khi đơn phương chấm dứt hợp đồng lao động quy định tại điểm d và điểm e khoản 1 Điều này thì người sử dụng lao động không phải báo trước cho người lao động.\nĐiều 37. Trường hợp người sử dụng lao động không được thực hiện quyền đơn phương chấm dứt hợp đồng lao động",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a015",
+    "type": "answerable",
+    "question": "Tiền lương để tính trợ cấp thôi việc là lương của mấy tháng?",
+    "gold_answer": "Tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi thôi việc.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Tiền lương để tính trợ cấp thôi việc là tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi người lao động thôi việc. [C1]",
+    "claims": [
+      {
+        "text": "Tiền lương để tính trợ cấp thôi việc là tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi người lao động thôi việc.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.9676,
+        "other_label": "C2",
+        "other_score": 0.9608,
+        "premise": "hợp đủ điều kiện hưởng lương hưu theo quy định của pháp luật về bảo hiểm xã hội và trường hợp quy định tại điểm e khoản 1 Điều 36 của Bộ luật này.\n2. Thời gian làm việc để tính trợ cấp thôi việc là tổng thời gian người lao động đã làm việc thực tế cho người sử dụng lao động trừ đi thời gian người lao động đã tham gia bảo hiểm thất nghiệp theo quy định của pháp luật về bảo hiểm thất nghiệp và thời gian làm việc đã được người sử dụng lao động chi trả trợ cấp thôi việc, trợ cấp mất việc làm.\n3. Tiền lương để tính trợ cấp thôi việc là tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi người lao động thôi việc.\n4. Chính phủ quy định chi tiết Điều này.\nĐiều 47. Trợ cấp mất việc làm\n1. Người sử dụng lao động trả trợ cấp mất việc làm cho người lao động đã làm việc thường xuyên cho mình từ đủ 12 tháng trở lên mà bị mất việc làm theo quy định tại khoản 11 Điều 34 của Bộ luật này, cứ mỗi năm làm việc trả 01 tháng tiền lương nhưng ít nhất bằng 02 tháng tiền lương.\n2. Thời gian làm việc để tính trợ cấp mất việc làm là tổng thời gian người lao động đã làm việc thực tế cho người sử dụng lao động trừ đi thời gian người lao động đã tham gia bảo hiểm thất nghiệp theo quy định của pháp luật về bảo hiểm thất nghiệp và thời gian làm việc đã được người sử dụng lao động chi trả trợ cấp thôi việc, trợ cấp mất việc làm.",
+        "other_premise": "quy định của pháp luật về bảo hiểm thất nghiệp và thời gian làm việc đã được người sử dụng lao động chi trả trợ cấp thôi việc, trợ cấp mất việc làm.\n3. Tiền lương để tính trợ cấp mất việc làm là tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi người lao động mất việc làm.\n4. Chính phủ quy định chi tiết Điều này.\nĐiều 48. Trách nhiệm khi chấm dứt hợp đồng lao động\n1. Trong thời hạn 14 ngày làm việc kể từ ngày chấm dứt hợp đồng lao động, hai bên có trách nhiệm thanh toán đầy đủ các khoản tiền có liên quan đến quyền lợi của mỗi bên, trừ trường hợp sau đây có thể kéo dài nhưng không được quá 30 ngày:\na) Người sử dụng lao động không phải là cá nhân chấm dứt hoạt động;\nb) Người sử dụng lao động thay đổi cơ cấu, công nghệ hoặc vì lý do kinh tế;\nc) Chia, tách, hợp nhất, sáp nhập; bán, cho thuê, chuyển đổi loại hình doanh nghiệp; chuyển nhượng quyền sở hữu, quyền sử dụng tài sản của doanh nghiệp, hợp tác xã;\nd) Do thiên tai, hỏa hoạn, địch họa hoặc dịch bệnh nguy hiểm.\n2. Tiền lương, bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp, trợ cấp thôi việc và các quyền lợi khác của người lao động theo thỏa ước lao động tập thể, hợp đồng lao động được ưu tiên thanh toán trong trường hợp doanh nghiệp, hợp tác xã bị chấm dứt hoạt động, bị giải thể, phá sản.\n3. Người sử dụng lao động có trách nhiệm sau đây:",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a020",
+    "type": "answerable",
+    "question": "Công ty bắt nộp phạt tiền khi đi làm muộn quá 3 lần một tháng có đúng luật không?",
+    "gold_answer": "Không. Phạt tiền, cắt lương thay việc xử lý kỷ luật lao động là hành vi bị nghiêm cấm.",
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "a025",
+    "type": "answerable",
+    "question": "Mỗi tuần người lao động được nghỉ ít nhất bao nhiêu giờ liên tục?",
+    "gold_answer": "Ít nhất 24 giờ liên tục.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Càng tuần người lao động được nghỉ ít nhất 24 giờ liên tục [C1].",
+    "claims": [
+      {
+        "text": "Càng tuần người lao động được nghỉ ít nhất 24 giờ liên tục.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.6594,
+        "other_label": "C2",
+        "other_score": 0.0,
+        "premise": "110. Nghỉ chuyển ca\nNgười lao động làm việc theo ca được nghỉ ít nhất 12 giờ trước khi chuyển sang ca làm việc khác.\nĐiều 111. Nghỉ hằng tuần\n1. Mỗi tuần, người lao động được nghỉ ít nhất 24 giờ liên tục. Trong trường hợp đặc biệt do chu kỳ lao động không thể nghỉ hằng tuần thì người sử dụng lao động có trách nhiệm bảo đảm cho người lao động được nghỉ tính bình quân 01 tháng ít nhất 04 ngày.\n2. Người sử dụng lao động có quyền quyết định sắp xếp ngày nghỉ hằng tuần vào ngày Chủ nhật hoặc ngày xác định khác trong tuần nhưng phải ghi vào nội quy lao động.\n3. Nếu ngày nghỉ hằng tuần trùng với ngày nghỉ lễ, tết quy định tại khoản 1 Điều 112 của Bộ luật này thì người lao động được nghỉ bù ngày nghỉ hằng tuần vào ngày làm việc kế tiếp.\nĐiều 112. Nghỉ lễ, tết\n1. Người lao động được nghỉ làm việc, hưởng nguyên lương trong những ngày lễ, tết sau đây:\na) Tết Dương lịch: 01 ngày (ngày 01 tháng 01 dương lịch);\nb) Tết Âm lịch: 05 ngày;\nc) Ngày Chiến thắng: 01 ngày (ngày 30 tháng 4 dương lịch);\nd) Ngày Quốc tế lao động: 01 ngày (ngày 01 tháng 5 dương lịch);\nđ) Quốc khánh: 02 ngày (ngày 02 tháng 9 dương lịch và 01 ngày liền kề trước hoặc sau);\ne) Ngày Giỗ Tổ Hùng Vương: 01 ngày (ngày 10 tháng 3 âm lịch).",
+        "other_premise": "không được từ chối trong trường hợp sau đây:\n1. Thực hiện lệnh động viên, huy động bảo đảm nhiệm vụ quốc phòng, an ninh theo quy định của pháp luật;\n2. Thực hiện các công việc nhằm bảo vệ tính mạng con người, tài sản của cơ quan, tổ chức, cá nhân trong phòng ngừa, khắc phục hậu quả thiên tai, hỏa hoạn, dịch bệnh nguy hiểm và thảm họa, trừ trường hợp có nguy cơ ảnh hưởng đến tính mạng, sức khỏe của người lao động theo quy định của pháp luật về an toàn, vệ sinh lao động.\nMục 2\nTHỜI GIỜ NGHỈ NGƠI\nĐiều 109. Nghỉ trong giờ làm việc\n1. Người lao động làm việc theo thời giờ làm việc quy định tại Điều 105 của Bộ luật này từ 06 giờ trở lên trong một ngày thì được nghỉ giữa giờ ít nhất 30 phút liên tục, làm việc ban đêm thì được nghỉ giữa giờ ít nhất 45 phút liên tục. Trường hợp người lao động làm việc theo ca liên tục từ 06 giờ trở lên thì thời gian nghỉ giữa giờ được tính vào giờ làm việc.\n2. Ngoài thời gian nghỉ quy định tại khoản 1 Điều này, người sử dụng lao động bố trí cho người lao động các đợt nghỉ giải lao và ghi vào nội quy lao động.\nĐiều 110. Nghỉ chuyển ca\nNgười lao động làm việc theo ca được nghỉ ít nhất 12 giờ trước khi chuyển sang ca làm việc khác.\nĐiều 111. Nghỉ hằng tuần",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a030",
+    "type": "answerable",
+    "question": "Nghỉ việc phải báo trước bao nhiêu ngày và mỗi năm được nghỉ phép bao nhiêu ngày?",
+    "gold_answer": "Báo trước ít nhất 45 ngày với hợp đồng không xác định thời hạn; nghỉ hằng năm 12 ngày làm việc trong điều kiện bình thường.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Người sử dụng lao động có trách nhiệm báo trước cho người lao động ít nhất 45 ngày đối với hợp đồng lao động không xác định thời hạn [C2][C1]. Mỗi năm người lao động được nghỉ hằng năm 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường [C1][C1].",
+    "claims": [
+      {
+        "text": "Người sử dụng lao động có trách nhiệm báo trước cho người lao động ít nhất 45 ngày đối với hợp đồng lao động không xác định thời hạn.",
+        "citations": [
+          "C2",
+          "C1"
+        ],
+        "cited_score": 0.9801,
+        "other_label": "C5",
+        "other_score": 0.1731,
+        "premise": "của Bộ luật này, trừ trường hợp có thỏa thuận khác;\ne) Người lao động tự ý bỏ việc mà không có lý do chính đáng từ 05 ngày làm việc liên tục trở lên;\ng) Người lao động cung cấp không trung thực thông tin theo quy định tại khoản 2 Điều 16 của Bộ luật này khi giao kết hợp đồng lao động làm ảnh hưởng đến việc tuyển dụng người lao động.\n2. Khi đơn phương chấm dứt hợp đồng lao động trong trường hợp quy định tại các điểm a, b, c, đ và g khoản 1 Điều này, người sử dụng lao động phải báo trước cho người lao động như sau:\na) Ít nhất 45 ngày đối với hợp đồng lao động không xác định thời hạn;\nb) Ít nhất 30 ngày đối với hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng;\nc) Ít nhất 03 ngày làm việc đối với hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng và đối với trường hợp quy định tại điểm b khoản 1 Điều này;\nd) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.\n3. Khi đơn phương chấm dứt hợp đồng lao động quy định tại điểm d và điểm e khoản 1 Điều này thì người sử dụng lao động không phải báo trước cho người lao động.\nĐiều 37. Trường hợp người sử dụng lao động không được thực hiện quyền đơn phương chấm dứt hợp đồng lao động\nlàm mà chưa nghỉ hằng năm hoặc chưa nghỉ hết số ngày nghỉ hằng năm thì được người sử dụng lao động thanh toán tiền lương cho những ngày chưa nghỉ.\n4. Người sử dụng lao động có trách nhiệm quy định lịch nghỉ hằng năm sau khi tham khảo ý kiến của người lao động và phải thông báo trước cho người lao động biết. Người lao động có thể thỏa thuận với người sử dụng lao động để nghỉ hằng năm thành nhiều lần hoặc nghỉ gộp tối đa 03 năm một lần.\n5. Khi nghỉ hằng năm mà chưa đến kỳ trả lương, người lao động được tạm ứng tiền lương theo quy định tại khoản 3 Điều 101 của Bộ luật này.\n6. Khi nghỉ hằng năm, nếu người lao động đi bằng các phương tiện đường bộ, đường sắt, đường thủy mà số ngày đi đường cả đi và về trên 02 ngày thì từ ngày thứ 03 trở đi được tính thêm thời gian đi đường ngoài ngày nghỉ hằng năm và chỉ được tính cho 01 lần nghỉ trong năm.\n7. Chính phủ quy định chi tiết điều này.\nĐiều 114. Ngày nghỉ hằng năm tăng thêm theo thâm niên làm việc\nCứ đủ 05 năm làm việc cho một người sử dụng lao động thì số ngày nghỉ hằng năm của người lao động theo quy định tại khoản 1 Điều 113 của Bộ luật này được tăng thêm tương ứng 01 ngày.\nĐiều 115. Nghỉ việc riêng, nghỉ không hưởng lương\n1. Người lao động được nghỉ việc riêng mà vẫn hưởng nguyên lương và phải thông báo với người sử dụng lao động trong trường hợp sau đây:\na) Kết hôn: nghỉ 03 ngày;",
+        "other_premise": "k, l, m và n khoản 1 và khoản 2 Điều 2 của Luật này tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần và được quy định như sau:\na) Làm việc trong điều kiện bình thường thì được hưởng 30 ngày nếu đã đóng bảo hiểm xã hội bắt buộc dưới 15 năm; 40 ngày nếu đã đóng từ đủ 15 năm đến dưới 30 năm; 60 ngày nếu đã đóng từ đủ 30 năm trở lên;\nb) Làm nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành hoặc làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì được hưởng 40 ngày nếu đã đóng bảo hiểm xã hội bắt buộc dưới 15 năm; 50 ngày nếu đã đóng từ đủ 15 năm đến dưới 30 năm; 70 ngày nếu đã đóng từ đủ 30 năm trở lên.\n2. Hết thời hạn hưởng chế độ ốm đau quy định tại khoản 1 Điều này mà vẫn tiếp tục điều trị thì người lao động nghỉ việc do mắc bệnh thuộc danh mục bệnh cần chữa trị dài ngày do Bộ trưởng Bộ Y tế ban hành được hưởng tiếp chế độ ốm đau với mức theo quy định tại khoản 3 Điều 45 của Luật này. Thời gian nghỉ hưởng chế độ ốm đau theo quy định tại khoản này tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần.",
+        "grounded": true
+      },
+      {
+        "text": "Mỗi năm người lao động được nghỉ hằng năm 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.0,
+        "other_label": "C3",
+        "other_score": 0.9556,
+        "premise": "làm mà chưa nghỉ hằng năm hoặc chưa nghỉ hết số ngày nghỉ hằng năm thì được người sử dụng lao động thanh toán tiền lương cho những ngày chưa nghỉ.\n4. Người sử dụng lao động có trách nhiệm quy định lịch nghỉ hằng năm sau khi tham khảo ý kiến của người lao động và phải thông báo trước cho người lao động biết. Người lao động có thể thỏa thuận với người sử dụng lao động để nghỉ hằng năm thành nhiều lần hoặc nghỉ gộp tối đa 03 năm một lần.\n5. Khi nghỉ hằng năm mà chưa đến kỳ trả lương, người lao động được tạm ứng tiền lương theo quy định tại khoản 3 Điều 101 của Bộ luật này.\n6. Khi nghỉ hằng năm, nếu người lao động đi bằng các phương tiện đường bộ, đường sắt, đường thủy mà số ngày đi đường cả đi và về trên 02 ngày thì từ ngày thứ 03 trở đi được tính thêm thời gian đi đường ngoài ngày nghỉ hằng năm và chỉ được tính cho 01 lần nghỉ trong năm.\n7. Chính phủ quy định chi tiết điều này.\nĐiều 114. Ngày nghỉ hằng năm tăng thêm theo thâm niên làm việc\nCứ đủ 05 năm làm việc cho một người sử dụng lao động thì số ngày nghỉ hằng năm của người lao động theo quy định tại khoản 1 Điều 113 của Bộ luật này được tăng thêm tương ứng 01 ngày.\nĐiều 115. Nghỉ việc riêng, nghỉ không hưởng lương\n1. Người lao động được nghỉ việc riêng mà vẫn hưởng nguyên lương và phải thông báo với người sử dụng lao động trong trường hợp sau đây:\na) Kết hôn: nghỉ 03 ngày;",
+        "other_premise": "Quốc khánh: 02 ngày (ngày 02 tháng 9 dương lịch và 01 ngày liền kề trước hoặc sau);\ne) Ngày Giỗ Tổ Hùng Vương: 01 ngày (ngày 10 tháng 3 âm lịch).\n2. Lao động là người nước ngoài làm việc tại Việt Nam ngoài các ngày nghỉ theo quy định tại khoản 1 Điều này còn được nghỉ thêm 01 ngày Tết cổ truyền dân tộc và 01 ngày Quốc khánh của nước họ.\n3. Hằng năm, căn cứ vào điều kiện thực tế, Thủ tướng Chính phủ quyết định cụ thể ngày nghỉ quy định tại điểm b và điểm đ khoản 1 Điều này.\nĐiều 113. Nghỉ hằng năm\n1. Người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau:\na) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường;\nb) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm;\nc) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm.\n2. Người lao động làm việc chưa đủ 12 tháng cho một người sử dụng lao động thì số ngày nghỉ hằng năm theo tỷ lệ tương ứng với số tháng làm việc.\n3. Trường hợp do thôi việc, bị mất việc làm mà chưa nghỉ hằng năm hoặc chưa nghỉ hết số ngày nghỉ hằng năm thì được người sử dụng lao động thanh toán tiền lương cho những ngày chưa nghỉ.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a035",
+    "type": "answerable",
+    "question": "Công ty sử dụng bao nhiêu lao động thì phải có nội quy lao động bằng văn bản?",
+    "gold_answer": "Từ 10 người lao động trở lên.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Công ty sử dụng từ 10 người lao động trở lên thì phải có nội quy lao động bằng văn bản [C1].",
+    "claims": [
+      {
+        "text": "Công ty sử dụng từ 10 người lao động trở lên thì phải có nội quy lao động bằng văn bản.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.8016,
+        "other_label": "C3",
+        "other_score": 0.0167,
+        "premise": "nghệ và điều hành sản xuất, kinh doanh do người sử dụng lao động ban hành trong nội quy lao động và do pháp luật quy định.\nĐiều 118. Nội quy lao động\n1. Người sử dụng lao động phải ban hành nội quy lao động, nếu sử dụng từ 10 người lao động trở lên thì nội quy lao động phải bằng văn bản.\n2. Nội dung nội quy lao động không được trái với pháp luật về lao động và quy định của pháp luật có liên quan. Nội quy lao động bao gồm những nội dung chủ yếu sau đây:\na) Thời giờ làm việc, thời giờ nghỉ ngơi;\nb) Trật tự tại nơi làm việc;\nc) An toàn, vệ sinh lao động;\nd) Phòng, chống quấy rối tình dục tại nơi làm việc; trình tự, thủ tục xử lý hành vi quấy rối tình dục tại nơi làm việc;\nđ) Việc bảo vệ tài sản và bí mật kinh doanh, bí mật công nghệ, sở hữu trí tuệ của người sử dụng lao động;\ne) Trường hợp được tạm thời chuyển người lao động làm việc khác so với hợp đồng lao động;\ng) Các hành vi vi phạm kỷ luật lao động của người lao động và các hình thức xử lý kỷ luật lao động;\nh) Trách nhiệm vật chất;\ni) Người có thẩm quyền xử lý kỷ luật lao động.\n3. Trước khi ban hành nội quy lao động hoặc sửa đổi, bổ sung nội quy lao động, người sử dụng lao động phải tham khảo ý kiến của tổ chức đại diện người lao động tại cơ sở đối với nơi có tổ chức đại diện người lao động tại cơ sở.",
+        "other_premise": "người sử dụng lao động phải tham khảo ý kiến của tổ chức đại diện người lao động tại cơ sở đối với nơi có tổ chức đại diện người lao động tại cơ sở.\n4. Nội quy lao động phải được thông báo đến người lao động và những nội dung chính phải được niêm yết ở những nơi cần thiết tại nơi làm việc.\n5. Chính phủ quy định chi tiết Điều này.\nĐiều 119. Đăng ký nội quy lao động\n1. Người sử dụng lao động sử dụng từ 10 người lao động trở lên phải đăng ký nội quy lao động tại cơ quan chuyên môn về lao động thuộc Ủy ban nhân dân cấp tỉnh nơi người sử dụng lao động đăng ký kinh doanh.\n2. Trong thời hạn 10 ngày kể từ ngày ban hành nội quy lao động, người sử dụng lao động phải nộp hồ sơ đăng ký nội quy lao động.\n3. Trong thời hạn 07 ngày làm việc kể từ ngày nhận được hồ sơ đăng ký nội quy lao động, nếu nội dung nội quy lao động có quy định trái với pháp luật thì cơ quan chuyên môn về lao động thuộc Ủy ban nhân dân cấp tỉnh thông báo, hướng dẫn người sử dụng lao động sửa đổi, bổ sung và đăng ký lại.\n4. Người sử dụng lao động có các chi nhánh, đơn vị, cơ sở sản xuất, kinh doanh đặt ở nhiều địa bàn khác nhau thì gửi nội quy lao động đã được đăng ký đến cơ quan chuyên môn về lao động thuộc Ủy ban nhân dân cấp tỉnh nơi đặt chi nhánh, đơn vị, cơ sở sản xuất, kinh doanh.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a040",
+    "type": "answerable",
+    "question": "Thời giờ làm việc của người chưa đủ 15 tuổi và của người từ đủ 15 tuổi đến chưa đủ 18 tuổi là bao nhiêu?",
+    "gold_answer": "Chưa đủ 15 tuổi: không quá 04 giờ/ngày và 20 giờ/tuần. Từ đủ 15 đến chưa đủ 18 tuổi: không quá 08 giờ/ngày và 40 giờ/tuần.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "[CR1] Thời giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm. [C1]\n[CR2] Thời giờ làm việc của người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được quá 08 giờ trong 01 ngày và 40 giờ trong 01 tuần. [C1]",
+    "claims": [
+      {
+        "text": "[CR1] Thời giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.5306,
+        "other_label": "C2",
+        "other_score": 0.2104,
+        "premise": "giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm.\n2. Thời giờ làm việc của người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được quá 08 giờ trong 01 ngày và 40 giờ trong 01 tuần. Người từ đủ 15 tuổi đến chưa đủ 18 tuổi có thể được làm thêm giờ, làm việc vào ban đêm trong một số nghề, công việc theo danh mục do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành.\nĐiều 147. Công việc và nơi làm việc cấm sử dụng người lao động từ đủ\n15 tuổi đến chưa đủ 18 tuổi\n1. Cấm sử dụng người lao động từ đủ 15 tuổi đến chưa đủ 18 tuổi làm các công việc sau đây:\na) Mang, vác, nâng các vật nặng vượt quá thể trạng của người chưa thành niên;\nb) Sản xuất, kinh doanh cồn, rượu, bia, thuốc lá, chất tác động đến tinh thần hoặc chất gây nghiện khác;\nc) Sản xuất, sử dụng hoặc vận chuyển hóa chất, khí gas, chất nổ;\nd) Bảo trì, bảo dưỡng thiết bị, máy móc;\nđ) Phá dỡ các công trình xây dựng;\ne) Nấu, thổi, đúc, cán, dập, hàn kim loại;\ng) Lặn biển, đánh bắt thủy, hải sản xa bờ;\nh) Công việc khác gây tổn hại đến sự phát triển thể lực, trí lực, nhân cách của người chưa thành niên.\n2. Cấm sử dụng người lao động từ đủ 15 tuổi đến chưa đủ 18 tuổi làm việc ở các nơi sau đây:\na) Dưới nước, dưới lòng đất, trong hang động, trong đường hầm;\nb) Công trường xây dựng;",
+        "other_premise": "đủ 15 tuổi và người đại diện theo pháp luật của người đó;\nb) Bố trí giờ làm việc không ảnh hưởng đến thời gian học tập của người chưa đủ 15 tuổi;\nc) Phải có giấy khám sức khỏe của cơ sở khám bệnh, chữa bệnh có thẩm quyền xác nhận sức khỏe của người chưa đủ 15 tuổi phù hợp với công việc và tổ chức kiểm tra sức khỏe định kỳ ít nhất một lần trong 06 tháng;\nd) Bảo đảm điều kiện làm việc, an toàn, vệ sinh lao động phù hợp với lứa tuổi.\n2. Người sử dụng lao động chỉ được tuyển dụng và sử dụng người từ đủ 13 tuổi đến chưa đủ 15 tuổi vào làm các công việc nhẹ theo quy định tại khoản 3 Điều 143 của Bộ luật này.\n3. Người sử dụng lao động không được tuyển dụng và sử dụng người chưa đủ 13 tuổi làm việc, trừ các công việc nghệ thuật, thể dục, thể thao nhưng không làm tổn hại đến sự phát triển thể lực, trí lực, nhân cách của người chưa đủ 13 tuổi và phải có sự đồng ý của cơ quan chuyên môn về lao động thuộc Ủy ban nhân dân cấp tỉnh.\n4. Bộ trưởng Bộ Lao động - Thương binh và Xã hội quy định chi tiết Điều này.\nĐiều 146. Thời giờ làm việc của người chưa thành niên\n1. Thời giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm.",
+        "grounded": true
+      },
+      {
+        "text": "[CR2] Thời giờ làm việc của người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được quá 08 giờ trong 01 ngày và 40 giờ trong 01 tuần.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.6816,
+        "other_label": "C2",
+        "other_score": 0.0,
+        "premise": "giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm.\n2. Thời giờ làm việc của người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được quá 08 giờ trong 01 ngày và 40 giờ trong 01 tuần. Người từ đủ 15 tuổi đến chưa đủ 18 tuổi có thể được làm thêm giờ, làm việc vào ban đêm trong một số nghề, công việc theo danh mục do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành.\nĐiều 147. Công việc và nơi làm việc cấm sử dụng người lao động từ đủ\n15 tuổi đến chưa đủ 18 tuổi\n1. Cấm sử dụng người lao động từ đủ 15 tuổi đến chưa đủ 18 tuổi làm các công việc sau đây:\na) Mang, vác, nâng các vật nặng vượt quá thể trạng của người chưa thành niên;\nb) Sản xuất, kinh doanh cồn, rượu, bia, thuốc lá, chất tác động đến tinh thần hoặc chất gây nghiện khác;\nc) Sản xuất, sử dụng hoặc vận chuyển hóa chất, khí gas, chất nổ;\nd) Bảo trì, bảo dưỡng thiết bị, máy móc;\nđ) Phá dỡ các công trình xây dựng;\ne) Nấu, thổi, đúc, cán, dập, hàn kim loại;\ng) Lặn biển, đánh bắt thủy, hải sản xa bờ;\nh) Công việc khác gây tổn hại đến sự phát triển thể lực, trí lực, nhân cách của người chưa thành niên.\n2. Cấm sử dụng người lao động từ đủ 15 tuổi đến chưa đủ 18 tuổi làm việc ở các nơi sau đây:\na) Dưới nước, dưới lòng đất, trong hang động, trong đường hầm;\nb) Công trường xây dựng;",
+        "other_premise": "đủ 15 tuổi và người đại diện theo pháp luật của người đó;\nb) Bố trí giờ làm việc không ảnh hưởng đến thời gian học tập của người chưa đủ 15 tuổi;\nc) Phải có giấy khám sức khỏe của cơ sở khám bệnh, chữa bệnh có thẩm quyền xác nhận sức khỏe của người chưa đủ 15 tuổi phù hợp với công việc và tổ chức kiểm tra sức khỏe định kỳ ít nhất một lần trong 06 tháng;\nd) Bảo đảm điều kiện làm việc, an toàn, vệ sinh lao động phù hợp với lứa tuổi.\n2. Người sử dụng lao động chỉ được tuyển dụng và sử dụng người từ đủ 13 tuổi đến chưa đủ 15 tuổi vào làm các công việc nhẹ theo quy định tại khoản 3 Điều 143 của Bộ luật này.\n3. Người sử dụng lao động không được tuyển dụng và sử dụng người chưa đủ 13 tuổi làm việc, trừ các công việc nghệ thuật, thể dục, thể thao nhưng không làm tổn hại đến sự phát triển thể lực, trí lực, nhân cách của người chưa đủ 13 tuổi và phải có sự đồng ý của cơ quan chuyên môn về lao động thuộc Ủy ban nhân dân cấp tỉnh.\n4. Bộ trưởng Bộ Lao động - Thương binh và Xã hội quy định chi tiết Điều này.\nĐiều 146. Thời giờ làm việc của người chưa thành niên\n1. Thời giờ làm việc của người chưa đủ 15 tuổi không được quá 04 giờ trong 01 ngày và 20 giờ trong 01 tuần; không được làm thêm giờ, làm việc vào ban đêm.",
+        "grounded": true
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a045",
+    "type": "answerable",
+    "question": "Người từ đủ 70 tuổi đến dưới 75 tuổi có được hưởng trợ cấp hưu trí xã hội không?",
+    "gold_answer": "Có, nếu thuộc hộ nghèo, hộ cận nghèo và đáp ứng các điều kiện còn lại.",
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "a050",
+    "type": "answerable",
+    "question": "Thời gian hưởng chế độ ốm đau tối đa trong một năm với người đóng bảo hiểm dưới 15 năm là bao nhiêu?",
+    "gold_answer": "30 ngày làm việc trong điều kiện bình thường.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "[TRẢ LỜI] Thời gian hưởng chế độ ốm đau tối đa trong một năm với người đóng bảo hiểm dưới 15 năm là 40 ngày. [C1]",
+    "claims": [
+      {
+        "text": "[TRẢ LỜI] Thời gian hưởng chế độ ốm đau tối đa trong một năm với người đóng bảo hiểm dưới 15 năm là 40 ngày.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.8998,
+        "other_label": "C2",
+        "other_score": 0.0,
+        "premise": "k, l, m và n khoản 1 và khoản 2 Điều 2 của Luật này tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần và được quy định như sau:\na) Làm việc trong điều kiện bình thường thì được hưởng 30 ngày nếu đã đóng bảo hiểm xã hội bắt buộc dưới 15 năm; 40 ngày nếu đã đóng từ đủ 15 năm đến dưới 30 năm; 60 ngày nếu đã đóng từ đủ 30 năm trở lên;\nb) Làm nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành hoặc làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì được hưởng 40 ngày nếu đã đóng bảo hiểm xã hội bắt buộc dưới 15 năm; 50 ngày nếu đã đóng từ đủ 15 năm đến dưới 30 năm; 70 ngày nếu đã đóng từ đủ 30 năm trở lên.\n2. Hết thời hạn hưởng chế độ ốm đau quy định tại khoản 1 Điều này mà vẫn tiếp tục điều trị thì người lao động nghỉ việc do mắc bệnh thuộc danh mục bệnh cần chữa trị dài ngày do Bộ trưởng Bộ Y tế ban hành được hưởng tiếp chế độ ốm đau với mức theo quy định tại khoản 3 Điều 45 của Luật này. Thời gian nghỉ hưởng chế độ ốm đau theo quy định tại khoản này tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần.",
+        "other_premise": "của Luật này. Thời gian nghỉ hưởng chế độ ốm đau theo quy định tại khoản này tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần.\n3. Thời gian hưởng chế độ ốm đau đối với đối tượng quy định tại điểm d khoản 1 Điều 2 của Luật này căn cứ vào thời gian điều trị nội trú tại cơ sở khám bệnh, chữa bệnh và thời gian mà người lao động phải nghỉ việc theo chỉ định của người hành nghề khám bệnh, chữa bệnh thuộc cơ sở khám bệnh, chữa bệnh.\nĐiều 44. Thời gian hưởng chế độ khi chăm sóc con ốm đau\n1. Thời gian hưởng chế độ khi chăm sóc con ốm đau trong một năm (từ ngày 01 tháng 01 đến ngày 31 tháng 12) cho mỗi con tối đa là 20 ngày nếu con dưới 03 tuổi; tối đa là 15 ngày nếu con từ đủ 03 tuổi đến dưới 07 tuổi.\n2. Trường hợp cả cha và mẹ cùng tham gia bảo hiểm xã hội bắt buộc thì thời gian hưởng chế độ khi chăm sóc con ốm đau của mỗi người theo quy định tại khoản 1 Điều này.\n3. Thời gian nghỉ việc hưởng chế độ khi chăm sóc con ốm đau quy định tại Điều này tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần.\nĐiều 45. Trợ cấp ốm đau\n1. Mức hưởng trợ cấp ốm đau được tính theo tháng và tính trên căn cứ sau đây:\na) Tiền lương làm căn cứ đóng bảo hiểm xã hội của tháng gần nhất trước tháng nghỉ việc hưởng chế độ ốm đau;",
+        "grounded": false,
+        "label_note": "sai số: dưới 15 năm là 30 ngày; 40 ngày là mức 15-30 năm"
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a055",
+    "type": "answerable",
+    "question": "Trợ cấp một lần khi sinh con là bao nhiêu?",
+    "gold_answer": "Bằng 02 lần mức tham chiếu tại tháng sinh con cho mỗi con.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Trợ cấp một lần khi sinh con là 2.000.000 đồng cho mỗi con được sinh ra và mỗi thai từ 22 tuần tuổi trở lên chết trong tử cung, thai chết trong khi chuyển dạ. [C2]",
+    "claims": [
+      {
+        "text": "Trợ cấp một lần khi sinh con là 2.000.000 đồng cho mỗi con được sinh ra và mỗi thai từ 22 tuần tuổi trở lên chết trong tử cung, thai chết trong khi chuyển dạ.",
+        "citations": [
+          "C2"
+        ],
+        "cited_score": 0.8587,
+        "other_label": "C1",
+        "other_score": 0.0,
+        "premise": "hưởng chế độ thai sản trong bảo hiểm xã hội bắt buộc và mẹ được hưởng trợ cấp thai sản trong bảo hiểm xã hội tự nguyện.\nĐiều 95. Trợ cấp thai sản\n1. Mức trợ cấp thai sản là 2.000.000 đồng cho mỗi con được sinh ra và mỗi thai từ 22 tuần tuổi trở lên chết trong tử cung, thai chết trong khi chuyển dạ. Lao động nữ là người dân tộc thiểu số hoặc lao động nữ là người dân tộc Kinh có chồng là người dân tộc thiểu số thuộc hộ nghèo khi sinh con còn được hưởng chính sách hỗ trợ khác theo quy định của Chính phủ.\n2. Ngân sách nhà nước bảo đảm thực hiện quy định tại khoản 1 Điều này. Chính phủ quyết định điều chỉnh mức trợ cấp thai sản phù hợp với điều kiện phát triển kinh tế - xã hội và khả năng của ngân sách nhà nước từng thời kỳ.\nĐiều 96. Hồ sơ đề nghị hưởng trợ cấp thai sản\nHồ sơ đề nghị hưởng trợ cấp thai sản là một trong các giấy tờ sau đây:\n1. Bản sao giấy khai sinh hoặc trích lục khai sinh hoặc bản sao giấy chứng sinh của con;\n2. Trường hợp thai chết trong tử cung, thai chết trong khi chuyển dạ hoặc con chết sau khi sinh mà chưa được cấp giấy chứng sinh thì hồ sơ là một trong các giấy tờ sau đây:\na) Bản chính hoặc bản sao bản tóm tắt hồ sơ bệnh án có thể hiện thông tin con chết;\nb) Bản chính hoặc bản sao giấy ra viện của lao động nữ sinh con có thể hiện thông tin con chết;\nc) Bản sao giấy báo tử của con;",
+        "other_premise": "lần.\n3. Người lao động nhận nuôi con nuôi dưới 06 tháng tuổi đủ điều kiện theo quy định tại khoản 2 Điều 50 của Luật này thì được trợ cấp một lần.\n4. Mức trợ cấp một lần cho mỗi con quy định tại các khoản 1, 2 và 3 Điều này bằng 02 lần mức tham chiếu tại tháng lao động nữ sinh con, nhận con do nhờ mang thai hộ, nhận nuôi con nuôi.\nĐiều 59. Trợ cấp thai sản\n1. Trợ cấp thai sản một tháng của người lao động quy định tại các điều 51, 52, 53, 54, 55, 56 và 57 của Luật này bằng 100% mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội bắt buộc của 06 tháng gần nhất trước khi nghỉ việc hưởng chế độ thai sản. Đối với người lao động đóng bảo hiểm xã hội bắt buộc chưa đủ 06 tháng thì trợ cấp thai sản của người lao động quy định tại Điều 51, Điều 52, các khoản 2, 5, 6 và 7 Điều 53, các khoản 1, 2 và 4 Điều 54, khoản 2 Điều 55 và Điều 57 của Luật này là mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội bắt buộc của các tháng đã đóng.\n2. Trợ cấp thai sản một ngày đối với trường hợp quy định tại Điều 51 và khoản 2 Điều 53 của Luật này được tính bằng trợ cấp thai sản một tháng chia cho 24 ngày.",
+        "grounded": false,
+        "label_note": "nhầm chế độ: 2.000.000 đồng là trợ cấp thai sản BHXH tự nguyện (Điều 95), không phải trợ cấp một lần khi sinh con"
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "a060",
+    "type": "answerable",
+    "question": "Đóng bảo hiểm xã hội bao nhiêu lâu thì thân nhân được hưởng trợ cấp tuất hằng tháng?",
+    "gold_answer": "Từ đủ 15 năm đóng bảo hiểm xã hội bắt buộc trở lên.",
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Đóng bảo hiểm xã hội từ đủ 15 tháng trở lên thì thân nhân được hưởng trợ cấp tuất hằng tháng [C1].",
+    "claims": [
+      {
+        "text": "Đóng bảo hiểm xã hội từ đủ 15 tháng trở lên thì thân nhân được hưởng trợ cấp tuất hằng tháng.",
+        "citations": [
+          "C1"
+        ],
+        "cited_score": 0.2325,
+        "other_label": "C3",
+        "other_score": 0.7235,
+        "premise": "hiểm xã hội bắt buộc từ đủ 12 tháng trở lên;\nb) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nc) Người đang hưởng hoặc đang tạm dừng hưởng lương hưu; người đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng đã nghỉ việc.\n2. Mức trợ cấp mai táng bằng 10 lần mức tham chiếu tại tháng mà người quy định tại khoản 1 Điều này chết.\n3. Trường hợp đối tượng quy định tại các điểm a, b và c khoản 1 Điều này bị Tòa án tuyên bố là đã chết thì thân nhân được hưởng trợ cấp mai táng quy định tại khoản 2 Điều này.\nĐiều 86. Các trường hợp hưởng trợ cấp tuất hằng tháng\n1. Đối tượng quy định tại khoản 1 Điều 2 của Luật này khi chết hoặc bị Tòa án tuyên bố là đã chết thuộc một trong các trường hợp sau đây thì thân nhân quy định tại khoản 2 Điều này được hưởng tiền tuất hằng tháng:\na) Có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 15 năm trở lên;\nb) Đang hưởng lương hưu hoặc đang tạm dừng hưởng lương hưu;\nc) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nd) Đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng với mức suy giảm khả năng lao động từ 61% trở lên.\n2. Thân nhân của đối tượng quy định tại khoản 1 Điều này được hưởng trợ cấp tuất hằng tháng, bao gồm:",
+        "other_premise": "tại khoản 7 Điều 3 của Luật này thì trợ cấp tuất một lần được thực hiện theo quy định của pháp luật về thừa kế.\nĐiều 89. Mức trợ cấp tuất một lần\n1. Mức trợ cấp tuất một lần đối với thân nhân của đối tượng quy định tại điểm a khoản 1 Điều 88 của Luật này bằng mức trợ cấp tuất cho mỗi năm đóng bảo hiểm xã hội nhân với số năm đóng bảo hiểm xã hội nhưng không thấp hơn 03 tháng mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội. Mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội để tính trợ cấp tuất một lần thực hiện theo quy định tại Điều 72 của Luật này tính đến thời điểm dừng đóng. Mức trợ cấp tuất cho mỗi năm đóng bảo hiểm xã hội được quy định như sau:\na) Bằng 1,5 tháng mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội cho những năm đóng bảo hiểm xã hội trước năm 2014. Trường hợp thời gian đóng bảo hiểm xã hội có cả trước và sau năm 2014 mà thời gian đóng trước năm 2014 có tháng lẻ thì những tháng lẻ đó được chuyển sang giai đoạn đóng bảo hiểm xã hội từ năm 2014 trở đi;\nb) Bằng 02 tháng mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội cho các năm đóng bảo hiểm xã hội từ năm 2014 trở đi.\n2. Mức trợ cấp tuất một lần đối với thân nhân của người đang hưởng lương hưu hoặc đang tạm dừng hưởng lương hưu chết được tính theo thời gian đã hưởng lương hưu và được quy định như sau:",
+        "grounded": false,
+        "label_note": "sai đơn vị: 15 năm, không phải 15 tháng"
+      }
+    ]
+  },
+  {
+    "config": "baseline",
+    "id": "u005",
+    "type": "unanswerable_out_of_scope",
+    "question": "Hộ chiếu phổ thông của công dân Việt Nam có thời hạn bao nhiêu năm?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u010",
+    "type": "unanswerable_out_of_scope",
+    "question": "Thủ tục đăng ký thường trú tại thành phố trực thuộc trung ương gồm những giấy tờ gì?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u015",
+    "type": "unanswerable_out_of_scope",
+    "question": "Mức phạt đối với hành vi xây dựng nhà ở không có giấy phép xây dựng là bao nhiêu?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u020",
+    "type": "unanswerable_false_premise",
+    "question": "Người lao động phải nộp bao nhiêu phần trăm tiền lương vào quỹ phúc lợi của công ty?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u025",
+    "type": "unanswerable_false_premise",
+    "question": "Mức trần số giờ làm việc từ xa của người lao động trong một tuần là bao nhiêu giờ?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u030",
+    "type": "unanswerable_false_premise",
+    "question": "Người sử dụng lao động phải trả bao nhiêu phần trăm tiền lương cho thời gian người lao động đi phỏng vấn ở nơi khác?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u035",
+    "type": "unanswerable_near_miss",
+    "question": "Doanh nghiệp phải tổ chức khám sức khỏe định kỳ cho người lao động đã thành niên mấy lần một năm?",
+    "gold_answer": null,
+    "status": "abstained",
+    "abstain_reason": "model",
+    "answer": "Không tìm thấy thông tin này trong tài liệu.",
+    "claims": []
+  },
+  {
+    "config": "baseline",
+    "id": "u040",
+    "type": "answerable",
+    "question": "Lao động nữ sinh con lần thứ ba được nghỉ thai sản bao nhiêu tháng?",
+    "gold_answer": null,
+    "status": "answered",
+    "abstain_reason": null,
+    "answer": "Lao động nữ sinh con lần thứ ba được nghỉ thai sản 06 tháng [C2].",
+    "claims": [
+      {
+        "text": "Lao động nữ sinh con lần thứ ba được nghỉ thai sản 06 tháng.",
+        "citations": [
+          "C2"
+        ],
+        "cited_score": 0.7913,
+        "other_label": "C4",
+        "other_score": 0.6175,
+        "premise": "nghỉ vẫn được hưởng đủ tiền lương theo hợp đồng lao động.\nĐiều 138. Quyền đơn phương chấm dứt, tạm hoãn hợp đồng lao động của lao động nữ mang thai\n1. Lao động nữ mang thai nếu có xác nhận của cơ sở khám bệnh, chữa bệnh có thẩm quyền về việc tiếp tục làm việc sẽ ảnh hưởng xấu tới thai nhi thì có quyền đơn phương chấm dứt hợp đồng lao động hoặc tạm hoãn thực hiện hợp đồng lao động. Trường hợp đơn phương chấm dứt hợp đồng lao động hoặc tạm hoãn thực hiện hợp đồng lao động thì phải thông báo cho người sử dụng lao động kèm theo xác nhận của cơ sở khám bệnh, chữa bệnh có thẩm quyền về việc tiếp tục làm việc sẽ ảnh hưởng xấu tới thai nhi.\n2. Trường hợp tạm hoãn thực hiện hợp đồng lao động, thời gian tạm hoãn do người lao động thỏa thuận với người sử dụng lao động nhưng tối thiểu phải bằng thời gian do cơ sở khám bệnh, chữa bệnh có thẩm quyền chỉ định tạm nghỉ. Trường hợp không có chỉ định của cơ sở khám bệnh, chữa bệnh có thẩm quyền về thời gian tạm nghỉ thì hai bên thỏa thuận về thời gian tạm hoãn thực hiện hợp đồng lao động.\nĐiều 139. Nghỉ thai sản\n1. Lao động nữ được nghỉ thai sản trước và sau khi sinh con là 06 tháng; thời gian nghỉ trước khi sinh không quá 02 tháng. Trường hợp lao động nữ sinh đôi trở lên thì tính từ con thứ 02 trở đi, cứ mỗi con, người mẹ được nghỉ thêm 01 tháng.",
+        "other_premise": "khi sinh không quá 02 tháng. Trường hợp lao động nữ sinh đôi trở lên thì tính từ con thứ 02 trở đi, cứ mỗi con, người mẹ được nghỉ thêm 01 tháng.\n2. Trong thời gian nghỉ thai sản, lao động nữ được hưởng chế độ thai sản theo quy định của pháp luật về bảo hiểm xã hội.\n3. Hết thời gian nghỉ thai sản theo quy định tại khoản 1 Điều này, nếu có nhu cầu, lao động nữ có thể nghỉ thêm một thời gian không hưởng lương sau khi thỏa thuận với người sử dụng lao động.\n4. Trước khi hết thời gian nghỉ thai sản theo quy định tại khoản 1 Điều này, lao động nữ có thể trở lại làm việc khi đã nghỉ ít nhất được 04 tháng nhưng người lao động phải báo trước, được người sử dụng lao động đồng ý và có xác nhận của cơ sở khám bệnh, chữa bệnh có thẩm quyền về việc đi làm sớm không có hại cho sức khỏe của người lao động. Trong trường hợp này, ngoài tiền lương của những ngày làm việc do người sử dụng lao động trả, lao động nữ vẫn tiếp tục được hưởng trợ cấp thai sản theo quy định của pháp luật về bảo hiểm xã hội.\n5. Lao động nam khi vợ sinh con, người lao động nhận nuôi con nuôi dưới 06 tháng tuổi, lao động nữ mang thai hộ và người lao động là người mẹ nhờ mang thai hộ được nghỉ việc hưởng chế độ thai sản theo quy định của pháp luật về bảo hiểm xã hội.\nĐiều 140. Bảo đảm việc làm cho lao động nghỉ thai sản",
+        "grounded": true
+      }
+    ],
+    "note": "relabelled to a063 on 2026-09-17"
+  }
+]

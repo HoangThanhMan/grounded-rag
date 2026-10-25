@@ -36,8 +36,8 @@
       "C3": "hội trở lên thì được hưởng lương hưu nếu thuộc một trong các trường hợp sau đây:\na) Đủ tuổi theo quy định tại khoản 2 Điều 169 của Bộ luật Lao động;\nb) Đủ tuổi theo quy định tại khoản 3 Điều 169 của Bộ luật Lao động và có đủ 15 năm làm nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục do Bộ Lao động - Thương binh và Xã hội ban hành hoặc có đủ 15 năm làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn bao gồm cả thời gian làm việc ở nơi có phụ cấp khu vực hệ số 0,7 trở lên trước ngày 01 tháng 01 năm 2021;\nc) Người lao động có tuổi thấp hơn tối đa 10 tuổi so với tuổi nghỉ hưu của người lao động quy định tại khoản 2 Điều 169 của Bộ luật Lao động và có đủ 15 năm làm công việc khai thác than trong hầm lò;\nd) Người bị nhiễm HIV do tai nạn rủi ro nghề nghiệp trong khi thực hiện nhiệm vụ được giao.\n2. Người lao động quy định tại điểm đ và điểm e khoản 1 Điều 2 của Luật này nghỉ việc có đủ 20 năm đóng bảo hiểm xã hội trở lên được hưởng lương hưu khi thuộc một trong các trường hợp sau đây:\na) Có tuổi thấp hơn tối đa 05 tuổi so với tuổi nghỉ hưu quy định tại khoản 2 Điều 169 của Bộ luật Lao động, trừ trường hợp Luật Sĩ quan Quân đội nhân dân Việt Nam, Luật Công an nhân dân, Luật Cơ yếu, Luật Quân nhân chuyên nghiệp, công nhân và viên chức quốc phòng có quy định khác;",
       "C5": "lên thì được hưởng lương hưu nếu thuộc một trong các trường hợp sau đây:\na) Đủ tuổi nghỉ hưu theo quy định tại khoản 2 Điều 169 của Bộ luật Lao động;\nb) Đủ tuổi nghỉ hưu theo quy định tại khoản 3 Điều 169 của Bộ luật Lao động và có tổng thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 15 năm trở lên khi làm nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục nghề, công việc nặng nhọc, độc hại, nguy hiểm hoặc đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành hoặc làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn bao gồm cả thời gian làm việc ở nơi có phụ cấp khu vực hệ số 0,7 trở lên trước ngày 01 tháng 01 năm 2021;\nc) Có tuổi thấp hơn tối đa 10 tuổi so với tuổi quy định tại khoản 2 Điều 169 của Bộ luật Lao động và có từ đủ 15 năm trở lên làm công việc khai thác than trong hầm lò theo quy định của Chính phủ;\nd) Người bị nhiễm HIV/AIDS do tai nạn rủi ro nghề nghiệp trong khi thực hiện nhiệm vụ được giao.\n2. Đối tượng quy định tại các điểm d, đ và e khoản 1 Điều 2 của Luật này khi nghỉ việc có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 15 năm trở lên thì được hưởng lương hưu nếu thuộc một trong các trường hợp sau đây:"
     },
-    "grade": null,
-    "note": ""
+    "grade": "wrong",
+    "note": "Câu \"20 năm\" lấy từ Điều 219 BLLĐ, trích Luật BHXH 2014 đã bị Luật BHXH 2024 thay thế; Điều 64 BHXH 2024 chỉ yêu cầu 15 năm cho mọi nhóm. Không nêu tuổi nghỉ hưu 62/60 mà câu hỏi hỏi."
   },
   {
     "stratum": "random",
@@ -64,7 +64,7 @@
     "cited": {
       "C1": "của Bộ luật này.\n3. Không áp dụng thử việc đối với người lao động giao kết hợp đồng lao động có thời hạn dưới 01 tháng.\nĐiều 25. Thời gian thử việc\nThời gian thử việc do hai bên thỏa thuận căn cứ vào tính chất và mức độ phức tạp của công việc nhưng chỉ được thử việc một lần đối với một công việc và bảo đảm điều kiện sau đây:\n1. Không quá 180 ngày đối với công việc của người quản lý doanh nghiệp theo quy định của Luật Doanh nghiệp, Luật Quản lý, sử dụng vốn nhà nước đầu tư vào sản xuất, kinh doanh tại doanh nghiệp;\n2. Không quá 60 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật từ cao đẳng trở lên;\n3. Không quá 30 ngày đối với công việc có chức danh nghề nghiệp cần trình độ chuyên môn, kỹ thuật trung cấp, công nhân kỹ thuật, nhân viên nghiệp vụ;\n4. Không quá 06 ngày làm việc đối với công việc khác.\nĐiều 26. Tiền lương thử việc\nTiền lương của người lao động trong thời gian thử việc do hai bên thỏa thuận nhưng ít nhất phải bằng 85% mức lương của công việc đó.\nĐiều 27. Kết thúc thời gian thử việc"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -92,8 +92,8 @@
     "cited": {
       "C1": "Điều 113. Nghỉ hằng năm\n6. Khi nghỉ hằng năm, nếu người lao động đi bằng các phương tiện đường bộ, đường sắt, đường thủy mà số ngày đi đường cả đi và về trên 02 ngày thì từ ngày thứ 03 trở đi được tính thêm thời gian đi đường ngoài ngày nghỉ hằng năm và chỉ được tính cho 01 lần nghỉ trong năm."
     },
-    "grade": null,
-    "note": ""
+    "grade": "partly",
+    "note": "Các câu đều đúng luật (Điều 113 k6) nhưng không bác bỏ tiền đề sai: luật không có \"phép đặc biệt đi du lịch\"."
   },
   {
     "stratum": "random",
@@ -115,8 +115,8 @@
     "cited": {
       "C2": "Điều 11. Tuyển dụng lao động\n2. Người lao động không phải trả chi phí cho việc tuyển dụng lao động."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Bác bỏ đúng tiền đề sai (Điều 11 k2)."
   },
   {
     "stratum": "random",
@@ -138,7 +138,7 @@
     "cited": {
       "C1": "phạm là trường hợp người lao động lặp lại hành vi vi phạm đã bị xử lý kỷ luật mà chưa được xóa kỷ luật theo quy định tại Điều 126 của Bộ luật này;\n4. Người lao động tự ý bỏ việc 05 ngày cộng dồn trong thời hạn 30 ngày hoặc 20 ngày cộng dồn trong thời hạn 365 ngày tính từ ngày đầu tiên tự ý bỏ việc mà không có lý do chính đáng. Trường hợp được coi là có lý do chính đáng bao gồm thiên tai, hỏa hoạn, bản thân, thân nhân bị ốm có xác nhận của cơ sở khám bệnh, chữa bệnh có thẩm quyền và trường hợp khác được quy định trong nội quy lao động.\nĐiều 126. Xóa kỷ luật, giảm thời hạn chấp hành kỷ luật lao động\n1. Người lao động bị khiển trách sau 03 tháng hoặc bị xử lý kỷ luật kéo dài thời hạn nâng lương sau 06 tháng hoặc bị xử lý kỷ luật cách chức sau 03 năm kể từ ngày bị xử lý, nếu không tiếp tục vi phạm kỷ luật lao động thì đương nhiên được xóa kỷ luật.\n2. Người lao động bị xử lý kỷ luật kéo dài thời hạn nâng lương sau khi chấp hành được một nửa thời hạn nếu sửa chữa tiến bộ thì có thể được người sử dụng lao động xét giảm thời hạn.\nĐiều 127. Các hành vi bị nghiêm cấm khi xử lý kỷ luật lao động\n1. Xâm phạm sức khỏe, danh dự, tính mạng, uy tín, nhân phẩm của người lao động.\n2. Phạt tiền, cắt lương thay việc xử lý kỷ luật lao động."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -161,7 +161,7 @@
     "cited": {
       "C1": "và nuôi con\n1. Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành danh mục nghề, công việc có ảnh hưởng xấu tới chức năng sinh sản và nuôi con.\n2. Người sử dụng lao động phải cung cấp đầy đủ thông tin về tính chất nguy hiểm, nguy cơ, yêu cầu của công việc để người lao động lựa chọn và phải bảo đảm điều kiện an toàn, vệ sinh lao động cho người lao động theo quy định khi sử dụng họ làm công việc thuộc danh mục quy định tại khoản 1 Điều này.\nChương XI\nNHỮNG QUY ĐỊNH RIÊNG ĐỐI VỚI LAO ĐỘNG CHƯA THÀNH NIÊN VÀ MỘT SỐ LAO ĐỘNG KHÁC\nMục 1\nLAO ĐỘNG CHƯA THÀNH NIÊN\nĐiều 143. Lao động chưa thành niên\n1. Lao động chưa thành niên là người lao động chưa đủ 18 tuổi.\n2. Người từ đủ 15 tuổi đến chưa đủ 18 tuổi không được làm công việc hoặc làm việc ở nơi làm việc quy định tại Điều 147 của Bộ luật này.\n3. Người từ đủ 13 tuổi đến chưa đủ 15 tuổi chỉ được làm công việc nhẹ theo danh mục do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành.\n4. Người chưa đủ 13 tuổi chỉ được làm các công việc theo quy định tại khoản 3 Điều 145 của Bộ luật này.\nĐiều 144. Nguyên tắc sử dụng lao động chưa thành niên\n1. Lao động chưa thành niên chỉ được làm công việc phù hợp với sức khỏe để bảo đảm sự phát triển thể lực, trí lực, nhân cách."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -184,7 +184,7 @@
     "cited": {
       "C1": "Điều 98. Tiền lương làm thêm giờ, làm việc vào ban đêm\n2. Người lao động làm việc vào ban đêm thì được trả thêm ít nhất bằng 30% tiền lương tính theo đơn giá tiền lương hoặc tiền lương thực trả theo công việc của ngày làm việc bình thường."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -207,7 +207,7 @@
     "cited": {
       "C1": "Điều 143. Lao động chưa thành niên\n1. Lao động chưa thành niên là người lao động chưa đủ 18 tuổi."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -235,7 +235,7 @@
     "cited": {
       "C1": "không được từ chối trong trường hợp sau đây:\n1. Thực hiện lệnh động viên, huy động bảo đảm nhiệm vụ quốc phòng, an ninh theo quy định của pháp luật;\n2. Thực hiện các công việc nhằm bảo vệ tính mạng con người, tài sản của cơ quan, tổ chức, cá nhân trong phòng ngừa, khắc phục hậu quả thiên tai, hỏa hoạn, dịch bệnh nguy hiểm và thảm họa, trừ trường hợp có nguy cơ ảnh hưởng đến tính mạng, sức khỏe của người lao động theo quy định của pháp luật về an toàn, vệ sinh lao động.\nMục 2\nTHỜI GIỜ NGHỈ NGƠI\nĐiều 109. Nghỉ trong giờ làm việc\n1. Người lao động làm việc theo thời giờ làm việc quy định tại Điều 105 của Bộ luật này từ 06 giờ trở lên trong một ngày thì được nghỉ giữa giờ ít nhất 30 phút liên tục, làm việc ban đêm thì được nghỉ giữa giờ ít nhất 45 phút liên tục. Trường hợp người lao động làm việc theo ca liên tục từ 06 giờ trở lên thì thời gian nghỉ giữa giờ được tính vào giờ làm việc.\n2. Ngoài thời gian nghỉ quy định tại khoản 1 Điều này, người sử dụng lao động bố trí cho người lao động các đợt nghỉ giải lao và ghi vào nội quy lao động.\nĐiều 110. Nghỉ chuyển ca\nNgười lao động làm việc theo ca được nghỉ ít nhất 12 giờ trước khi chuyển sang ca làm việc khác.\nĐiều 111. Nghỉ hằng tuần"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -259,7 +259,7 @@
       "C1": "quy định tại khoản 1 và khoản 2 Điều 125 của Bộ luật này;\nd) Người lao động nữ mang thai; người lao động nghỉ thai sản, nuôi con dưới 12 tháng tuổi.\n5. Không xử lý kỷ luật lao động đối với người lao động vi phạm kỷ luật lao động trong khi mắc bệnh tâm thần hoặc một bệnh khác làm mất khả năng nhận thức hoặc khả năng điều khiển hành vi của mình.\n6. Chính phủ quy định trình tự, thủ tục xử lý kỷ luật lao động.\nĐiều 123. Thời hiệu xử lý kỷ luật lao động\n1. Thời hiệu xử lý kỷ luật lao động là 06 tháng kể từ ngày xảy ra hành vi vi phạm; trường hợp hành vi vi phạm liên quan trực tiếp đến tài chính, tài sản, tiết lộ bí mật công nghệ, bí mật kinh doanh của người sử dụng lao động thì thời hiệu xử lý kỷ luật lao động là 12 tháng.\n2. Khi hết thời gian quy định tại khoản 4 Điều 122 của Bộ luật này, nếu hết thời hiệu hoặc còn thời hiệu nhưng không đủ 60 ngày thì được kéo dài thời hiệu để xử lý kỷ luật lao động nhưng không quá 60 ngày kể từ ngày hết thời gian nêu trên.\n3. Người sử dụng lao động phải ban hành quyết định xử lý kỷ luật lao động trong thời hạn quy định tại khoản 1 và khoản 2 Điều này.\nĐiều 124. Hình thức xử lý kỷ luật lao động\n1. Khiển trách.\n2. Kéo dài thời hạn nâng lương không quá 06 tháng.\n3. Cách chức.\n4. Sa thải.\nĐiều 125. Áp dụng hình thức xử lý kỷ luật sa thải",
       "C2": "động\n1. Khiển trách.\n2. Kéo dài thời hạn nâng lương không quá 06 tháng.\n3. Cách chức.\n4. Sa thải.\nĐiều 125. Áp dụng hình thức xử lý kỷ luật sa thải\nHình thức xử lý kỷ luật sa thải được người sử dụng lao động áp dụng trong trường hợp sau đây:\n1. Người lao động có hành vi trộm cắp, tham ô, đánh bạc, cố ý gây thương tích, sử dụng ma túy tại nơi làm việc;\n2. Người lao động có hành vi tiết lộ bí mật kinh doanh, bí mật công nghệ, xâm phạm quyền sở hữu trí tuệ của người sử dụng lao động, có hành vi gây thiệt hại nghiêm trọng hoặc đe dọa gây thiệt hại đặc biệt nghiêm trọng về tài sản, lợi ích của người sử dụng lao động hoặc quấy rối tình dục tại nơi làm việc được quy định trong nội quy lao động;\n3. Người lao động bị xử lý kỷ luật kéo dài thời hạn nâng lương hoặc cách chức mà tái phạm trong thời gian chưa xóa kỷ luật. Tái phạm là trường hợp người lao động lặp lại hành vi vi phạm đã bị xử lý kỷ luật mà chưa được xóa kỷ luật theo quy định tại Điều 126 của Bộ luật này;"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -288,7 +288,7 @@
       "C1": "Điều 114. Ngày nghỉ hằng năm tăng thêm theo thâm niên làm việc\nCứ đủ 05 năm làm việc cho một người sử dụng lao động thì số ngày nghỉ hằng năm của người lao động theo quy định tại khoản 1 Điều 113 của Bộ luật này được tăng thêm tương ứng 01 ngày.",
       "C2": "Điều 113. Nghỉ hằng năm\n1. Người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau:\na) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường;\nb) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm;\nc) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -317,7 +317,7 @@
       "C1": "Điều 100. Trợ cấp một lần khi nghỉ hưu\n1. Lao động nam có thời gian đóng bảo hiểm xã hội cao hơn 35 năm, lao động nữ có thời gian đóng bảo hiểm xã hội cao hơn 30 năm thì khi nghỉ hưu, ngoài lương hưu còn được hưởng trợ cấp một lần.",
       "C2": "Điều 68. Trợ cấp một lần khi nghỉ hưu\n1. Lao động nam có thời gian đóng bảo hiểm xã hội cao hơn 35 năm, lao động nữ có thời gian đóng bảo hiểm xã hội cao hơn 30 năm thì khi nghỉ hưu, ngoài lương hưu còn được hưởng trợ cấp một lần."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -345,7 +345,7 @@
     "cited": {
       "C1": "động được nghỉ việc riêng mà vẫn hưởng nguyên lương và phải thông báo với người sử dụng lao động trong trường hợp sau đây:\na) Kết hôn: nghỉ 03 ngày;\nb) Con đẻ, con nuôi kết hôn: nghỉ 01 ngày;\nc) Cha đẻ, mẹ đẻ, cha nuôi, mẹ nuôi; cha đẻ, mẹ đẻ, cha nuôi, mẹ nuôi của vợ hoặc chồng; vợ hoặc chồng; con đẻ, con nuôi chết: nghỉ 03 ngày.\n2. Người lao động được nghỉ không hưởng lương 01 ngày và phải thông báo với người sử dụng lao động khi ông nội, bà nội, ông ngoại, bà ngoại, anh, chị, em ruột chết; cha hoặc mẹ kết hôn; anh, chị, em ruột kết hôn.\n3. Ngoài quy định tại khoản 1 và khoản 2 Điều này, người lao động có thể thỏa thuận với người sử dụng lao động để nghỉ không hưởng lương.\nMục 3\nTHỜI GIỜ LÀM VIỆC, THỜI GIỜ NGHỈ NGƠI ĐỐI VỚI NGƯỜI LÀM CÔNG VIỆC CÓ TÍNH CHẤT ĐẶC BIỆT\nĐiều 116. Thời giờ làm việc, thời giờ nghỉ ngơi đối với người làm công việc có tính chất đặc biệt"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -370,7 +370,7 @@
       "C2": "xã hội cao hơn 35 năm, lao động nữ có thời gian đóng bảo hiểm xã hội cao hơn 30 năm thì khi nghỉ hưu, ngoài lương hưu còn được hưởng trợ cấp một lần.\n2. Mức hưởng trợ cấp một lần cho mỗi năm đóng cao hơn quy định tại khoản 1 Điều này bằng 0,5 lần của mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 72 của Luật này cho mỗi năm đóng cao hơn đến tuổi nghỉ hưu theo quy định của pháp luật. Trường hợp người lao động đã đủ điều kiện hưởng lương hưu theo quy định tại Điều 64 và Điều 65 của Luật này mà tiếp tục đóng bảo hiểm xã hội thì mức trợ cấp bằng 02 lần của mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 72 của Luật này cho mỗi năm đóng cao hơn số năm quy định tại khoản 1 Điều này kể từ sau thời điểm đủ tuổi nghỉ hưu theo quy định của pháp luật đến thời điểm nghỉ hưu.\nĐiều 69. Thời điểm hưởng lương hưu\n1. Thời điểm hưởng lương hưu đối với đối tượng quy định tại các điểm a, b, c, d, đ, e, i, k và l khoản 1 và khoản 2 Điều 2 của Luật này đang tham gia bảo hiểm xã hội bắt buộc là thời điểm đủ điều kiện hưởng lương hưu theo quy định và được ghi trong văn bản của người sử dụng lao động xác định việc chấm dứt hợp đồng lao động hoặc xác định việc chấm dứt làm việc.",
       "C3": "Trường hợp thời gian nghỉ hưu trước tuổi dưới 06 tháng thì không giảm tỷ lệ phần trăm hưởng lương hưu, từ đủ 06 tháng đến dưới 12 tháng thì giảm 1%.\n4. Việc tính mức lương hưu hằng tháng của người lao động đủ điều kiện hưởng lương hưu mà có thời gian đóng bảo hiểm xã hội theo quy định của điều ước quốc tế mà nước Cộng hòa xã hội chủ nghĩa Việt Nam là thành viên nhưng có thời gian đóng bảo hiểm xã hội ở Việt Nam dưới 15 năm thì mỗi năm đóng trong thời gian này được tính bằng 2,25% mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 72 của Luật này.\n5. Chính phủ quy định chi tiết về mức hưởng và điều kiện hưởng lương hưu.\nĐiều 67. Điều chỉnh lương hưu\n1. Lương hưu được điều chỉnh trên cơ sở mức tăng của chỉ số giá tiêu dùng phù hợp với khả năng của ngân sách nhà nước và quỹ bảo hiểm xã hội.\n2. Điều chỉnh mức tăng lương hưu thỏa đáng đối với đối tượng có mức lương hưu thấp và nghỉ hưu trước năm 1995 bảo đảm thu hẹp khoảng cách chênh lệch lương hưu giữa người nghỉ hưu ở các thời kỳ.\n3. Chính phủ quy định thời điểm, đối tượng, mức điều chỉnh lương hưu quy định tại Điều này.\nĐiều 68. Trợ cấp một lần khi nghỉ hưu\n1. Lao động nam có thời gian đóng bảo hiểm xã hội cao hơn 35 năm, lao động nữ có thời gian đóng bảo hiểm xã hội cao hơn 30 năm thì khi nghỉ hưu, ngoài lương hưu còn được hưởng trợ cấp một lần."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -393,8 +393,8 @@
     "cited": {
       "C1": "Điều 105. Thời giờ làm việc bình thường\n2. Người sử dụng lao động có quyền quy định thời giờ làm việc theo ngày hoặc tuần nhưng phải thông báo cho người lao động biết; trường hợp theo tuần thì thời giờ làm việc bình thường không quá 10 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần. Nhà nước khuyến khích người sử dụng lao động thực hiện tuần làm việc 40 giờ đối với người lao động."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Câu hỏi chỉ hỏi giờ/ngày; không nêu 48 giờ/tuần không làm sai câu trả lời."
   },
   {
     "stratum": "random",
@@ -416,8 +416,8 @@
     "cited": {
       "C1": "Điều 125. Áp dụng hình thức xử lý kỷ luật sa thải\n4. Người lao động tự ý bỏ việc 05 ngày cộng dồn trong thời hạn 30 ngày hoặc 20 ngày cộng dồn trong thời hạn 365 ngày tính từ ngày đầu tiên tự ý bỏ việc mà không có lý do chính đáng. Trường hợp được coi là có lý do chính đáng bao gồm thiên tai, hỏa hoạn, bản thân, thân nhân bị ốm có xác nhận của cơ sở khám bệnh, chữa bệnh có thẩm quyền và trường hợp khác được quy định trong nội quy lao động."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Viết \"bị sa thải\" thay vì \"có thể bị\"; luật cho phép áp dụng, không bắt buộc. Lệch nhỏ."
   },
   {
     "stratum": "random",
@@ -460,8 +460,8 @@
       "C1": "pháp luật có liên quan.\nĐiều 106. Giờ làm việc ban đêm\nGiờ làm việc ban đêm được tính từ 22 giờ đến 06 giờ sáng ngày hôm sau.\nĐiều 107. Làm thêm giờ\n1. Thời gian làm thêm giờ là khoảng thời gian làm việc ngoài thời giờ làm việc bình thường theo quy định của pháp luật, thỏa ước lao động tập thể hoặc nội quy lao động.\n2. Người sử dụng lao động được sử dụng người lao động làm thêm giờ khi đáp ứng đầy đủ các yêu cầu sau đây:\na) Phải được sự đồng ý của người lao động;\nb) Bảo đảm số giờ làm thêm của người lao động không quá 50% số giờ làm việc bình thường trong 01 ngày; trường hợp áp dụng quy định thời giờ làm việc bình thường theo tuần thì tổng số giờ làm việc bình thường và số giờ làm thêm không quá 12 giờ trong 01 ngày; không quá 40 giờ trong 01 tháng;\nc) Bảo đảm số giờ làm thêm của người lao động không quá 200 giờ trong 01 năm, trừ trường hợp quy định tại khoản 3 Điều này.\n3. Người sử dụng lao động được sử dụng người lao động làm thêm không quá 300 giờ trong 01 năm trong một số ngành, nghề, công việc hoặc trường hợp sau đây:\na) Sản xuất, gia công xuất khẩu sản phẩm hàng dệt, may, da, giày, điện, điện tử, chế biến nông, lâm, diêm nghiệp, thủy sản;\nb) Sản xuất, cung cấp điện, viễn thông, lọc dầu; cấp, thoát nước;",
       "C2": "hàng dệt, may, da, giày, điện, điện tử, chế biến nông, lâm, diêm nghiệp, thủy sản;\nb) Sản xuất, cung cấp điện, viễn thông, lọc dầu; cấp, thoát nước;\nc) Trường hợp giải quyết công việc đòi hỏi lao động có trình độ chuyên môn, kỹ thuật cao mà thị trường lao động không cung ứng đầy đủ, kịp thời;\nd) Trường hợp phải giải quyết công việc cấp bách, không thể trì hoãn do tính chất thời vụ, thời điểm của nguyên liệu, sản phẩm hoặc để giải quyết công việc phát sinh do yếu tố khách quan không dự liệu trước, do hậu quả thời tiết, thiên tai, hỏa hoạn, địch họa, thiếu điện, thiếu nguyên liệu, sự cố kỹ thuật của dây chuyền sản xuất;\nđ) Trường hợp khác do Chính phủ quy định.\n4. Khi tổ chức làm thêm giờ theo quy định tại khoản 3 Điều này, người sử dụng lao động phải thông báo bằng văn bản cho cơ quan chuyên môn về lao động thuộc Ủy ban nhân dân cấp tỉnh.\n5. Chính phủ quy định chi tiết Điều này.\nĐiều 108. Làm thêm giờ trong trường hợp đặc biệt\nNgười sử dụng lao động có quyền yêu cầu người lao động làm thêm giờ vào bất kỳ ngày nào mà không bị giới hạn về số giờ làm thêm theo quy định tại Điều 107 của Bộ luật này và người lao động không được từ chối trong trường hợp sau đây:\n1. Thực hiện lệnh động viên, huy động bảo đảm nhiệm vụ quốc phòng, an ninh theo quy định của pháp luật;"
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Cả 5 ý đúng Điều 107 k3. NLI chấm oan ý c (0.41)."
   },
   {
     "stratum": "random",
@@ -483,7 +483,7 @@
     "cited": {
       "C1": "động mà thử việc không đạt yêu cầu hoặc một bên hủy bỏ thỏa thuận thử việc.\nĐiều 35. Quyền đơn phương chấm dứt hợp đồng lao động của người lao động\n1. Người lao động có quyền đơn phương chấm dứt hợp đồng lao động nhưng phải báo trước cho người sử dụng lao động như sau:\na) Ít nhất 45 ngày nếu làm việc theo hợp đồng lao động không xác định thời hạn;\nb) Ít nhất 30 ngày nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn từ 12 tháng đến 36 tháng;\nc) Ít nhất 03 ngày làm việc nếu làm việc theo hợp đồng lao động xác định thời hạn có thời hạn dưới 12 tháng;\nd) Đối với một số ngành, nghề, công việc đặc thù thì thời hạn báo trước được thực hiện theo quy định của Chính phủ.\n2. Người lao động có quyền đơn phương chấm dứt hợp đồng lao động không cần báo trước trong trường hợp sau đây:\na) Không được bố trí theo đúng công việc, địa điểm làm việc hoặc không được bảo đảm điều kiện làm việc theo thỏa thuận, trừ trường hợp quy định tại Điều 29 của Bộ luật này;\nb) Không được trả đủ lương hoặc trả lương không đúng thời hạn, trừ trường hợp quy định tại khoản 4 Điều 97 của Bộ luật này;\nc) Bị người sử dụng lao động ngược đãi, đánh đập hoặc có lời nói, hành vi nhục mạ, hành vi làm ảnh hưởng đến sức khỏe, nhân phẩm, danh dự; bị cưỡng bức lao động;\nd) Bị quấy rối tình dục tại nơi làm việc;"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -506,7 +506,7 @@
     "cited": {
       "C1": "Điều 26. Tiền lương thử việc\nTiền lương của người lao động trong thời gian thử việc do hai bên thỏa thuận nhưng ít nhất phải bằng 85% mức lương của công việc đó."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -529,8 +529,8 @@
     "cited": {
       "C1": "Điều 113. Nghỉ hằng năm\n1. Người lao động làm việc đủ 12 tháng cho một người sử dụng lao động thì được nghỉ hằng năm, hưởng nguyên lương theo hợp đồng lao động như sau:\na) 12 ngày làm việc đối với người làm công việc trong điều kiện bình thường;\nb) 14 ngày làm việc đối với người lao động chưa thành niên, lao động là người khuyết tật, người làm nghề, công việc nặng nhọc, độc hại, nguy hiểm;\nc) 16 ngày làm việc đối với người làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm."
     },
-    "grade": null,
-    "note": ""
+    "grade": "wrong",
+    "note": "\"Làm đủ 12 tháng thì mới được nghỉ hằng năm\" trái Điều 113 k2: chưa đủ 12 tháng vẫn được nghỉ theo tỷ lệ số tháng làm việc."
   },
   {
     "stratum": "random",
@@ -569,8 +569,8 @@
       "C2": "quy định của pháp luật về bảo hiểm thất nghiệp và thời gian làm việc đã được người sử dụng lao động chi trả trợ cấp thôi việc, trợ cấp mất việc làm.\n3. Tiền lương để tính trợ cấp mất việc làm là tiền lương bình quân của 06 tháng liền kề theo hợp đồng lao động trước khi người lao động mất việc làm.\n4. Chính phủ quy định chi tiết Điều này.\nĐiều 48. Trách nhiệm khi chấm dứt hợp đồng lao động\n1. Trong thời hạn 14 ngày làm việc kể từ ngày chấm dứt hợp đồng lao động, hai bên có trách nhiệm thanh toán đầy đủ các khoản tiền có liên quan đến quyền lợi của mỗi bên, trừ trường hợp sau đây có thể kéo dài nhưng không được quá 30 ngày:\na) Người sử dụng lao động không phải là cá nhân chấm dứt hoạt động;\nb) Người sử dụng lao động thay đổi cơ cấu, công nghệ hoặc vì lý do kinh tế;\nc) Chia, tách, hợp nhất, sáp nhập; bán, cho thuê, chuyển đổi loại hình doanh nghiệp; chuyển nhượng quyền sở hữu, quyền sử dụng tài sản của doanh nghiệp, hợp tác xã;\nd) Do thiên tai, hỏa hoạn, địch họa hoặc dịch bệnh nguy hiểm.\n2. Tiền lương, bảo hiểm xã hội, bảo hiểm y tế, bảo hiểm thất nghiệp, trợ cấp thôi việc và các quyền lợi khác của người lao động theo thỏa ước lao động tập thể, hợp đồng lao động được ưu tiên thanh toán trong trường hợp doanh nghiệp, hợp tác xã bị chấm dứt hoạt động, bị giải thể, phá sản.\n3. Người sử dụng lao động có trách nhiệm sau đây:",
       "C3": "lao động khi hợp đồng lao động chấm dứt theo quy định của Bộ luật này, trừ trường hợp quy định tại các khoản 4, 5, 6, 7 và 8 Điều 34 của Bộ luật này.\n2. Trường hợp người sử dụng lao động không phải là cá nhân chấm dứt hoạt động thì thời điểm chấm dứt hợp đồng lao động tính từ thời điểm có thông báo chấm dứt hoạt động. Trường hợp người sử dụng lao động không phải là cá nhân bị cơ quan chuyên môn về đăng ký kinh doanh thuộc Ủy ban nhân dân cấp tỉnh ra thông báo không có người đại diện theo pháp luật, người được ủy quyền thực hiện quyền và nghĩa vụ của người đại diện theo pháp luật theo quy định tại khoản 7 Điều 34 của Bộ luật này thì thời điểm chấm dứt hợp đồng lao động tính từ ngày ra thông báo.\nĐiều 46. Trợ cấp thôi việc\n1. Khi hợp đồng lao động chấm dứt theo quy định tại các khoản 1, 2, 3, 4, 6, 7, 9 và 10 Điều 34 của Bộ luật này thì người sử dụng lao động có trách nhiệm trả trợ cấp thôi việc cho người lao động đã làm việc thường xuyên cho mình từ đủ 12 tháng trở lên, mỗi năm làm việc được trợ cấp một nửa tháng tiền lương, trừ trường hợp đủ điều kiện hưởng lương hưu theo quy định của pháp luật về bảo hiểm xã hội và trường hợp quy định tại điểm e khoản 1 Điều 36 của Bộ luật này."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Trợ cấp thôi việc nửa tháng lương mỗi năm đúng Điều 46 k1. NLI chấm oan (0.44)."
   },
   {
     "stratum": "random",
@@ -593,7 +593,7 @@
       "C1": "lao động trở lại làm việc.\n3. Trường hợp người lao động bị xử lý kỷ luật lao động, người lao động cũng không phải trả lại số tiền lương đã tạm ứng.\n4. Trường hợp người lao động không bị xử lý kỷ luật lao động thì được người sử dụng lao động trả đủ tiền lương cho thời gian bị tạm đình chỉ công việc.\nMục 2\nTRÁCH NHIỆM VẬT CHẤT\nĐiều 129. Bồi thường thiệt hại\n1. Người lao động làm hư hỏng dụng cụ, thiết bị hoặc có hành vi khác gây thiệt hại tài sản của người sử dụng lao động thì phải bồi thường theo quy định của pháp luật hoặc nội quy lao động của người sử dụng lao động. Trường hợp người lao động gây thiệt hại không nghiêm trọng do sơ suất với giá trị không quá 10 tháng lương tối thiểu vùng do Chính phủ công bố được áp dụng tại nơi người lao động làm việc thì người lao động phải bồi thường nhiều nhất là 03 tháng tiền lương và bị khấu trừ hằng tháng vào lương theo quy định tại khoản 3 Điều 102 của Bộ luật này.",
       "C2": "lao động phải bồi thường nhiều nhất là 03 tháng tiền lương và bị khấu trừ hằng tháng vào lương theo quy định tại khoản 3 Điều 102 của Bộ luật này.\n2. Người lao động làm mất dụng cụ, thiết bị, tài sản của người sử dụng lao động hoặc tài sản khác do người sử dụng lao động giao hoặc tiêu hao vật tư quá định mức cho phép thì phải bồi thường thiệt hại một phần hoặc toàn bộ theo thời giá thị trường hoặc nội quy lao động; trường hợp có hợp đồng trách nhiệm thì phải bồi thường theo hợp đồng trách nhiệm; trường hợp do thiên tai, hỏa hoạn, địch họa, dịch bệnh nguy hiểm, thảm họa, sự kiện xảy ra khách quan không thể lường trước được và không thể khắc phục được mặc dù đã áp dụng mọi biện pháp cần thiết và khả năng cho phép thì không phải bồi thường.\nĐiều 130. Xử lý bồi thường thiệt hại\n1. Việc xem xét, quyết định mức bồi thường thiệt hại phải căn cứ vào lỗi, mức độ thiệt hại thực tế và hoàn cảnh thực tế gia đình, nhân thân và tài sản của người lao động.\n2. Chính phủ quy định trình tự, thủ tục, thời hiệu xử lý việc bồi thường thiệt hại.\nĐiều 131. Khiếu nại về kỷ luật lao động, trách nhiệm vật chất"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -616,7 +616,7 @@
     "cited": {
       "C1": "Điều 143. Lao động chưa thành niên\n1. Lao động chưa thành niên là người lao động chưa đủ 18 tuổi."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -639,7 +639,7 @@
     "cited": {
       "C1": "Điều 102. Khấu trừ tiền lương\n3. Mức khấu trừ tiền lương hằng tháng không được quá 30% tiền lương thực trả hằng tháng của người lao động sau khi trích nộp các khoản bảo hiểm xã hội bắt buộc, bảo hiểm y tế, bảo hiểm thất nghiệp, thuế thu nhập cá nhân."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -662,7 +662,7 @@
     "cited": {
       "C5": "động bảo đảm điều kiện về thời gian đóng bảo hiểm xã hội theo quy định của pháp luật về bảo hiểm xã hội được hưởng lương hưu khi đủ tuổi nghỉ hưu.\n2. Tuổi nghỉ hưu của người lao động trong điều kiện lao động bình thường được điều chỉnh theo lộ trình cho đến khi đủ 62 tuổi đối với lao động nam vào năm 2028 và đủ 60 tuổi đối với lao động nữ vào năm 2035. Kể từ năm 2021, tuổi nghỉ hưu của người lao động trong điều kiện lao động bình thường là đủ 60 tuổi 03 tháng đối với lao động nam và đủ 55 tuổi 04 tháng đối với lao động nữ; sau đó, cứ mỗi năm tăng thêm 03 tháng đối với lao động nam và 04 tháng đối với lao động nữ.\n3. Người lao động bị suy giảm khả năng lao động; làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm; làm nghề, công việc nặng nhọc, độc hại, nguy hiểm; làm việc ở vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn có thể nghỉ hưu ở tuổi thấp hơn nhưng không quá 05 tuổi so với quy định tại khoản 2 Điều này tại thời điểm nghỉ hưu, trừ trường hợp pháp luật có quy định khác.\n4. Người lao động có trình độ chuyên môn, kỹ thuật cao và một số trường hợp đặc biệt có thể nghỉ hưu ở tuổi cao hơn nhưng không quá 05 tuổi so với quy định tại khoản 2 Điều này tại thời điểm nghỉ hưu, trừ trường hợp pháp luật có quy định khác.\n5. Chính phủ quy định chi tiết Điều này.\nChương XIII\nTỔ CHỨC ĐẠI DIỆN NGƯỜI LAO ĐỘNG TẠI CƠ SỞ"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -685,7 +685,7 @@
     "cited": {
       "C1": "khác mà người sử dụng lao động thưởng cho người lao động căn cứ vào kết quả sản xuất, kinh doanh, mức độ hoàn thành công việc của người lao động.\n2. Quy chế thưởng do người sử dụng lao động quyết định và công bố công khai tại nơi làm việc sau khi tham khảo ý kiến của tổ chức đại diện người lao động tại cơ sở đối với nơi có tổ chức đại diện người lao động tại cơ sở.\nChương VII\nTHỜI GIỜ LÀM VIỆC, THỜI GIỜ NGHỈ NGƠI\nMục 1\nTHỜI GIỜ LÀM VIỆC\nĐiều 105. Thời giờ làm việc bình thường\n1. Thời giờ làm việc bình thường không quá 08 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần.\n2. Người sử dụng lao động có quyền quy định thời giờ làm việc theo ngày hoặc tuần nhưng phải thông báo cho người lao động biết; trường hợp theo tuần thì thời giờ làm việc bình thường không quá 10 giờ trong 01 ngày và không quá 48 giờ trong 01 tuần. Nhà nước khuyến khích người sử dụng lao động thực hiện tuần làm việc 40 giờ đối với người lao động.\n3. Người sử dụng lao động có trách nhiệm bảo đảm giới hạn thời gian làm việc tiếp xúc với yếu tố nguy hiểm, yếu tố có hại đúng theo quy chuẩn kỹ thuật quốc gia và pháp luật có liên quan.\nĐiều 106. Giờ làm việc ban đêm\nGiờ làm việc ban đêm được tính từ 22 giờ đến 06 giờ sáng ngày hôm sau.\nĐiều 107. Làm thêm giờ"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -708,7 +708,7 @@
     "cited": {
       "C1": "Điều 20. Loại hợp đồng lao động\n1. Hợp đồng lao động phải được giao kết theo một trong các loại sau đây:\na) Hợp đồng lao động không xác định thời hạn là hợp đồng mà trong đó hai bên không xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng;\nb) Hợp đồng lao động xác định thời hạn là hợp đồng mà trong đó hai bên xác định thời hạn, thời điểm chấm dứt hiệu lực của hợp đồng trong thời gian không quá 36 tháng kể từ thời điểm có hiệu lực của hợp đồng."
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -731,8 +731,8 @@
     "cited": {
       "C1": "Điều 99. Mức lương hưu hằng tháng\n1. Mức lương hưu hằng tháng của đối tượng đủ điều kiện quy định tại Điều 98 của Luật này được tính như sau:\na) Đối với lao động nữ bằng 45% mức bình quân thu nhập làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 104 của Luật này tương ứng 15 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 2%, mức tối đa bằng 75%;\nb) Đối với lao động nam bằng 45% mức bình quân thu nhập làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 104 của Luật này tương ứng 20 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 2%, mức tối đa bằng 75%. Trường hợp lao động nam có thời gian đóng bảo hiểm xã hội từ đủ 15 năm đến dưới 20 năm, mức lương hưu hằng tháng bằng 40% mức bình quân thu nhập làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 104 của Luật này tương ứng 15 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 1%."
     },
-    "grade": null,
-    "note": ""
+    "grade": "partly",
+    "note": "Trả lời bằng công thức BHXH tự nguyện (Điều 99, \"bình quân thu nhập\") mà không nói rõ; BHXH bắt buộc (Điều 66) tính trên \"bình quân tiền lương\". Các con số khớp cả hai."
   },
   {
     "stratum": "random",
@@ -759,8 +759,8 @@
     "cited": {
       "C1": "thuộc cơ sở khám bệnh, chữa bệnh thì phải đóng bảo hiểm xã hội bắt buộc từ đủ 03 tháng trở lên trong thời gian 12 tháng liền kề trước khi sinh con.\n4. Đối tượng đủ điều kiện quy định tại khoản 2 hoặc khoản 3 hoặc khoản 5 Điều này mà chấm dứt hợp đồng lao động, hợp đồng làm việc hoặc thôi việc trước thời điểm sinh con hoặc nhận con khi nhờ mang thai hộ hoặc nhận nuôi con nuôi dưới 06 tháng tuổi thì vẫn được hưởng chế độ thai sản theo quy định tại các điều 53, 54, 55 và 56 và các khoản 1, 2 và 3 Điều 58 của Luật này. Thời gian hưởng chế độ thai sản không được tính là thời gian đóng bảo hiểm xã hội.\n5. Đối tượng quy định tại điểm b khoản 1 Điều này đã đóng bảo hiểm xã hội bắt buộc từ đủ 06 tháng trở lên trong thời gian 24 tháng liền kề trước khi sinh con đối với trường hợp phải nghỉ việc để điều trị vô sinh.\nĐiều 51. Thời gian nghỉ việc hưởng chế độ thai sản khi khám thai\n1. Lao động nữ mang thai được nghỉ việc hưởng chế độ thai sản để đi khám thai tối đa 05 lần, mỗi lần không quá 02 ngày.\n2. Thời gian nghỉ việc hưởng chế độ thai sản khi khám thai được tính theo ngày làm việc không kể ngày nghỉ lễ, tết, ngày nghỉ hằng tuần.\nĐiều 52. Thời gian nghỉ việc hưởng chế độ thai sản khi sảy thai, phá thai, thai chết trong tử cung, thai chết trong khi chuyển dạ, thai ngoài tử cung"
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "BHXH 2024 Điều 51 k1: tối đa 05 lần, mỗi lần không quá 02 ngày."
   },
   {
     "stratum": "random",
@@ -782,7 +782,7 @@
     "cited": {
       "C1": "vào trường giáo dưỡng, cơ sở cai nghiện bắt buộc hoặc cơ sở giáo dục bắt buộc;\nd) Lao động nữ mang thai theo quy định tại Điều 138 của Bộ luật này;\nđ) Người lao động được bổ nhiệm làm người quản lý doanh nghiệp của công ty trách nhiệm hữu hạn một thành viên do Nhà nước nắm giữ 100% vốn điều lệ;\ne) Người lao động được ủy quyền để thực hiện quyền, trách nhiệm của đại diện chủ sở hữu nhà nước đối với phần vốn nhà nước tại doanh nghiệp;\ng) Người lao động được ủy quyền để thực hiện quyền, trách nhiệm của doanh nghiệp đối với phần vốn của doanh nghiệp đầu tư tại doanh nghiệp khác;\nh) Trường hợp khác do hai bên thỏa thuận.\n2. Trong thời gian tạm hoãn thực hiện hợp đồng lao động, người lao động không được hưởng lương và quyền, lợi ích đã giao kết trong hợp đồng lao động, trừ trường hợp hai bên có thỏa thuận hoặc pháp luật có quy định khác.\nĐiều 31. Nhận lại người lao động hết thời hạn tạm hoãn thực hiện hợp đồng lao động\nTrong thời hạn 15 ngày kể từ ngày hết thời hạn tạm hoãn thực hiện hợp đồng lao động, người lao động phải có mặt tại nơi làm việc và người sử dụng lao động phải nhận người lao động trở lại làm công việc theo hợp đồng lao động đã giao kết nếu hợp đồng lao động còn thời hạn, trừ trường hợp hai bên có thỏa thuận hoặc pháp luật có quy định khác.\nĐiều 32. Làm việc không trọn thời gian"
     },
-    "grade": null,
+    "grade": "correct",
     "note": ""
   },
   {
@@ -821,8 +821,8 @@
       "C1": "toàn hơn hoặc giảm bớt 01 giờ làm việc hằng ngày mà không bị cắt giảm tiền lương và quyền, lợi ích cho đến hết thời gian nuôi con dưới 12 tháng tuổi.\n3. Người sử dụng lao động không được sa thải hoặc đơn phương chấm dứt hợp đồng lao động đối với người lao động vì lý do kết hôn, mang thai, nghỉ thai sản, nuôi con dưới 12 tháng tuổi, trừ trường hợp người sử dụng lao động là cá nhân chết, bị Tòa án tuyên bố mất năng lực hành vi dân sự, mất tích hoặc đã chết hoặc người sử dụng lao động không phải là cá nhân chấm dứt hoạt động hoặc bị cơ quan chuyên môn về đăng ký kinh doanh thuộc Ủy ban nhân dân cấp tỉnh ra thông báo không có người đại diện theo pháp luật, người được ủy quyền thực hiện quyền và nghĩa vụ của người đại diện theo pháp luật. Trường hợp hợp đồng lao động hết hạn trong thời gian lao động nữ mang thai hoặc nuôi con dưới 12 tháng tuổi thì được ưu tiên giao kết hợp đồng lao động mới.\n4. Lao động nữ trong thời gian hành kinh được nghỉ mỗi ngày 30 phút, trong thời gian nuôi con dưới 12 tháng tuổi được nghỉ mỗi ngày 60 phút trong thời gian làm việc. Thời gian nghỉ vẫn được hưởng đủ tiền lương theo hợp đồng lao động.\nĐiều 138. Quyền đơn phương chấm dứt, tạm hoãn hợp đồng lao động của lao động nữ mang thai",
       "C4": "định trong nội quy lao động.\nĐiều 122. Nguyên tắc, trình tự, thủ tục xử lý kỷ luật lao động\n1. Việc xử lý kỷ luật lao động được quy định như sau:\na) Người sử dụng lao động phải chứng minh được lỗi của người lao động;\nb) Phải có sự tham gia của tổ chức đại diện người lao động tại cơ sở mà người lao động đang bị xử lý kỷ luật là thành viên;\nc) Người lao động phải có mặt và có quyền tự bào chữa, nhờ luật sư hoặc tổ chức đại diện người lao động bào chữa; trường hợp là người chưa đủ 15 tuổi thì phải có sự tham gia của người đại diện theo pháp luật;\nd) Việc xử lý kỷ luật lao động phải được ghi thành biên bản.\n2. Không được áp dụng nhiều hình thức xử lý kỷ luật lao động đối với một hành vi vi phạm kỷ luật lao động.\n3. Khi một người lao động đồng thời có nhiều hành vi vi phạm kỷ luật lao động thì chỉ áp dụng hình thức kỷ luật cao nhất tương ứng với hành vi vi phạm nặng nhất.\n4. Không được xử lý kỷ luật lao động đối với người lao động đang trong thời gian sau đây:\na) Nghỉ ốm đau, điều dưỡng; nghỉ việc được sự đồng ý của người sử dụng lao động;\nb) Đang bị tạm giữ, tạm giam;\nc) Đang chờ kết quả của cơ quan có thẩm quyền điều tra xác minh và kết luận đối với hành vi vi phạm được quy định tại khoản 1 và khoản 2 Điều 125 của Bộ luật này;\nd) Người lao động nữ mang thai; người lao động nghỉ thai sản, nuôi con dưới 12 tháng tuổi."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Bốn ý đều đúng (Điều 137 k3, Điều 122 k4). Câu ngoại lệ không nói rõ chỉ áp dụng cho lệnh cấm chấm dứt hợp đồng. NLI chấm oan câu ngoại lệ (0.33)."
   },
   {
     "stratum": "flagged",
@@ -849,8 +849,8 @@
     "cited": {
       "C1": "kiện hưởng trợ cấp hưu trí xã hội\n1. Công dân Việt Nam được hưởng trợ cấp hưu trí xã hội khi có đủ các điều kiện sau đây:\na) Từ đủ 75 tuổi trở lên;\nb) Không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng, trừ trường hợp khác theo quy định của Chính phủ;\nc) Có văn bản đề nghị hưởng trợ cấp hưu trí xã hội.\n2. Công dân Việt Nam từ đủ 70 tuổi đến dưới 75 tuổi thuộc hộ nghèo, hộ cận nghèo và đáp ứng đủ điều kiện quy định tại điểm b và điểm c khoản 1 Điều này thì được hưởng trợ cấp hưu trí xã hội.\n3. Ủy ban Thường vụ Quốc hội quyết định điều chỉnh giảm dần độ tuổi hưởng trợ cấp hưu trí xã hội trên cơ sở đề nghị của Chính phủ phù hợp với điều kiện phát triển kinh tế - xã hội và khả năng của ngân sách nhà nước từng thời kỳ.\n4. Chính phủ quy định chi tiết khoản 2 Điều này.\nĐiều 22. Các chế độ, trình tự, thủ tục thực hiện trợ cấp hưu trí xã hội\n1. Mức trợ cấp hưu trí xã hội hằng tháng do Chính phủ quy định phù hợp với điều kiện phát triển kinh tế - xã hội và khả năng của ngân sách nhà nước từng thời kỳ. Định kỳ 03 năm, Chính phủ thực hiện rà soát, xem xét việc điều chỉnh mức trợ cấp hưu trí xã hội. Tùy theo điều kiện kinh tế - xã hội, khả năng cân đối ngân sách, huy động các nguồn lực xã hội, Ủy ban nhân dân cấp tỉnh trình Hội đồng nhân dân cùng cấp quyết định hỗ trợ thêm cho người hưởng trợ cấp hưu trí xã hội."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Đúng nguyên văn Điều 21 BHXH 2024. NLI chấm oan cả hai câu (0.20)."
   },
   {
     "stratum": "flagged",
@@ -878,8 +878,8 @@
       "C1": "đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành và bị suy giảm khả năng lao động từ 61% trở lên.\n2. Đối tượng quy định tại các điểm d, đ và e khoản 1 Điều 2 của Luật này khi nghỉ việc có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 20 năm trở lên, bị suy giảm khả năng lao động từ 61% trở lên thì được hưởng lương hưu với mức thấp hơn so với người đủ điều kiện hưởng lương hưu quy định tại điểm a và điểm b khoản 2 Điều 64 của Luật này nếu thuộc một trong các trường hợp sau đây:\na) Có tuổi thấp hơn tối đa 10 tuổi so với tuổi quy định tại điểm a khoản 1 Điều 64 của Luật này;\nb) Có từ đủ 15 năm trở lên làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành.\nĐiều 66. Mức lương hưu hằng tháng\n1. Mức lương hưu hằng tháng của đối tượng đủ điều kiện quy định tại Điều 64 của Luật này được tính như sau:\na) Đối với lao động nữ bằng 45% mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 72 của Luật này tương ứng 15 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 2%, mức tối đa bằng 75%;",
       "C2": "thông tin con chết;\nb) Bản chính hoặc bản sao giấy ra viện của lao động nữ sinh con có thể hiện thông tin con chết;\nc) Bản sao giấy báo tử của con;\nd) Văn bản xác nhận của Ủy ban nhân dân cấp xã đối với trường hợp con chết trong vòng 24 giờ sau khi sinh.\nĐiều 97. Giải quyết hưởng trợ cấp thai sản\n1. Trong thời hạn 60 ngày kể từ ngày sinh con, người lao động có trách nhiệm nộp hồ sơ quy định tại Điều 96 của Luật này cho cơ quan bảo hiểm xã hội.\n2. Trong thời hạn 05 ngày làm việc kể từ ngày nhận đủ hồ sơ theo quy định, cơ quan bảo hiểm xã hội có trách nhiệm giải quyết; trường hợp không giải quyết thì phải trả lời bằng văn bản và nêu rõ lý do.\nMục 2\nCHẾ ĐỘ HƯU TRÍ\nĐiều 98. Đối tượng và điều kiện hưởng lương hưu\nNgười tham gia bảo hiểm xã hội tự nguyện được hưởng lương hưu khi đủ tuổi nghỉ hưu theo quy định tại khoản 2 Điều 169 của Bộ luật Lao động và có thời gian đóng bảo hiểm xã hội từ đủ 15 năm trở lên.\nĐiều 99. Mức lương hưu hằng tháng\n1. Mức lương hưu hằng tháng của đối tượng đủ điều kiện quy định tại Điều 98 của Luật này được tính như sau:\na) Đối với lao động nữ bằng 45% mức bình quân thu nhập làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 104 của Luật này tương ứng 15 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 2%, mức tối đa bằng 75%;"
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Cả hai câu đúng (Điều 66 bắt buộc, Điều 99 tự nguyện). [C2] trỏ vào Điều 97-98 thay vì 99, nên NLI chấm oan câu 2."
   },
   {
     "stratum": "flagged",
@@ -906,8 +906,8 @@
     "cited": {
       "C1": "lao động chưa có công đoàn cơ sở thì do người sử dụng lao động quyết định. Thời gian nghỉ dưỡng sức phục hồi sức khỏe tối đa được quy định như sau:\na) 10 ngày đối với người lao động sức khỏe chưa phục hồi sau thời gian ốm đau do mắc bệnh cần chữa trị dài ngày;\nb) 07 ngày đối với người lao động sức khỏe chưa phục hồi sau thời gian ốm đau do phải phẫu thuật;\nc) 05 ngày đối với trường hợp khác.\n3. Mức hưởng cho một ngày nghỉ dưỡng sức, phục hồi sức khỏe sau khi ốm đau bằng 30% mức tham chiếu.\n4. Bộ trưởng Bộ Lao động - Thương binh và Xã hội quy định về việc tính, việc xác định điều kiện đối với từng trường hợp nghỉ dưỡng sức, phục hồi sức khoẻ sau khi ốm đau.\nĐiều 47. Hồ sơ đề nghị hưởng trợ cấp ốm đau\n1. Hồ sơ đề nghị hưởng trợ cấp ốm đau đối với người lao động hoặc con của người lao động điều trị nội trú là bản chính hoặc bản sao của một trong các giấy tờ sau đây:\na) Giấy ra viện;\nb) Bản tóm tắt hồ sơ bệnh án;\nc) Giấy tờ khác chứng minh quá trình điều trị nội trú.\n2. Hồ sơ đề nghị hưởng trợ cấp ốm đau đối với người lao động hoặc con của người lao động điều trị ngoại trú là một trong các giấy tờ sau đây:\na) Giấy chứng nhận nghỉ việc hưởng bảo hiểm xã hội;\nb) Bản chính hoặc bản sao giấy ra viện có ghi chỉ định thời gian cần điều trị ngoại trú sau thời gian điều trị nội trú;"
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "10/07/05 ngày đúng Điều 46 k2 BHXH 2024. NLI chấm oan (0.23)."
   },
   {
     "stratum": "flagged",
@@ -942,8 +942,8 @@
       "C3": "hiểm xã hội bắt buộc từ đủ 12 tháng trở lên;\nb) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nc) Người đang hưởng hoặc đang tạm dừng hưởng lương hưu; người đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng đã nghỉ việc.\n2. Mức trợ cấp mai táng bằng 10 lần mức tham chiếu tại tháng mà người quy định tại khoản 1 Điều này chết.\n3. Trường hợp đối tượng quy định tại các điểm a, b và c khoản 1 Điều này bị Tòa án tuyên bố là đã chết thì thân nhân được hưởng trợ cấp mai táng quy định tại khoản 2 Điều này.\nĐiều 86. Các trường hợp hưởng trợ cấp tuất hằng tháng\n1. Đối tượng quy định tại khoản 1 Điều 2 của Luật này khi chết hoặc bị Tòa án tuyên bố là đã chết thuộc một trong các trường hợp sau đây thì thân nhân quy định tại khoản 2 Điều này được hưởng tiền tuất hằng tháng:\na) Có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 15 năm trở lên;\nb) Đang hưởng lương hưu hoặc đang tạm dừng hưởng lương hưu;\nc) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nd) Đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng với mức suy giảm khả năng lao động từ 61% trở lên.\n2. Thân nhân của đối tượng quy định tại khoản 1 Điều này được hưởng trợ cấp tuất hằng tháng, bao gồm:",
       "C5": "tháng bằng 70% mức tham chiếu. Bộ trưởng Bộ Lao động - Thương binh và Xã hội quy định việc xác định thân nhân không có người trực tiếp nuôi dưỡng.\n2. Trường hợp một người chết hoặc bị Tòa án tuyên bố là đã chết thuộc đối tượng quy định tại khoản 1 Điều 86 của Luật này thì số thân nhân được hưởng trợ cấp tuất hằng tháng tối đa 04 người; trường hợp có từ 02 người chết hoặc bị Tòa án tuyên bố là đã chết trở lên thì thân nhân được hưởng 02 lần mức trợ cấp quy định tại khoản 1 Điều này.\n3. Thời điểm hưởng trợ cấp tuất hằng tháng được tính kể từ ngày đầu tiên của tháng liền kề sau tháng mà đối tượng quy định tại khoản 1 Điều 86 của Luật này chết hoặc bị Tòa án tuyên bố là đã chết. Trường hợp con được sinh sau thời điểm người cha, người cha là chồng của người mẹ nhờ mang thai hộ hoặc người mẹ nhờ mang thai hộ chết thì thời điểm hưởng trợ cấp tuất hằng tháng của con tính từ tháng con được sinh.\nĐiều 88. Các trường hợp hưởng trợ cấp tuất một lần\n1. Các đối tượng sau đây chết hoặc bị Tòa án tuyên bố là đã chết thì thân nhân được xét hưởng trợ cấp tuất một lần:\na) Người đang tham gia bảo hiểm xã hội hoặc đang bảo lưu thời gian đóng bảo hiểm xã hội;\nb) Người đang hưởng hoặc đang tạm dừng hưởng lương hưu; người đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng đã nghỉ việc."
     },
-    "grade": null,
-    "note": ""
+    "grade": "wrong",
+    "note": "Mức tiền đều đúng, nhưng dẫn \"khoản 1 Điều 86\" cho người được hưởng trợ cấp mai táng; đúng là khoản 1 Điều 85. Lỗi nhỏ, chỉ sai số điều."
   },
   {
     "stratum": "flagged",
@@ -981,8 +981,8 @@
       "C1": "toàn hơn hoặc giảm bớt 01 giờ làm việc hằng ngày mà không bị cắt giảm tiền lương và quyền, lợi ích cho đến hết thời gian nuôi con dưới 12 tháng tuổi.\n3. Người sử dụng lao động không được sa thải hoặc đơn phương chấm dứt hợp đồng lao động đối với người lao động vì lý do kết hôn, mang thai, nghỉ thai sản, nuôi con dưới 12 tháng tuổi, trừ trường hợp người sử dụng lao động là cá nhân chết, bị Tòa án tuyên bố mất năng lực hành vi dân sự, mất tích hoặc đã chết hoặc người sử dụng lao động không phải là cá nhân chấm dứt hoạt động hoặc bị cơ quan chuyên môn về đăng ký kinh doanh thuộc Ủy ban nhân dân cấp tỉnh ra thông báo không có người đại diện theo pháp luật, người được ủy quyền thực hiện quyền và nghĩa vụ của người đại diện theo pháp luật. Trường hợp hợp đồng lao động hết hạn trong thời gian lao động nữ mang thai hoặc nuôi con dưới 12 tháng tuổi thì được ưu tiên giao kết hợp đồng lao động mới.\n4. Lao động nữ trong thời gian hành kinh được nghỉ mỗi ngày 30 phút, trong thời gian nuôi con dưới 12 tháng tuổi được nghỉ mỗi ngày 60 phút trong thời gian làm việc. Thời gian nghỉ vẫn được hưởng đủ tiền lương theo hợp đồng lao động.\nĐiều 138. Quyền đơn phương chấm dứt, tạm hoãn hợp đồng lao động của lao động nữ mang thai",
       "C4": "định trong nội quy lao động.\nĐiều 122. Nguyên tắc, trình tự, thủ tục xử lý kỷ luật lao động\n1. Việc xử lý kỷ luật lao động được quy định như sau:\na) Người sử dụng lao động phải chứng minh được lỗi của người lao động;\nb) Phải có sự tham gia của tổ chức đại diện người lao động tại cơ sở mà người lao động đang bị xử lý kỷ luật là thành viên;\nc) Người lao động phải có mặt và có quyền tự bào chữa, nhờ luật sư hoặc tổ chức đại diện người lao động bào chữa; trường hợp là người chưa đủ 15 tuổi thì phải có sự tham gia của người đại diện theo pháp luật;\nd) Việc xử lý kỷ luật lao động phải được ghi thành biên bản.\n2. Không được áp dụng nhiều hình thức xử lý kỷ luật lao động đối với một hành vi vi phạm kỷ luật lao động.\n3. Khi một người lao động đồng thời có nhiều hành vi vi phạm kỷ luật lao động thì chỉ áp dụng hình thức kỷ luật cao nhất tương ứng với hành vi vi phạm nặng nhất.\n4. Không được xử lý kỷ luật lao động đối với người lao động đang trong thời gian sau đây:\na) Nghỉ ốm đau, điều dưỡng; nghỉ việc được sự đồng ý của người sử dụng lao động;\nb) Đang bị tạm giữ, tạm giam;\nc) Đang chờ kết quả của cơ quan có thẩm quyền điều tra xác minh và kết luận đối với hành vi vi phạm được quy định tại khoản 1 và khoản 2 Điều 125 của Bộ luật này;\nd) Người lao động nữ mang thai; người lao động nghỉ thai sản, nuôi con dưới 12 tháng tuổi."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Như baseline:a012: bốn ý đúng, NLI chấm oan câu ngoại lệ."
   },
   {
     "stratum": "flagged",
@@ -1009,8 +1009,8 @@
     "cited": {
       "C1": "pháp luật có liên quan.\nĐiều 106. Giờ làm việc ban đêm\nGiờ làm việc ban đêm được tính từ 22 giờ đến 06 giờ sáng ngày hôm sau.\nĐiều 107. Làm thêm giờ\n1. Thời gian làm thêm giờ là khoảng thời gian làm việc ngoài thời giờ làm việc bình thường theo quy định của pháp luật, thỏa ước lao động tập thể hoặc nội quy lao động.\n2. Người sử dụng lao động được sử dụng người lao động làm thêm giờ khi đáp ứng đầy đủ các yêu cầu sau đây:\na) Phải được sự đồng ý của người lao động;\nb) Bảo đảm số giờ làm thêm của người lao động không quá 50% số giờ làm việc bình thường trong 01 ngày; trường hợp áp dụng quy định thời giờ làm việc bình thường theo tuần thì tổng số giờ làm việc bình thường và số giờ làm thêm không quá 12 giờ trong 01 ngày; không quá 40 giờ trong 01 tháng;\nc) Bảo đảm số giờ làm thêm của người lao động không quá 200 giờ trong 01 năm, trừ trường hợp quy định tại khoản 3 Điều này.\n3. Người sử dụng lao động được sử dụng người lao động làm thêm không quá 300 giờ trong 01 năm trong một số ngành, nghề, công việc hoặc trường hợp sau đây:\na) Sản xuất, gia công xuất khẩu sản phẩm hàng dệt, may, da, giày, điện, điện tử, chế biến nông, lâm, diêm nghiệp, thủy sản;\nb) Sản xuất, cung cấp điện, viễn thông, lọc dầu; cấp, thoát nước;"
     },
-    "grade": null,
-    "note": ""
+    "grade": "partly",
+    "note": "Hai nhóm ngành (Điều 107 k3 a, b) đúng nhưng bỏ các trường hợp c-đ mà gold có. Ý thứ hai đúng luật, NLI chấm oan (0.05)."
   },
   {
     "stratum": "flagged",
@@ -1037,8 +1037,8 @@
     "cited": {
       "C1": "kiện hưởng trợ cấp hưu trí xã hội\n1. Công dân Việt Nam được hưởng trợ cấp hưu trí xã hội khi có đủ các điều kiện sau đây:\na) Từ đủ 75 tuổi trở lên;\nb) Không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng, trừ trường hợp khác theo quy định của Chính phủ;\nc) Có văn bản đề nghị hưởng trợ cấp hưu trí xã hội.\n2. Công dân Việt Nam từ đủ 70 tuổi đến dưới 75 tuổi thuộc hộ nghèo, hộ cận nghèo và đáp ứng đủ điều kiện quy định tại điểm b và điểm c khoản 1 Điều này thì được hưởng trợ cấp hưu trí xã hội.\n3. Ủy ban Thường vụ Quốc hội quyết định điều chỉnh giảm dần độ tuổi hưởng trợ cấp hưu trí xã hội trên cơ sở đề nghị của Chính phủ phù hợp với điều kiện phát triển kinh tế - xã hội và khả năng của ngân sách nhà nước từng thời kỳ.\n4. Chính phủ quy định chi tiết khoản 2 Điều này.\nĐiều 22. Các chế độ, trình tự, thủ tục thực hiện trợ cấp hưu trí xã hội\n1. Mức trợ cấp hưu trí xã hội hằng tháng do Chính phủ quy định phù hợp với điều kiện phát triển kinh tế - xã hội và khả năng của ngân sách nhà nước từng thời kỳ. Định kỳ 03 năm, Chính phủ thực hiện rà soát, xem xét việc điều chỉnh mức trợ cấp hưu trí xã hội. Tùy theo điều kiện kinh tế - xã hội, khả năng cân đối ngân sách, huy động các nguồn lực xã hội, Ủy ban nhân dân cấp tỉnh trình Hội đồng nhân dân cùng cấp quyết định hỗ trợ thêm cho người hưởng trợ cấp hưu trí xã hội."
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Như baseline:a044. NLI chấm oan."
   },
   {
     "stratum": "flagged",
@@ -1066,8 +1066,8 @@
       "C1": "đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành và bị suy giảm khả năng lao động từ 61% trở lên.\n2. Đối tượng quy định tại các điểm d, đ và e khoản 1 Điều 2 của Luật này khi nghỉ việc có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 20 năm trở lên, bị suy giảm khả năng lao động từ 61% trở lên thì được hưởng lương hưu với mức thấp hơn so với người đủ điều kiện hưởng lương hưu quy định tại điểm a và điểm b khoản 2 Điều 64 của Luật này nếu thuộc một trong các trường hợp sau đây:\na) Có tuổi thấp hơn tối đa 10 tuổi so với tuổi quy định tại điểm a khoản 1 Điều 64 của Luật này;\nb) Có từ đủ 15 năm trở lên làm nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm thuộc danh mục nghề, công việc đặc biệt nặng nhọc, độc hại, nguy hiểm do Bộ trưởng Bộ Lao động - Thương binh và Xã hội ban hành.\nĐiều 66. Mức lương hưu hằng tháng\n1. Mức lương hưu hằng tháng của đối tượng đủ điều kiện quy định tại Điều 64 của Luật này được tính như sau:\na) Đối với lao động nữ bằng 45% mức bình quân tiền lương làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 72 của Luật này tương ứng 15 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 2%, mức tối đa bằng 75%;",
       "C2": "thông tin con chết;\nb) Bản chính hoặc bản sao giấy ra viện của lao động nữ sinh con có thể hiện thông tin con chết;\nc) Bản sao giấy báo tử của con;\nd) Văn bản xác nhận của Ủy ban nhân dân cấp xã đối với trường hợp con chết trong vòng 24 giờ sau khi sinh.\nĐiều 97. Giải quyết hưởng trợ cấp thai sản\n1. Trong thời hạn 60 ngày kể từ ngày sinh con, người lao động có trách nhiệm nộp hồ sơ quy định tại Điều 96 của Luật này cho cơ quan bảo hiểm xã hội.\n2. Trong thời hạn 05 ngày làm việc kể từ ngày nhận đủ hồ sơ theo quy định, cơ quan bảo hiểm xã hội có trách nhiệm giải quyết; trường hợp không giải quyết thì phải trả lời bằng văn bản và nêu rõ lý do.\nMục 2\nCHẾ ĐỘ HƯU TRÍ\nĐiều 98. Đối tượng và điều kiện hưởng lương hưu\nNgười tham gia bảo hiểm xã hội tự nguyện được hưởng lương hưu khi đủ tuổi nghỉ hưu theo quy định tại khoản 2 Điều 169 của Bộ luật Lao động và có thời gian đóng bảo hiểm xã hội từ đủ 15 năm trở lên.\nĐiều 99. Mức lương hưu hằng tháng\n1. Mức lương hưu hằng tháng của đối tượng đủ điều kiện quy định tại Điều 98 của Luật này được tính như sau:\na) Đối với lao động nữ bằng 45% mức bình quân thu nhập làm căn cứ đóng bảo hiểm xã hội quy định tại Điều 104 của Luật này tương ứng 15 năm đóng bảo hiểm xã hội, sau đó cứ thêm mỗi năm đóng thì tính thêm 2%, mức tối đa bằng 75%;"
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Như baseline:a047. NLI chấm oan câu 2 vì citation lệch."
   },
   {
     "stratum": "flagged",
@@ -1094,8 +1094,8 @@
     "cited": {
       "C1": "lao động chưa có công đoàn cơ sở thì do người sử dụng lao động quyết định. Thời gian nghỉ dưỡng sức phục hồi sức khỏe tối đa được quy định như sau:\na) 10 ngày đối với người lao động sức khỏe chưa phục hồi sau thời gian ốm đau do mắc bệnh cần chữa trị dài ngày;\nb) 07 ngày đối với người lao động sức khỏe chưa phục hồi sau thời gian ốm đau do phải phẫu thuật;\nc) 05 ngày đối với trường hợp khác.\n3. Mức hưởng cho một ngày nghỉ dưỡng sức, phục hồi sức khỏe sau khi ốm đau bằng 30% mức tham chiếu.\n4. Bộ trưởng Bộ Lao động - Thương binh và Xã hội quy định về việc tính, việc xác định điều kiện đối với từng trường hợp nghỉ dưỡng sức, phục hồi sức khoẻ sau khi ốm đau.\nĐiều 47. Hồ sơ đề nghị hưởng trợ cấp ốm đau\n1. Hồ sơ đề nghị hưởng trợ cấp ốm đau đối với người lao động hoặc con của người lao động điều trị nội trú là bản chính hoặc bản sao của một trong các giấy tờ sau đây:\na) Giấy ra viện;\nb) Bản tóm tắt hồ sơ bệnh án;\nc) Giấy tờ khác chứng minh quá trình điều trị nội trú.\n2. Hồ sơ đề nghị hưởng trợ cấp ốm đau đối với người lao động hoặc con của người lao động điều trị ngoại trú là một trong các giấy tờ sau đây:\na) Giấy chứng nhận nghỉ việc hưởng bảo hiểm xã hội;\nb) Bản chính hoặc bản sao giấy ra viện có ghi chỉ định thời gian cần điều trị ngoại trú sau thời gian điều trị nội trú;"
     },
-    "grade": null,
-    "note": ""
+    "grade": "correct",
+    "note": "Như baseline:a052. NLI chấm oan."
   },
   {
     "stratum": "flagged",
@@ -1130,7 +1130,7 @@
       "C3": "hiểm xã hội bắt buộc từ đủ 12 tháng trở lên;\nb) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nc) Người đang hưởng hoặc đang tạm dừng hưởng lương hưu; người đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng đã nghỉ việc.\n2. Mức trợ cấp mai táng bằng 10 lần mức tham chiếu tại tháng mà người quy định tại khoản 1 Điều này chết.\n3. Trường hợp đối tượng quy định tại các điểm a, b và c khoản 1 Điều này bị Tòa án tuyên bố là đã chết thì thân nhân được hưởng trợ cấp mai táng quy định tại khoản 2 Điều này.\nĐiều 86. Các trường hợp hưởng trợ cấp tuất hằng tháng\n1. Đối tượng quy định tại khoản 1 Điều 2 của Luật này khi chết hoặc bị Tòa án tuyên bố là đã chết thuộc một trong các trường hợp sau đây thì thân nhân quy định tại khoản 2 Điều này được hưởng tiền tuất hằng tháng:\na) Có thời gian đóng bảo hiểm xã hội bắt buộc từ đủ 15 năm trở lên;\nb) Đang hưởng lương hưu hoặc đang tạm dừng hưởng lương hưu;\nc) Chết do tai nạn lao động, bệnh nghề nghiệp theo quy định của pháp luật về an toàn, vệ sinh lao động;\nd) Đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng với mức suy giảm khả năng lao động từ 61% trở lên.\n2. Thân nhân của đối tượng quy định tại khoản 1 Điều này được hưởng trợ cấp tuất hằng tháng, bao gồm:",
       "C5": "tháng bằng 70% mức tham chiếu. Bộ trưởng Bộ Lao động - Thương binh và Xã hội quy định việc xác định thân nhân không có người trực tiếp nuôi dưỡng.\n2. Trường hợp một người chết hoặc bị Tòa án tuyên bố là đã chết thuộc đối tượng quy định tại khoản 1 Điều 86 của Luật này thì số thân nhân được hưởng trợ cấp tuất hằng tháng tối đa 04 người; trường hợp có từ 02 người chết hoặc bị Tòa án tuyên bố là đã chết trở lên thì thân nhân được hưởng 02 lần mức trợ cấp quy định tại khoản 1 Điều này.\n3. Thời điểm hưởng trợ cấp tuất hằng tháng được tính kể từ ngày đầu tiên của tháng liền kề sau tháng mà đối tượng quy định tại khoản 1 Điều 86 của Luật này chết hoặc bị Tòa án tuyên bố là đã chết. Trường hợp con được sinh sau thời điểm người cha, người cha là chồng của người mẹ nhờ mang thai hộ hoặc người mẹ nhờ mang thai hộ chết thì thời điểm hưởng trợ cấp tuất hằng tháng của con tính từ tháng con được sinh.\nĐiều 88. Các trường hợp hưởng trợ cấp tuất một lần\n1. Các đối tượng sau đây chết hoặc bị Tòa án tuyên bố là đã chết thì thân nhân được xét hưởng trợ cấp tuất một lần:\na) Người đang tham gia bảo hiểm xã hội hoặc đang bảo lưu thời gian đóng bảo hiểm xã hội;\nb) Người đang hưởng hoặc đang tạm dừng hưởng lương hưu; người đang hưởng hoặc đang tạm dừng hưởng trợ cấp tai nạn lao động, bệnh nghề nghiệp hằng tháng đã nghỉ việc."
     },
-    "grade": null,
-    "note": ""
+    "grade": "wrong",
+    "note": "Như baseline:a057: mức tiền đúng, sai số điều (Điều 86 thay vì 85)."
   }
 ]
