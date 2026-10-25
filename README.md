@@ -48,9 +48,10 @@ How to read it:
   under `full` two came out clean on the first attempt (different chunks, a
   different answer), two were regenerated and trimmed to the claims the guard
   accepts, and two were refused after the regeneration — two answerable
-  questions lost. Whether those six were wrong in the first place is for the
-  30-answer hand-graded sample to say, and that is not done yet (see
-  [Limitations](#limitations)).
+  questions lost. The graded sample ([`reports/grading/`](reports/grading/))
+  says what was removed: of those six answers, four are right by the law, one
+  is incomplete, and one cites the wrong article number for a correct amount.
+  The guard removed no invented content here.
 - **The retrieval floor is the cheap win.** It turns away 17 of the 30
   unanswerable questions before any LLM call, which is why `threshold` makes
   fewer calls than there are questions. The price is two answerable questions
@@ -75,12 +76,19 @@ How to read it:
   moves a rate by 0.02 or 0.03, and none of the differences above is more than
   a few questions.
 
-Benchmark: 100 hand-labelled questions — 63 answerable, 37 unanswerable across
-three adversarial types, in [`eval/dataset/questions.jsonl`](eval/dataset/questions.jsonl).
-Twenty of them are a `dev` split used only to calibrate the guard threshold; the
-numbers above are scored on the 80 `test` questions τ was never fitted on.
-Labelling protocol and the decisions taken while building it:
-[`eval/dataset/LABELING.md`](eval/dataset/LABELING.md).
+Benchmark: the tables above are the v1 set — 100 hand-labelled questions, 63
+answerable and 37 unanswerable across three adversarial types, scored on the 80
+`test` questions τ was never fitted on. The set has since grown to **300
+questions** in [`eval/dataset/questions.jsonl`](eval/dataset/questions.jsonl):
+180 answerable — 93 of them questions real people asked, from
+TVPL-Retrieval-VN (CC-BY-SA-4.0), rewritten against the corpus — 40 of each
+unanswerable type, and 20 temporal questions asked on two dates across the 2014
+and 2024 social insurance laws. It is split dev 60 / test 240 by article, so τ
+is never calibrated on the article a test question is scored on. `make
+eval-matrix` runs it: every configuration three times at temperature 0.7, an
+LLM judge from another model family, paired tests and risk–coverage curves,
+resumable across free-tier quota days. Labelling protocol and every decision
+taken while building the set: [`eval/dataset/LABELING.md`](eval/dataset/LABELING.md).
 
 `make check-dataset` resolves every gold reference through the same clause
 index the metrics score with, checks each number in a gold answer against the
@@ -91,7 +99,11 @@ so it runs in CI.
 Every configuration is scored by **the same instrument after the fact**, so a
 configuration without a guard is not flattered by being judged differently.
 Because that instrument is the guard's own NLI model, two independent checks sit
-next to it: RAGAS with an LLM judge (`make ragas`) and 30 answers scored by hand.
+next to it: a claim-level LLM judge from another model family
+([`eval/judge.py`](eval/judge.py)), and a graded sample of 41 answers. Against
+the graded answers the judge agrees at Cohen's κ 0.45 and flags 4 answers; the
+NLI instrument agrees at κ 0.10 and flags 13
+([`judge-agreement.json`](reports/grading/judge-agreement.json)).
 
 ## How it works
 
@@ -271,9 +283,23 @@ The first one is the finding this project did not want:
   (`xlm-roberta-large-xnli`) made that group worse, not better.
 - Measuring hallucination with the same NLI model that powers the guard is
   circular, and the point above means the circularity is not harmless. The
-  hand-graded sample is the check that matters; a second opinion from an LLM
-  judge is not in yet, because the only local model available is the one that
-  wrote the answers and the hosted free tier allows 20 requests a day.
+  graded sample is the check that matters, and it shows the limit of both
+  instruments: they test a claim against the passage it cites, not against the
+  whole law. The two wrong answers in the sample — one quoting the 2014 social
+  insurance law through Điều 219 of the Labour Code, one adding "only after 12
+  months" to the annual-leave rule — match the clause they cite, and both the
+  judge and the NLI instrument pass them.
+- **The number rule refuses correct answers that repeat a number from the
+  question.** Asked about a miscarriage at 23 weeks, the model answers 40 days
+  and cites the clause for "13 to under 25 weeks"; "23" is not in the clause, so
+  the claim is blocked before NLI runs. Found on the v2 temporal questions;
+  eight v2 questions (seven in test) contain a number their gold clause does
+  not — an age of 14 or 16, 23 weeks, "2 employees".
+- **The structural chunker drops an article's lead-in sentence** when it sits
+  between the heading and clause 1 — 15 articles, among them Điều 108 ("…người
+  lao động không được từ chối") and Điều 25 ("chỉ được thử việc một lần").
+  The `full` configuration never sees those sentences. Both of these are left
+  as they are until the fix can be measured against this run.
 - The corrective loop spends one extra LLM call on every weak retrieval,
   including the out-of-scope questions it cannot rescue.
 - 23 dev claims and 24 probe pairs are small samples. The direction is
