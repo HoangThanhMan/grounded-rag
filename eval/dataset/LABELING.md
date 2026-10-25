@@ -5,29 +5,41 @@ tin bằng đúng chất lượng của tập này, nên quy trình dưới đâ
 
 ## Mục tiêu
 
-100 câu hỏi, chia như sau:
+v2: 300 câu, chia như sau:
 
 | Loại | Số câu | Ý nghĩa |
 |---|---|---|
-| `answerable` | 60 | Có đáp án rõ ràng trong corpus |
-| `unanswerable_out_of_scope` | 15 | Nội dung thuộc văn bản pháp luật khác |
-| `unanswerable_false_premise` | 15 | Giả định một quy định không tồn tại |
-| `unanswerable_near_miss` | 10 | Đúng chủ đề, đúng thuật ngữ, nhưng chi tiết không có trong văn bản |
+| `answerable` | 180 | Có đáp án rõ ràng trong corpus |
+| `unanswerable_out_of_scope` | 40 | Nội dung thuộc văn bản pháp luật khác |
+| `unanswerable_false_premise` | 40 | Giả định một quy định không tồn tại |
+| `unanswerable_near_miss` | 40 | Đúng chủ đề, đúng thuật ngữ, nhưng chi tiết không có trong văn bản |
 
 `near_miss` là loại khó nhất và cũng là loại model bịa nhiều nhất. Đừng cắt
 loại này khi thiếu thời gian — cắt bớt `out_of_scope` trước.
 
-Trong 60 câu `answerable`, gắn `tags` cho khoảng 10 câu `multi_part` (hỏi hai ý
-trở lên, gold gồm nhiều khoản) và 10 câu `colloquial` (nói kiểu đời thường:
-"nghỉ việc", "nghỉ phép" thay cho thuật ngữ luật). Hai lát cắt này là thứ cấu
-hình `agentic` được đo trên.
+Tag: `multi_part` (hỏi hai ý trở lên, gold gồm nhiều khoản), `colloquial` (nói
+kiểu đời thường: "nghỉ việc", "nghỉ phép" thay cho thuật ngữ luật), `temporal`
+(đáp án khác nhau theo ngày hỏi, xem bên dưới). Ít nhất 20 câu `temporal`.
+
+Chia **dev 60 / test 240** theo nhóm điều luật (`article_group`): câu có gold
+thuộc cùng một Điều nằm cùng một split, để τ không bao giờ được hiệu chỉnh trên
+đúng điều mà một câu test được chấm. Dev gồm 42 `answerable` và 6 câu mỗi loại
+không trả lời được — không theo tỉ lệ, vì 20 câu dev của v1 phải ở lại dev (τ đã
+hiệu chỉnh trên chúng) và nhóm điều của chúng đã chứa 42 câu trả lời được. Nhóm
+và split do `scripts/assemble_dataset.py` tính, không sửa tay.
 
 ## Quy trình
 
-1. **Sinh câu hỏi ứng viên.** Với mỗi chunk, nhờ LLM sinh 2 câu hỏi mà chunk
-   đó trả lời được. Đây chỉ là nguyên liệu thô. Có thể lấy thêm ứng viên từ các
-   bộ Hỏi–Đáp pháp luật trên Hugging Face, nhưng chỉ giữ câu có đáp án nằm trong
-   corpus, và duyệt như câu sinh máy.
+1. **Sinh câu hỏi ứng viên.** Ba nguồn, đều chỉ là nguyên liệu thô:
+   - LLM sinh 2 câu hỏi từ mỗi chunk (v1, `source: chunk_generated`).
+   - Câu hỏi người thật của **TVPL-Retrieval-VN** (GreenNode trên Hugging Face,
+     **CC-BY-SA-4.0**, `source: tvpl`): `scripts/import_candidates.py` chỉ giữ
+     câu có đoạn bằng chứng khớp nguyên văn một khoản của corpus và đề xuất khoản
+     đó làm gold. Mỗi quyết định giữ / bỏ kèm lý do nằm ở `drafts/tvpl.jsonl`.
+   - Câu tự viết (`source: handwritten`); một số câu `out_of_scope` lấy ý từ bộ
+     Zalo AI Legal Text Retrieval (MIT, `source: zalo`). Bộ Zalo không có câu
+     nào thuộc Bộ luật Lao động 2019 hay Luật BHXH.
+   Bộ VLSP 2025 DRILL không dùng: phải đăng ký và không công bố license.
 2. **Người duyệt.** Tự đọc lại từng câu. Loại bỏ câu mơ hồ, câu trả lời được
    bằng nhiều chunk khác nhau, câu chỉ hỏi lại nguyên văn tiêu đề điều luật.
 3. **Ghi đáp án chuẩn** ngắn gọn, một đến hai câu, bằng lời của văn bản.
@@ -56,14 +68,47 @@ Một dòng JSON mỗi câu, trong `eval/dataset/questions.jsonl`:
   "gold_answer": "...",
   "gold_chunks": ["bo_luat_lao_dong_2019:Điều 35:1"],
   "type": "answerable",
-  "tags": ["colloquial"]
+  "tags": ["colloquial"],
+  "article_group": "bo_luat_lao_dong_2019:Điều 35 +1",
+  "split": "test",
+  "source": "tvpl",
+  "source_id": "..."
 }
 ```
+
+Câu `temporal` có thêm `as_of` (ngày hỏi) và `temporal_pair` (tên cặp). Một
+cặp là **cùng một câu hỏi** hỏi vào hai ngày, với hai đáp án khác nhau, và gold
+của mỗi vế phải có hiệu lực vào ngày của vế đó. `eval.run` hỏi câu temporal
+đúng vào `as_of` của nó; mọi câu khác dùng `--as-of` của lượt chạy.
 
 `gold_chunks` ghi theo `ref`: `<doc_id>:Điều <số>:<số khoản>`, hoặc
 `<doc_id>:Điều <số>` nếu điều đó không chia khoản. `doc_id` là tên file không
 đuôi. Eval tự tra ra nội dung khoản, nên chunk `recursive` cũng được chấm công
 bằng.
+
+## Câu temporal và Luật BHXH 2014
+
+Corpus có thêm Luật BHXH 2014 (`luat_bao_hiem_xa_hoi_2014`, hiệu lực
+01/01/2016 – trước 01/07/2025) để hỏi cùng một câu trước và sau Luật BHXH 2024.
+Hiệu lực chỉ áp ở cấp văn bản (B7), mà Luật 2014 đã bị sửa nhiều lần, nên một
+câu temporal chỉ được dựa vào điều **chưa bị sửa** từ 2016 đến 2025. Tám điều
+đang dùng — 29, 32, 33, 34, 38, 41, 66, 68 — đều:
+
+- không có chú thích sửa đổi trong Văn bản hợp nhất 50/VBHN-VPQH (2018), và
+  không nằm trong các điều mà Điều 219 Bộ luật Lao động 2019 sửa (54, 55, 73);
+- được đối chiếu từng chữ với bản quét Công báo (trang 13–18, 27–29).
+
+Bản toàn văn lấy từ một trang web (bản quét chính thức không có lớp chữ) và
+mất số thứ tự khoản, nên gold của Luật 2014 ghi ở cấp điều (`…:Điều 32`).
+
+## Đồng thuận gán nhãn
+
+`scripts/agreement.py sample` rút 60 câu phân tầng theo loại thành sheet "mù"
+(`agreement/relabel.json`, chỉ có câu hỏi). Gán lại loại và điều gold mà
+không mở `questions.jsonl` — do người thứ hai (`inter`), hoặc chính người gán
+nhãn sau ít nhất 10 ngày (`intra`; `score` từ chối chấm sớm hơn). `score` báo
+Cohen's κ cho loại câu và cho trả lời được / không; mục tiêu κ ≥ 0.7. Báo cáo
+phải ghi rõ đó là intra- hay inter-annotator.
 
 ## Quy tắc quan trọng
 
@@ -144,3 +189,35 @@ nào, và không có khoản nào bác tiền đề trực tiếp như Điều 1
 20 câu có `"split": "dev"`, lấy phân tầng (câu thứ 5, 10, ... trong mỗi loại
 theo thứ tự ban đầu). Chỉ dùng để hiệu chỉnh τ (`scripts/calibrate_tau.py`);
 `eval.run` mặc định chấm trên 80 câu `test` còn lại.
+
+### 2026-10-26 — v2: 300 câu
+
+`questions.jsonl` từ 100 lên 300 câu theo spec v2 (WS1a): 180 `answerable`,
+40 mỗi loại không trả lời được; 44 `colloquial`, 18 `multi_part`, 20
+`temporal`. 100 câu v1 giữ nguyên id, nhãn và gold. Dựng bằng
+`scripts/assemble_dataset.py` từ ba bản nháp trong `drafts/`.
+
+- **93 câu từ TVPL-Retrieval-VN** (197 ứng viên, giữ 93). Mỗi câu được viết
+  lại theo corpus, gold thu hẹp đúng khoản trả lời. 104 câu bỏ, mỗi câu một lý
+  do: trùng câu đã có, công chức hoặc lực lượng vũ trang (ngoài phạm vi), luật
+  không trả lời trực tiếp, hoặc quá chung. Chỉ 3 câu thuộc Luật BHXH 2024 — bộ
+  TVPL có trước luật này.
+- **10 cặp temporal** trên Luật BHXH 2014 / 2024, hỏi vào 2024-06-01 và
+  2025-09-01. Bốn cặp dùng lại câu v1 làm vế hiện hành (a052, a053, a055, a057:
+  chỉ thêm `as_of`, tag và cặp; nhãn không đổi).
+- **8 câu viết tay** về Luật BHXH 2024, bù phần TVPL thiếu.
+- **83 câu không trả lời được**, viết tay, tìm toàn văn từng câu. Năm câu nháp
+  bị thay trước khi vào tập vì rơi đúng bẫy quy tắc 5 — luật có khoản bác tiền
+  đề: thưởng chuyên cần và tăng lương khi ký lại (Điều 103, 104), "Nhà nước tặng
+  năm đóng BHXH tự nguyện" (Điều 6 khoản 6 Luật BHXH 2024 nói hỗ trợ *tiền
+  đóng*), thưởng thâm niên (Điều 114), tỉ lệ người lao động yêu cầu đối thoại
+  (Điều 63 khoản 2: chỉ cần yêu cầu của một bên).
+- **`multi_part` chỉ gắn khi gold có từ hai khoản.** Câu hỏi danh sách nằm gọn
+  trong một khoản (các ngày nghỉ lễ, nghĩa vụ của người lao động) không gắn.
+- Cảnh báo còn lại của `check_dataset.py` đã đọc tay: u018 (như trên); u043
+  ("ký quỹ đi làm việc ở nước ngoài") khớp Điều 85 Luật BHXH 2014, nhưng điều
+  đó nói về mức đóng bảo hiểm, không về ký quỹ — giữ nhãn.
+
+Tập test đổi hoàn toàn: mọi report trước ngày này chấm trên 80 câu test v1 và
+không so trực tiếp được với report v2. τ = 0.50 vẫn là ngưỡng hiệu chỉnh trên
+20 câu dev v1, nay nằm trong dev v2.
