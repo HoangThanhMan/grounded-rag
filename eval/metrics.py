@@ -13,6 +13,10 @@ this one module, after the fact. Two rules the numbers depend on:
     "Contains" means containment, not overlap: phrases like "người sử dụng lao
     động" are in every other clause, and an overlap measure found 15-39 clauses
     "inside" a single 1,200-character window.
+
+Every rate is a mean of per-question values (`case_scores`), and the report
+stores those values next to each case. That is what lets eval/report.py put a
+bootstrap interval on any column without the corpus or a model.
 """
 
 from __future__ import annotations
@@ -22,12 +26,14 @@ import unicodedata
 from collections import Counter
 from dataclasses import dataclass, field
 
-from grounded_rag.generation.citation import extract_citations
+from grounded_rag.generation.citation import extract_citations, strip_citations
+from grounded_rag.guard.nli_verifier import numbers
 from grounded_rag.types import Answer, AnswerStatus, Chunk, Claim, RetrievedChunk, Verdict
 
 ABSTAIN_STATES = {AnswerStatus.ABSTAINED, AnswerStatus.NO_CONTEXT}
 # A clause this long can be cut by a window boundary; half of it is a match.
 MIN_WORDS_FOR_HALF = 20
+RECALL_AT = (1, 3, 5)
 
 
 @dataclass
@@ -37,6 +43,7 @@ class Case:
     gold_chunks: list[str] = field(default_factory=list)
     type: str = "answerable"
     tags: list[str] = field(default_factory=list)
+    gold_answer: str | None = None
 
 
 @dataclass
@@ -108,28 +115,95 @@ def retrieval_recall(answer: Answer, gold: list[str], gold_text: dict[str, str])
     return hits / len(gold)
 
 
+def recall_at(answer: Answer, gold: list[str], gold_text: dict[str, str], k: int) -> float:
+    """Share of the gold evidence among the top k sources, in rerank order."""
+    if not gold:
+        return 1.0
+    top = answer.sources[:k]
+    return sum(any(matches(s.chunk, g, gold_text) for s in top) for g in gold) / len(gold)
+
+
+def reciprocal_rank(answer: Answer, gold: list[str], gold_text: dict[str, str]) -> float:
+    """1 / rank of the first source holding any gold evidence; 0 if none does."""
+    for rank, s in enumerate(answer.sources, start=1):
+        if any(matches(s.chunk, g, gold_text) for g in gold):
+            return 1.0 / rank
+    return 0.0
+
+
+def answer_correct(answer: Answer, gold_answer: str | None) -> bool | None:
+    """Every number in the gold answer is in the answer. None when the gold
+    answer has no number to check.
+
+    Grounded is not correct: the guard asks whether a claim follows from the
+    passage it cites, not whether it answers the question. In this corpus the
+    answer usually *is* a number - "45 ngày", "30%" - so the numbers are a
+    cheap, model-free proxy for correctness. Citation labels are stripped
+    first, or the "1" in [C1] would count. A refusal is not a correct answer.
+
+    It also measures completeness against the gold answer: when the gold
+    answer adds a second number the question did not ask for ("10 giờ/ngày"
+    asked, "48 giờ/tuần" added), an answer to exactly the question fails.
+    """
+    want = numbers(gold_answer or "")
+    if not want:
+        return None
+    if abstained(answer):
+        return False
+    return want <= numbers(strip_citations(answer.answer))
+
+
+def case_scores(row: Row, gold_text: dict[str, str]) -> dict[str, float | None]:
+    """The per-question values every rate is a mean of. None: the question is
+    not in that rate's denominator."""
+    answer, case = row.answer, row.case
+    out: dict[str, float | None] = {
+        "hallucination_rate": float(hallucinated(row)),
+        **dict.fromkeys(
+            ["correct_abstention", "false_abstention", "citation_precision", "citation_recall",
+             "retrieval_recall", *(f"recall_at_{k}" for k in RECALL_AT), "mrr",
+             "answer_correctness"]
+        ),
+    }
+    if not case.answerable:
+        out["correct_abstention"] = float(abstained(answer))
+        return out
+    gold = case.gold_chunks
+    out["false_abstention"] = float(abstained(answer))
+    # Citation quality is measured where there is an answer to cite from;
+    # refusing an answerable question is false_abstention's job to count.
+    if not abstained(answer):
+        out["citation_precision"], out["citation_recall"] = citation_precision_recall(
+            answer, gold, gold_text
+        )
+    out["retrieval_recall"] = retrieval_recall(answer, gold, gold_text)
+    for k in RECALL_AT:
+        out[f"recall_at_{k}"] = recall_at(answer, gold, gold_text, k)
+    out["mrr"] = reciprocal_rank(answer, gold, gold_text) if gold else None
+    correct = answer_correct(answer, case.gold_answer)
+    out["answer_correctness"] = None if correct is None else float(correct)
+    return out
+
+
+def rates(scores: list[dict[str, float | None]]) -> dict[str, float]:
+    """Mean of each per-question value over the questions it applies to."""
+    keys = dict.fromkeys(k for s in scores for k in s)
+    return {k: _mean(s[k] for s in scores if s.get(k) is not None) for k in keys}
+
+
 def aggregate(rows: list[Row], gold_text: dict[str, str] | None = None) -> dict:
     if not rows:
         return {}
     gold_text = gold_text or {}
     ans = [r for r in rows if r.case.answerable]
     unans = [r for r in rows if not r.case.answerable]
-    # Citation quality is measured where there is an answer to cite from;
-    # refusing an answerable question is false_abstention's job to count.
-    answered = [r for r in ans if not abstained(r.answer)]
-    pr = [citation_precision_recall(r.answer, r.case.gold_chunks, gold_text) for r in answered]
+    scores = [case_scores(r, gold_text) for r in rows]
     lat = sorted(r.answer.meta.latency_ms for r in rows)
 
     return {
         "n": len(rows),
-        "hallucination_rate": _mean(hallucinated(r) for r in rows),
-        "correct_abstention": _mean(abstained(r.answer) for r in unans),
-        "false_abstention": _mean(abstained(r.answer) for r in ans),
-        "citation_precision": _mean(p for p, _ in pr),
-        "citation_recall": _mean(rc for _, rc in pr),
-        "retrieval_recall": _mean(
-            retrieval_recall(r.answer, r.case.gold_chunks, gold_text) for r in ans
-        ),
+        **rates(scores),
+        "answer_correctness_n": sum(s["answer_correctness"] is not None for s in scores),
         "latency_p50_ms": _pct(lat, 0.50),
         "latency_p95_ms": _pct(lat, 0.95),
         "tokens_total": sum(r.answer.meta.tokens for r in rows),

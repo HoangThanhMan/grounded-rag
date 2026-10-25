@@ -1,6 +1,17 @@
 import pytest
 
-from eval.metrics import Case, Row, aggregate, citation_precision_recall, covers, hallucinated
+from eval.metrics import (
+    Case,
+    Row,
+    aggregate,
+    answer_correct,
+    case_scores,
+    citation_precision_recall,
+    covers,
+    hallucinated,
+    recall_at,
+    reciprocal_rank,
+)
 from grounded_rag.types import (
     AbstainReason,
     Answer,
@@ -94,3 +105,60 @@ def test_abstention_layers_add_up_to_correct_abstention():
     assert m["correct_abstention"] == 0.75
     assert sum(m["correct_abstention_by_layer"].values()) == pytest.approx(0.75)
     assert m["by_type"]["unanswerable_near_miss"]["n"] == 4
+
+
+OTHER = "Thời giờ làm việc bình thường không quá 08 giờ trong 01 ngày."
+
+
+def _ranked(*texts: str) -> Answer:
+    sources = [_src(f"C{i + 1}", t) for i, t in enumerate(texts)]
+    return Answer(answer="...", status=AnswerStatus.ANSWERED, sources=sources)
+
+
+def test_recall_at_k_counts_only_the_top_k_sources():
+    answer = _ranked(OTHER, OTHER, GOLD_TEXT[REF])
+    assert recall_at(answer, [REF], GOLD_TEXT, 1) == 0.0
+    assert recall_at(answer, [REF], GOLD_TEXT, 3) == 1.0
+
+
+def test_reciprocal_rank_is_one_over_the_first_hit():
+    assert reciprocal_rank(_ranked(OTHER, GOLD_TEXT[REF]), [REF], GOLD_TEXT) == 0.5
+    assert reciprocal_rank(_ranked(GOLD_TEXT[REF], OTHER), [REF], GOLD_TEXT) == 1.0
+    assert reciprocal_rank(_ranked(OTHER), [REF], GOLD_TEXT) == 0.0
+
+
+def test_answer_correct_needs_every_gold_number_and_ignores_citation_labels():
+    def ans(text, status=AnswerStatus.ANSWERED):
+        return Answer(answer=text, status=status)
+
+    gold = "Ít nhất 45 ngày; 30 ngày với hợp đồng 12 đến 36 tháng."
+    assert answer_correct(ans("Báo trước 45 ngày, hoặc 30 ngày (12-36 tháng) [C1]."), gold)
+    assert not answer_correct(ans("Báo trước 45 ngày [C1]."), gold)
+    # "08" in the statute, "8" in an answer: the same number
+    assert answer_correct(ans("Không quá 8 giờ."), "Không quá 08 giờ.")
+    # the 1 in [C1] is not the 01 the gold answer wants
+    assert not answer_correct(ans("Một ngày [C1]."), "01 ngày.")
+    assert not answer_correct(ans("...", AnswerStatus.ABSTAINED), "45 ngày.")
+    assert answer_correct(ans("Không."), "Không phải đặt cọc.") is None
+
+
+def test_each_rate_averages_only_over_the_questions_it_applies_to():
+    answered = Answer(answer="Báo trước 45 ngày [C1].", status=AnswerStatus.ANSWERED,
+                      sources=[_src("C1", GOLD_TEXT[REF])])
+    refused = Answer(answer="...", status=AnswerStatus.NO_CONTEXT)
+    rows = [
+        Row(case=Case(id="a1", answerable=True, gold_chunks=[REF], gold_answer="45 ngày"),
+            answer=answered),
+        Row(case=Case(id="a2", answerable=True, gold_chunks=[REF], gold_answer="Không."),
+            answer=refused),
+        Row(case=Case(id="u1", answerable=False), answer=refused),
+    ]
+    scores = [case_scores(r, GOLD_TEXT) for r in rows]
+    assert scores[2]["false_abstention"] is None and scores[0]["correct_abstention"] is None
+    assert scores[1]["citation_precision"] is None  # nothing to cite from a refusal
+    m = aggregate(rows, GOLD_TEXT)
+    assert m["false_abstention"] == 0.5
+    assert m["correct_abstention"] == 1.0
+    assert m["citation_precision"] == 1.0
+    assert m["answer_correctness"] == 1.0 and m["answer_correctness_n"] == 1
+    assert m["recall_at_1"] == 0.5 and m["mrr"] == 0.5

@@ -18,7 +18,7 @@ from datetime import date
 from pathlib import Path
 
 from eval.instrument import ClauseIndex, judge_claims
-from eval.metrics import Case, Row, aggregate, hallucinated
+from eval.metrics import Case, Row, aggregate, case_scores, hallucinated
 from grounded_rag.config import RunConfig, settings
 from grounded_rag.generation.citation import extract_citations
 from grounded_rag.generation.llm_client import LLMUnavailable
@@ -67,6 +67,7 @@ async def run(
             gold_chunks=raw.get("gold_chunks", []),
             type=raw.get("type", "answerable"),
             tags=raw.get("tags", []),
+            gold_answer=raw.get("gold_answer"),
         )
         try:
             answer = await _answer_with_retries(raw["question"], config, as_of)
@@ -80,6 +81,7 @@ async def run(
         judged = judge_claims(answer, verifier, judge_threshold, index)
         records.append((raw, Row(case=case, answer=answer, judged=judged)))
 
+    gold_text = index.gold_text()
     return {
         "config": config.name,
         "dataset": str(dataset),
@@ -92,9 +94,9 @@ async def run(
             "verifier": "mock" if settings.llm_provider == "mock" else settings.nli_model,
             "threshold": judge_threshold,
         },
-        "metrics": aggregate([row for _, row in records], index.gold_text()),
+        "metrics": aggregate([row for _, row in records], gold_text),
         "errored": errored,
-        "cases": [_case_record(raw, row) for raw, row in records],
+        "cases": [_case_record(raw, row, gold_text) for raw, row in records],
     }
 
 
@@ -111,7 +113,7 @@ async def _answer_with_retries(question: str, config: RunConfig, as_of: date):
     raise AssertionError("unreachable")
 
 
-def _case_record(raw: dict, row: Row) -> dict:
+def _case_record(raw: dict, row: Row, gold_text: dict[str, str]) -> dict:
     a = row.answer
     return {
         "id": row.case.id,
@@ -124,6 +126,8 @@ def _case_record(raw: dict, row: Row) -> dict:
         "abstain_reason": a.meta.abstain_reason,
         "answer": a.answer,
         "hallucinated": hallucinated(row),
+        # what every rate in `metrics` is a mean of; eval/report.py bootstraps these
+        "scores": case_scores(row, gold_text),
         "claims": [c.model_dump(mode="json") for c in row.judged],
         # what the pipeline's own guard decided, dropped claims included - the
         # only place its false positives (correct claims it removed) show up
