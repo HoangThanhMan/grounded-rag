@@ -57,6 +57,10 @@ class Settings(BaseSettings):
     # (premise, claim) pairs the NLI verifier remembers. A regeneration
     # re-checks most of the same pairs; an unbounded cache is a leak.
     nli_cache_size: int = Field(default=4096, ge=0)
+    # Evaluation only: store each search() result on disk so configurations
+    # with the same retrieval reuse it (retrieval/cache.py). Empty = off.
+    retrieval_cache_dir: str = ""
+    retrieval_cache_corpus: str = "data/corpus"
 
     # Threshold of the NLI *measuring instrument* in eval/run.py. The guard's
     # own threshold lives in configs/*.yaml.

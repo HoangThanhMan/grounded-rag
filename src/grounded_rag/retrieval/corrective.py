@@ -26,6 +26,7 @@ from grounded_rag.config import RunConfig
 from grounded_rag.generation.llm_client import MeteredLLM
 from grounded_rag.generation.prompts import build_planner_prompt, planner_system_prompt
 from grounded_rag.observability.tracing import trace
+from grounded_rag.retrieval import cache
 from grounded_rag.retrieval.hybrid import reciprocal_rank_fusion
 from grounded_rag.retrieval.reranker import get_reranker
 from grounded_rag.retrieval.store import Hits, get_store
@@ -50,12 +51,17 @@ def search(query: str, config: RunConfig, as_of: date | None) -> Hits:
     """One query through hybrid retrieval and the cross-encoder. The scores
     that come back are rerank scores - the scale the floor is defined on."""
     r = config.retrieval
+    if cache.enabled() and (hits := cache.get(query, as_of, r)) is not None:
+        return hits
     store = get_store(r.chunker)
     runs = [store.dense_search(query, r.top_k_dense, as_of)]
     if r.hybrid:
         runs.append(store.sparse_search(query, r.top_k_sparse, as_of))
     fused = reciprocal_rank_fusion(runs)[: r.rerank_candidates]
-    return get_reranker().rerank(query, fused, r.rerank_to)
+    hits = get_reranker().rerank(query, fused, r.rerank_to)
+    if cache.enabled():
+        cache.put(query, as_of, r, hits)
+    return hits
 
 
 async def retrieve(
