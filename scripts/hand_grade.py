@@ -1,14 +1,21 @@
-"""Thirty answers graded by hand - the check on the measuring instrument.
+"""Answers graded by hand - the check on the measuring instrument.
 
-    python scripts/hand_grade.py sample reports/baseline.json reports/full.json ...
+    python scripts/hand_grade.py sample reports/2026-10-12-gemini/*.json
     # fill in "grade" for every answer: correct | partly | wrong
     python scripts/hand_grade.py score
 
 The benchmark's hallucination number comes from the same NLI model the guard
 uses, so it cannot tell us when that model is wrong. A person reading the answer
-next to the gold clause can. `sample` draws answers the pipeline actually gave
-(answered or partial) from every report, spread across configurations, with a
-fixed seed; `score` sets the hand grades against the instrument's verdict.
+next to the gold clause can. `sample` draws two strata of answers the pipeline
+actually gave (answered or partial), with a fixed seed:
+
+  random  - 30 answers spread across configurations: how often the instrument
+            misses a wrong answer, on answers as they come
+  flagged - every other answer the instrument called hallucinated: how often it
+            flags a right one. A flagged answer that the random draw already
+            took stays `random`, so that stratum is still a plain random sample
+
+`score` sets the hand grades against the instrument's verdict.
 
 Grades:
   correct - every sentence is right by the law, nothing important missing
@@ -29,42 +36,65 @@ N = 30
 SEED = 17
 
 
-def sample(paths: list[Path]) -> None:
-    rng = random.Random(SEED)
+def _row(config: str, case: dict, stratum: str) -> dict:
+    return {
+        "stratum": stratum, "config": config, "id": case["id"], "type": case["type"],
+        "question": case["question"], "gold_answer": case["gold_answer"],
+        "answer": case["answer"], "status": case["status"],
+        "instrument_hallucinated": case["hallucinated"],
+        "claims": [(c["text"], c["verdict"], c["entailment"]) for c in case["claims"]],
+        "cited": {s["label"]: s["text"] for s in case["sources"] if s["label"] in case["cited"]},
+        "grade": None, "note": "",
+    }
+
+
+def draw(reports: list[dict], n: int = N, seed: int = SEED) -> list[dict]:
+    """The sheet: `n` random answers round-robin across reports, then every
+    remaining answer the instrument flagged, in report order."""
+    rng = random.Random(seed)
     pools = []
-    for path in paths:
-        report = json.loads(path.read_text(encoding="utf-8"))
+    for report in reports:
         answered = [c for c in report["cases"] if c["status"] in ("answered", "partial")]
         rng.shuffle(answered)
         pools.append((report["config"], answered))
     rows, seen = [], set()
-    while len(rows) < N and any(pool for _, pool in pools):
+    while len(rows) < n and any(pool for _, pool in pools):
         for config, pool in pools:
             while pool:
                 case = pool.pop()
                 if (config, case["id"]) in seen:
                     continue
                 seen.add((config, case["id"]))
-                rows.append({
-                    "config": config, "id": case["id"], "type": case["type"],
-                    "question": case["question"], "gold_answer": case["gold_answer"],
-                    "answer": case["answer"], "status": case["status"],
-                    "instrument_hallucinated": case["hallucinated"],
-                    "claims": [(c["text"], c["verdict"], c["entailment"]) for c in case["claims"]],
-                    "cited": {s["label"]: s["text"] for s in case["sources"]
-                              if s["label"] in case["cited"]},
-                    "grade": None, "note": "",
-                })
+                rows.append(_row(config, case, "random"))
                 break
-            if len(rows) == N:
+            if len(rows) == n:
                 break
+    for report in reports:
+        for case in report["cases"]:
+            if case["hallucinated"] and (report["config"], case["id"]) not in seen:
+                seen.add((report["config"], case["id"]))
+                rows.append(_row(report["config"], case, "flagged"))
+    return rows
+
+
+def sample(paths: list[Path], force: bool = False) -> None:
+    if SHEET.exists() and not force:
+        graded = [r for r in json.loads(SHEET.read_text(encoding="utf-8")) if r["grade"]]
+        if graded:
+            raise SystemExit(f"{SHEET} already has {len(graded)} grades; "
+                             "pass --force to draw a new sheet over them")
+    reports = [json.loads(path.read_text(encoding="utf-8")) for path in paths]
+    rows = draw(reports)
     SHEET.write_text(json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"{len(rows)} answers -> {SHEET}: fill in every `grade`, then run `score`")
+    strata = Counter(r["stratum"] for r in rows)
+    print(f"{len(rows)} answers ({dict(strata)}) -> {SHEET}: "
+          "fill in every `grade`, then run `score`")
 
 
 def score() -> None:
     rows = json.loads(SHEET.read_text(encoding="utf-8"))
-    missing = [r["id"] for r in rows if r["grade"] not in ("correct", "partly", "wrong")]
+    missing = [f"{r['config']}:{r['id']}" for r in rows
+               if r["grade"] not in ("correct", "partly", "wrong")]
     if missing:
         raise SystemExit(f"ungraded: {missing}")
     grades = Counter(r["grade"] for r in rows)
@@ -99,9 +129,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("step", choices=["sample", "score"])
     ap.add_argument("reports", nargs="*", type=Path)
+    ap.add_argument("--force", action="store_true", help="sample: overwrite a graded sheet")
     args = ap.parse_args()
     if args.step == "sample":
-        sample(args.reports)
+        sample(args.reports, args.force)
     else:
         score()
 
