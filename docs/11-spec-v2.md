@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Trạng thái | **Draft** — chờ duyệt trước khi bắt đầu tuần 1 |
+| Trạng thái | **Hoãn** — lộ trình gần hạn thay bằng [12](12-assessment-and-plan.md) (2026-10-17); giữ làm kho ý tưởng |
 | Ngày | 2026-10-12 |
 | Thay thế | Mục "Sau khi xong" của [08](08-roadmap.md); bổ sung [02](02-requirements.md), [06](06-guard-design.md), [07](07-evaluation-plan.md) |
 | Thời lượng | 12 tuần (10 tuần việc + 2 tuần đệm), ~3h/ngày, một người |
@@ -1040,4 +1040,4 @@ sau lượt chạy đầu tiên.
 
 ---
 
-[← 10 — Đối chiếu tham khảo](10-doi-chieu-tham-khao.md) · [Mục lục tài liệu](README.md)
+[← 10 — Đối chiếu tham khảo](10-reference-review.md) · [Mục lục tài liệu](README.md)

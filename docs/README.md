@@ -16,8 +16,26 @@ viết bằng tiếng Anh vì đó là mặt tiền của repo với người tu
 | 07 | [Kế hoạch đánh giá](07-evaluation-plan.md) | Đo cái gì, đo thế nào, ngưỡng bao nhiêu |
 | 08 | [Lộ trình 3 tuần](08-roadmap.md) | Làm gì vào ngày nào |
 | 09 | [Runbook](09-runbook.md) | Cài đặt, chạy, xử lý sự cố |
-| 10 | [Đối chiếu tài liệu tham khảo](10-doi-chieu-tham-khao.md) | Lấy gì từ `tham_khao.md`, bỏ gì, vì sao |
-| 11 | [Spec nâng cấp v2](11-spec-v2.md) | Nâng dự án lên v2: verifier, đánh giá thống kê, serving, luật theo thời điểm — kế hoạch 12 tuần |
+| 10 | [Đối chiếu tài liệu tham khảo](10-reference-review.md) | Lấy gì từ `reference-report.md`, bỏ gì, vì sao |
+| 11 | [Spec nâng cấp v2](11-spec-v2.md) | Kho ý tưởng v2: verifier, đánh giá thống kê, serving, luật theo thời điểm. Lộ trình 12 tuần của nó đã được thay bằng 12 |
+| 12 | [Đánh giá hiện trạng & kế hoạch v1.1](12-assessment-and-plan.md) | Dự án đạt tới đâu so với AI Engineer / Backend fresher, cắt gì, thêm gì |
+| 13 | [Kế hoạch theo sprint](13-sprint-plan.md) | Task, ước lượng và tiêu chí xong của từng sprint tới `v1.1.0` (2026-11-29) |
+
+## Handbook — bắt đầu từ đây nếu mới đọc dự án
+
+[`handbook/`](handbook/README.md) tổng hợp toàn bộ dự án ở trạng thái hiện tại,
+viết lại từ code: tổng quan, tech stack, kiến trúc, đọc code từ đâu, pipeline
+từng bước, retrieval, guard, đánh giá, API, vận hành, kiểm thử, thuật ngữ, giới
+hạn đã biết và cách mở rộng. Khi handbook và các tài liệu bên trên nói khác nhau,
+tin handbook ([13 — lệch tài liệu](handbook/13-known-gaps.md)).
+
+## Kiến thức nền — đọc khi gặp khái niệm lạ
+
+[`knowledge/`](knowledge/README.md) gồm 15 ghi chú ngắn, giải thích các khái niệm
+cần để hiểu dự án: Python/FastAPI/async, LLM, xử lý tiếng Việt, văn bản pháp luật,
+chunking, embedding, BM25 + RRF, reranking, NLI, guardrail, đánh giá RAG, thống kê
+cho bộ eval nhỏ, observability, kiểm thử. Handbook nói dự án *làm gì*; knowledge
+giải thích *vì sao làm vậy* ở mức khái niệm.
 
 ## Quyết định kiến trúc (ADR)
 

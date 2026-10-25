@@ -6,7 +6,7 @@
 ## Trạng thái — 2026-09-19
 
 Code của tuần 1 và phần lớn tuần 3 đã được viết trong đợt đối chiếu với tài
-liệu tham khảo ([10](10-doi-chieu-tham-khao.md)). **Cột "Xong khi" vẫn phải
+liệu tham khảo ([10](10-reference-review.md)). **Cột "Xong khi" vẫn phải
 được kiểm chứng bằng model thật và corpus thật.** Chạy được với mock không có
 nghĩa là ngày đó đã xong.
 

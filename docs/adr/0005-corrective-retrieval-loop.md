@@ -5,7 +5,7 @@
 
 ## Bối cảnh
 
-Tài liệu tham khảo (`docs/tham_khao.md`) đề xuất Agentic RAG: nhận diện ý
+Tài liệu tham khảo (`docs/reference-report.md`) đề xuất Agentic RAG: nhận diện ý
 định → lập kế hoạch truy vấn → chọn công cụ → tự đánh giá kết quả truy xuất,
 viết lại và tìm lại (CRAG), điều phối bằng LangGraph.
 
