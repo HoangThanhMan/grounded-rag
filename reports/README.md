@@ -36,3 +36,4 @@ recomputed without calling an LLM (`python -m eval.report`, `python -m eval.reju
 |---|---|
 | [`hand-graded.json`](grading/hand-graded.json) | 41 answers from the 2026-10-12 run: 30 drawn at random, plus every other answer the instrument flagged. Each has a grade (`correct` · `partly` · `wrong`) and a note |
 | [`hand-graded.summary.json`](grading/hand-graded.summary.json) | Grades by configuration, and grades against the instrument's verdict |
+| [`judge-agreement.json`](grading/judge-agreement.json) | The LLM judge (`openai/gpt-oss-120b`) and the NLI instrument scored against the graded answers: Cohen's κ, and which wrong answers each caught. `python -m eval.judge calibrate` |
