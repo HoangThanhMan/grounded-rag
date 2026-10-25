@@ -2,7 +2,7 @@
 
     python scripts/calibrate_tau.py collect      # LLM + models -> reports/tau-dev-claims.json
     # label every claim by hand: "grounded": true | false
-    python scripts/calibrate_tau.py sweep        # -> reports/tau-sweep.json, docs/img/tau-curve.svg
+    python scripts/calibrate_tau.py sweep        # -> reports/tau-sweep.json, assets/tau-curve.svg
     python scripts/calibrate_tau.py rescore      # after a verifier change, then sweep again
 
 `collect` answers the 20 dev questions with the `full` and the `baseline`
@@ -35,7 +35,7 @@ from grounded_rag.service import answer_question
 DATASET = Path("eval/dataset/questions.jsonl")
 CLAIMS = Path("reports/tau-dev-claims.json")
 SWEEP = Path("reports/tau-sweep.json")
-FIGURE = Path("docs/img/tau-curve.svg")
+FIGURE = Path("assets/tau-curve.svg")
 TAUS = [round(0.05 * i, 2) for i in range(1, 20)]
 
 

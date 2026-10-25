@@ -128,7 +128,7 @@ rerank score is weak, a single LLM call rewrites colloquial wording into legal
 terms or splits a multi-part question, and retrieval runs again. The loop has a
 hard budget (`max_rounds`, `max_llm_calls`) and its own row in the table, so
 what it buys (false abstentions recovered) and what it costs (LLM calls, p95)
-sit side by side. Why no agent framework: [ADR-0005](docs/adr/0005-corrective-retrieval-loop.md).
+sit side by side. Why no agent framework: see [Stack](#stack).
 
 ## Quick start
 
@@ -165,8 +165,7 @@ make run                 # then open http://localhost:8000
 The first question takes 5–15 seconds: the cross-encoder reranker runs on CPU.
 
 Open models, no GPU: `make up-ollama` serves one on CPU, and a benchmark run
-then costs no API quota. What that trades away is measured in
-[docs/09](docs/09-runbook.md#chạy-bằng-model-mở-ollama) — a 3B model dropped the
+then costs no API quota. What that trades away: a 3B model dropped the
 citation format on a question `gemini-3.1-flash-lite` answered from the same
 prompt. With a GPU, `make up-gpu` serves Qwen2.5-7B-Instruct (AWQ) through vLLM;
 set `LLM_PROVIDER=vllm`.
@@ -203,7 +202,7 @@ With `LANGFUSE_*` set, each answer is also sent to Langfuse as one trace: a span
 per step, the LLM call as a generation, and the guard's entailment scores
 attached to the trace.
 
-![A Langfuse trace: retrieve, generate and verify, with the guard's scores](docs/img/langfuse-trace.png)
+![A Langfuse trace: retrieve, generate and verify, with the guard's scores](assets/langfuse-trace.png)
 
 ## Demo UI
 
@@ -219,7 +218,7 @@ Dropped claims stay on screen, struck through, with the score that killed them.
 When the answer is a refusal, the four layers of defence are listed and the one
 that fired is marked.
 
-![The demo UI answering a question, with the claim checked against the clause it cites](docs/img/ui.png)
+![The demo UI answering a question, with the claim checked against the clause it cites](assets/ui.png)
 
 The run above is real: `qwen2.5:3b` on CPU through Ollama, one LLM call, the
 claim scored 0.99 against Điều 35 Khoản 1.
@@ -239,31 +238,28 @@ second opinion (`make ragas`, waiting on a judge from a different model family).
 No orchestration framework. The pipeline is a handful of steps, its only loop has
 two branches, and the interesting part is hand-written; a framework would hide it.
 
-## Documentation
+## Design decisions
 
-Design docs live in [`docs/`](docs/) — requirements, architecture, data and API
-design, the guard design, the evaluation plan, and ADRs recording the decisions
-that had a real alternative:
+Each of these had a real alternative that was weighed and rejected:
 
-- [Why NLI instead of an LLM judge](docs/adr/0001-nli-over-llm-judge.md)
-- [Why Qdrant](docs/adr/0002-qdrant-as-vector-store.md)
-- [Why verification happens before streaming](docs/adr/0003-verify-before-stream.md)
-- [Why chunking follows the legal structure](docs/adr/0004-structural-chunking.md)
-- [Why a hand-written corrective loop and not LangGraph](docs/adr/0005-corrective-retrieval-loop.md)
-- [Why BM25 for the sparse half of hybrid search](docs/adr/0006-bm25-sparse-retrieval.md)
-- [Why the generator is not fine-tuned](docs/adr/0007-no-generator-fine-tuning.md)
+- NLI instead of an LLM judge for the guard
+- Qdrant as the vector store, holding dense and BM25 sparse vectors together
+- Verify every claim before streaming anything
+- Chunk along the legal structure (Điều / Khoản), not by token count
+- A hand-written corrective loop with a hard budget, not LangGraph
+- BM25 for the sparse half of hybrid search
+- No fine-tuning of the generator
 
 ## Limitations
 
-Written up honestly in [docs/06](docs/06-guard-design.md#guard-sai-ở-đâu). The
-first one is the finding this project did not want:
+The first one is the finding this project did not want:
 
 - **On the dev split, the NLI model caught none of the errors the generator
   actually made.** Calibrating τ over 23 hand-labelled claims found no threshold
   that separates grounded from ungrounded: all six ungrounded claims score ≥ 0.70,
   and blocking two thirds of them would block nearly half the correct sentences.
 
-  ![Guard on the dev split as τ moves: the catch rate stays at zero while the false-block rate climbs](docs/img/tau-curve.svg)
+  ![Guard on the dev split as τ moves: the catch rate stays at zero while the false-block rate climbs](assets/tau-curve.svg)
 
   What does protect the answer is the cheaper machinery around the NLI model —
   the number rule, uncited claims, and citations to labels that were never
