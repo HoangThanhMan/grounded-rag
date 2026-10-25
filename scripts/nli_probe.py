@@ -1,4 +1,4 @@
-"""Day 9 of the roadmap: does the NLI model catch Vietnamese claims that keep
+"""Does the NLI model catch Vietnamese claims that keep
 most of the wording but change a number, the subject or a condition - and
 does it let correct restatements of a long clause through?
 

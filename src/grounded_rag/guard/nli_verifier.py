@@ -2,7 +2,10 @@
 
 premise = the cited chunk, hypothesis = the claim, score = P(entailment).
 
-Why NLI and not an LLM judge: see docs/adr/0001-nli-over-llm-judge.md.
+Why NLI and not an LLM judge: an LLM grading an LLM shares its blind spots -
+what sounds plausible to the generator sounds plausible to the judge. A model
+from a different family, run locally, is also free, deterministic and fast
+enough to run on every claim.
 
 The model is loaded lazily so that importing this module - which the unit
 tests and the mock pipeline both do - never pulls a 600MB checkpoint.

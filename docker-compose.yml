@@ -64,7 +64,7 @@ services:
   # Optional, NVIDIA GPU only:  make up-gpu
   # An open model behind the OpenAI protocol, so switching to it is
   # LLM_PROVIDER=vllm + LLM_MODEL=Qwen/Qwen2.5-7B-Instruct-AWQ. AWQ weights are
-  # already 4-bit - see docs/adr/0007-no-generator-fine-tuning.md.
+  # already 4-bit, so there is no quantising step to run here.
   vllm:
     image: vllm/vllm-openai:v0.29.0
     profiles: ["gpu"]

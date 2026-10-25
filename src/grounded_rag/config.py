@@ -83,7 +83,7 @@ class RetrievalConfig(BaseModel):
 
 
 class CorrectiveConfig(BaseModel):
-    """Corrective retrieval - see docs/adr/0005-corrective-retrieval-loop.md."""
+    """Corrective retrieval: one bounded rewrite-and-retry when retrieval is weak."""
 
     enabled: bool = False
     confident_score: float = 0.60   # top rerank score that needs no second attempt

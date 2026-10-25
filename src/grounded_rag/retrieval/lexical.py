@@ -3,7 +3,6 @@
 Why BM25 next to dense vectors: legal questions hinge on exact tokens -
 "Điều 35", "45 ngày", "48 giờ" - that embeddings blur together. BM25 needs no
 model, so the mock pipeline and CI get real lexical retrieval as well.
-See docs/adr/0006-bm25-sparse-retrieval.md.
 
 The same scoring runs in two places:
   BM25Index       in-process, behind InMemoryStore

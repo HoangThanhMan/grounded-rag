@@ -1,5 +1,5 @@
-"""Readers for the corpus. PDF and Markdown only - see docs/02-requirements.md
-for why the format list is deliberately short.
+"""Readers for the corpus. PDF and Markdown only, on purpose: that is the form
+legal texts are published in, and every other format is out of scope.
 
 Document metadata - title, number, issuing body, validity dates - comes from
 YAML front matter at the top of a .md/.txt file, or from a sidecar

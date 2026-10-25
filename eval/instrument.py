@@ -8,7 +8,7 @@ chunk contains, and against all its cited chunks joined; the best score counts.
 Why the clause-sized premises: the NLI model reads 512 tokens, and recursive
 windows run 565-680. On the first real run, correct claims scored 0.02-0.32
 against the recursive window they cited and 0.85-0.97 against the clause
-inside it (docs/07-evaluation-plan.md). Judged on raw windows, the baseline
+inside it. Judged on raw windows, the baseline
 "hallucinated" in 57% of answers that were in fact right - a number about
 chunk size, not about the guard.
 """

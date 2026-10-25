@@ -1,8 +1,7 @@
 """Metrics for the benchmark.
 
-Definitions matter more than the code here - docs/07-evaluation-plan.md is
-the source of truth, this file just implements it. Two rules the numbers
-depend on:
+Definitions matter more than the code here: every configuration is scored by
+this one module, after the fact. Two rules the numbers depend on:
 
   - One measuring instrument for every configuration. Hallucination is judged
     on the final answer text, by the same verifier at the same threshold,

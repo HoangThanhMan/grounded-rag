@@ -248,7 +248,7 @@ class AnthropicClient:
         )
 
     async def stream(self, system: str, user: str, **kw) -> AsyncIterator[str]:
-        # Answers are verified before anything is streamed (ADR-0003), so
+        # Answers are verified before anything is streamed, so
         # token-level streaming from the provider is never on the answer path.
         yield (await self.complete(system, user, **kw)).text
 

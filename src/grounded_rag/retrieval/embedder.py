@@ -1,7 +1,8 @@
 """Dense embeddings. bge-m3: multilingual, strong on Vietnamese.
 
 The lexical side of hybrid search is BM25 (retrieval/lexical.py), not
-bge-m3's learned sparse output - see docs/adr/0006-bm25-sparse-retrieval.md.
+bge-m3's learned sparse output: BM25 needs no model, so the mock pipeline and CI
+get the same lexical retrieval as production.
 """
 
 from __future__ import annotations

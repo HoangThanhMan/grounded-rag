@@ -16,7 +16,7 @@ are judged against the same thing: the gold clause for that question.
 `numbers` matters more than it looks in this corpus. Legal answers turn on
 "45 ngày", "08 giờ", "85%" - swap the number and the sentence still reads as
 fluent, correct Vietnamese. It is also the failure mode the NLI model is
-weakest at (docs/08, the day-9 probe).
+weakest at (scripts/nli_probe.py).
 """
 
 from __future__ import annotations

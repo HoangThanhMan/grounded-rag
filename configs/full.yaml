@@ -17,6 +17,6 @@ generation:
 
 guard:
   enabled: true
-  entailment_threshold: 0.50   # calibrated on the dev split - docs/06-guard-design.md
+  entailment_threshold: 0.50   # calibrated on the dev split - scripts/calibrate_tau.py
   max_regenerations: 1
   on_unsupported: drop_claim   # drop_claim | abstain_all

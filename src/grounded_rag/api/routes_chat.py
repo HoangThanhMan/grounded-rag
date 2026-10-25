@@ -33,7 +33,7 @@ async def chat_stream(req: ChatRequest):
 
     Note the ordering: the answer is verified BEFORE the first token goes
     out. Streaming an unverified answer and retracting it afterwards is
-    worse than a short wait. See docs/adr/0003-verify-before-stream.md.
+    worse than a short wait.
     """
     config = load_config(req.config)
 

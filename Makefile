@@ -63,7 +63,7 @@ seed:         ## load the sample corpus into a RUNNING mock server (in-memory, l
 check-dataset: ## resolve every gold ref against the corpus before trusting a number
 	$(PY) scripts/check_dataset.py
 
-nli-probe:    ## day-9 check: does the NLI model catch changed numbers, subjects, conditions?
+nli-probe:    ## does the NLI model catch changed numbers, subjects, conditions?
 	$(PY) scripts/nli_probe.py
 
 calibrate:    ## tau on the 20 dev questions: collect claims, label them by hand, then sweep

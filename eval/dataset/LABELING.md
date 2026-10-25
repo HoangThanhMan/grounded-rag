@@ -63,7 +63,7 @@ Một dòng JSON mỗi câu, trong `eval/dataset/questions.jsonl`:
 `gold_chunks` ghi theo `ref`: `<doc_id>:Điều <số>:<số khoản>`, hoặc
 `<doc_id>:Điều <số>` nếu điều đó không chia khoản. `doc_id` là tên file không
 đuôi. Eval tự tra ra nội dung khoản, nên chunk `recursive` cũng được chấm công
-bằng (docs/07).
+bằng.
 
 ## Quy tắc quan trọng
 

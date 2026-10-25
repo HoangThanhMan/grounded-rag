@@ -14,15 +14,15 @@ venv/
 # data/sample_corpus/ IS committed too: the fast path for tests and CI eval.
 reports/*
 !reports/.gitkeep
-# the first real run is evidence cited by docs/08-roadmap.md, so it is kept
+# the first real run, kept as evidence of where the numbers started
 !reports/smoke-2026-09-11/
-# cited by docs/07-evaluation-plan.md
+# ablations: retrieval without documents, and the retrieval floor sweep
 !reports/closed-book.json
 !reports/floor-sweep.json
-# the README Results table is generated from these; docs/11-spec-v2.md cites 2026-09-15
+# the README Results table is generated from these; 2026-09-15 is the earlier Ollama run
 !reports/2026-10-12-gemini/
 reports/2026-10-12-gemini/*.log
-# hand-graded labels are the independent check on the NLI instrument (docs/12 §7)
+# hand-graded labels are the independent check on the NLI instrument
 !reports/hand-graded*.json
 !reports/2026-09-15/
 qdrant_storage/

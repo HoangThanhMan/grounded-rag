@@ -132,7 +132,7 @@ async def _answer(question: str, config: RunConfig, llm: MeteredLLM, as_of: date
         if not config.guard.enabled:
             # No verification at all, so the baseline pays nothing for the
             # guard. eval/run.py scores every configuration with the same
-            # instrument afterwards - see docs/07-evaluation-plan.md.
+            # instrument afterwards, so no configuration is judged more kindly.
             claims = split_claims(text)
             break
 

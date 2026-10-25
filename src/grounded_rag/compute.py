@@ -19,8 +19,8 @@ next call goes first instead. Five concurrent /chat (rerank 1 s, LLM 0.3 s,
 verify 0.5 s, one worker): mean latency 6.5 s FIFO, 5.0 s oldest-first; the
 slowest request 7.5 s -> 7.8 s. Same total work, finished in a better order.
 
-A stop-gap until the models move out of the API process (WS5,
-docs/11-spec-v2.md): then this becomes plain async I/O.
+A stop-gap until the models move out of the API process: then this
+becomes plain async I/O.
 """
 
 from __future__ import annotations

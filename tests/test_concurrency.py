@@ -51,6 +51,6 @@ async def test_healthz_answers_while_chat_requests_wait_on_the_models(monkeypatc
 
     assert health.status_code == 200
     assert all(a.status_code == 200 for a in answers)
-    # The SLO is 50 ms (docs/11-spec-v2.md); doubled so CI noise is not a failure.
+    # /healthz should answer in 50 ms under load; doubled so CI noise is not a failure.
     # Blocking the event loop makes this the sum of the three reranker calls.
     assert waited < 0.1, f"/healthz waited {waited:.2f}s behind the models"

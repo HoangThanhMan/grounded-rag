@@ -9,8 +9,8 @@
           (at most max_rounds rounds, always inside the call budget)
 
 A CRAG-style corrective loop, written by hand: two branches, a hard bound,
-and its own row in the eval table. Why not an agent framework:
-docs/adr/0005-corrective-retrieval-loop.md.
+and its own row in the eval table. Why not an agent framework: the stop
+condition and the budget are the whole design, and a framework would hide them.
 """
 
 from __future__ import annotations

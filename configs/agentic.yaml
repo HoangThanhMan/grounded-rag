@@ -2,7 +2,7 @@
 # rewrites the question into legal terms or splits it into sub-questions, and
 # retrieval runs again. What it buys (false abstention, retrieval recall on
 # multi-part / colloquial questions) and what it costs (LLM calls, p95) is the
-# row this configuration adds to the table. docs/adr/0005-corrective-retrieval-loop.md
+# row this configuration adds to the table.
 name: agentic
 
 retrieval:
@@ -27,7 +27,7 @@ generation:
 
 guard:
   enabled: true
-  entailment_threshold: 0.50   # calibrated on the dev split - docs/06-guard-design.md
+  entailment_threshold: 0.50   # calibrated on the dev split - scripts/calibrate_tau.py
   max_regenerations: 1
   on_unsupported: drop_claim
 
