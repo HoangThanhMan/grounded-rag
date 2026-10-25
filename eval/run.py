@@ -7,6 +7,10 @@ as a CI gate rather than a report you have to read.
 
 The report keeps every case in full - question, contexts, answer, judged
 claims, steps - because error analysis and eval/ragas_eval.py both need them.
+
+With --resume every finished case is appended to <out>.partial.jsonl as it
+completes, and a rerun skips the cases already there - a free-tier quota that
+runs out at question 150 costs a restart, not the first 150 answers.
 """
 
 from __future__ import annotations
@@ -19,13 +23,16 @@ from pathlib import Path
 
 from eval.instrument import ClauseIndex, judge_claims
 from eval.metrics import Case, Row, aggregate, case_scores, hallucinated
+from eval.rejudge import answer_from
 from grounded_rag.config import RunConfig, settings
 from grounded_rag.generation.citation import extract_citations
 from grounded_rag.generation.llm_client import LLMUnavailable
 from grounded_rag.guard.nli_verifier import get_verifier
 from grounded_rag.ingest.pipeline import ingest
+from grounded_rag.retrieval import cache
 from grounded_rag.retrieval.corrective import search
 from grounded_rag.service import answer_question
+from grounded_rag.types import Claim
 
 # Outer retry, on top of the client's own: rides out an outage that lasts
 # longer than one question.
@@ -46,6 +53,8 @@ async def run(
     judge_threshold: float,
     as_of: date,
     split: str = "all",
+    checkpoint: Path | None = None,
+    seed: int | None = None,
 ) -> dict:
     # The measuring instrument: same verifier, same threshold, every config.
     verifier = get_verifier()
@@ -55,7 +64,12 @@ async def run(
     # configuration runs second.
     search("khởi động", config, as_of)
     verifier.entailment("khởi động", "khởi động")
-    records, errored = [], []
+    done = _resume(checkpoint)
+    rows: dict[str, Row] = {}
+    records: dict[str, dict] = {}
+    errored = []
+    gold_text = index.gold_text()
+    order = []
     for raw in load_cases(dataset):
         # dev questions calibrate τ (scripts/calibrate_tau.py); a number
         # reported on them would be scored on its own training data
@@ -69,6 +83,13 @@ async def run(
             tags=raw.get("tags", []),
             gold_answer=raw.get("gold_answer"),
         )
+        order.append(raw["id"])
+        if raw["id"] in done:
+            record = done[raw["id"]]
+            judged = [Claim.model_validate(c) for c in record["claims"]]
+            rows[raw["id"]] = Row(case=case, answer=answer_from(record), judged=judged)
+            records[raw["id"]] = record
+            continue
         try:
             # a temporal question is asked on its own date; the run's as_of is
             # the date for every other question
@@ -82,9 +103,14 @@ async def run(
             errored.append({"id": raw["id"], "error": str(e)[:300]})
             continue
         judged = judge_claims(answer, verifier, judge_threshold, index)
-        records.append((raw, Row(case=case, answer=answer, judged=judged)))
+        row = Row(case=case, answer=answer, judged=judged)
+        rows[raw["id"]] = row
+        records[raw["id"]] = _case_record(raw, row, gold_text)
+        if checkpoint:
+            with checkpoint.open("a", encoding="utf-8") as f:
+                f.write(json.dumps(records[raw["id"]], ensure_ascii=False) + "\n")
 
-    gold_text = index.gold_text()
+    finished = [i for i in order if i in rows]
     return {
         "config": config.name,
         "dataset": str(dataset),
@@ -92,15 +118,32 @@ async def run(
         "as_of": as_of.isoformat(),
         # the model that wrote the answers - a report without it cannot be
         # compared with anything, and the conclusions flip between models
-        "generator": {"provider": settings.llm_provider, "model": settings.llm_model},
+        "generator": {"provider": settings.llm_provider, "model": settings.llm_model,
+                      "temperature": config.generation.temperature},
+        "seed": seed,
+        # a cached search costs nothing, so latency is not comparable across
+        # configurations of a run that used the cache
+        "retrieval_cache": cache.enabled(),
         "judge": {
             "verifier": "mock" if settings.llm_provider == "mock" else settings.nli_model,
             "threshold": judge_threshold,
         },
-        "metrics": aggregate([row for _, row in records], gold_text),
+        "metrics": aggregate([rows[i] for i in finished], gold_text),
         "errored": errored,
-        "cases": [_case_record(raw, row, gold_text) for raw, row in records],
+        "cases": [records[i] for i in finished],
     }
+
+
+def _resume(checkpoint: Path | None) -> dict[str, dict]:
+    if not checkpoint or not checkpoint.exists():
+        return {}
+    done = {}
+    for line in checkpoint.read_text(encoding="utf-8").splitlines():
+        if line.strip():
+            record = json.loads(line)
+            done[record["id"]] = record
+    print(f"[resume] {len(done)} cases from {checkpoint}")
+    return done
 
 
 async def _answer_with_retries(question: str, config: RunConfig, as_of: date):
@@ -171,6 +214,10 @@ def main() -> None:
     )
     ap.add_argument("--judge-threshold", type=float, default=settings.entailment_threshold)
     ap.add_argument("--as-of", type=date.fromisoformat, default=date.today())
+    ap.add_argument("--resume", action="store_true",
+                    help="checkpoint each case to <out>.partial.jsonl and skip finished ones")
+    ap.add_argument("--temperature", type=float, help="override the config's temperature")
+    ap.add_argument("--seed", type=int, help="label of a repeated run, stored in the report")
     ap.add_argument(
         "--split",
         choices=["test", "dev", "all"],
@@ -190,6 +237,8 @@ def main() -> None:
     on_sample = dataset.name == SAMPLE.name
 
     config = RunConfig.from_yaml(args.config)
+    if args.temperature is not None:
+        config.generation.temperature = args.temperature
 
     # The instrument's threshold comes from the environment, the guard's from
     # the YAML. They are separate on purpose, but a silent divergence makes
@@ -206,13 +255,20 @@ def main() -> None:
         print(f"[ingest] files={stats['files']} chunks={stats['chunks']}")
 
     index = ClauseIndex(args.corpus or args.ingest or Path("data/corpus"))
+    checkpoint = Path(f"{args.out}.partial.jsonl") if args.resume and args.out else None
+    if checkpoint:
+        checkpoint.parent.mkdir(parents=True, exist_ok=True)
     report = asyncio.run(
-        run(config, dataset, index, args.judge_threshold, args.as_of, args.split)
+        run(config, dataset, index, args.judge_threshold, args.as_of, args.split,
+            checkpoint=checkpoint, seed=args.seed)
     )
 
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)
         Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False), "utf-8")
+        # a report with errored cases keeps its checkpoint, so a rerun retries them
+        if checkpoint and checkpoint.exists() and not report["errored"]:
+            checkpoint.unlink()
 
     m = report["metrics"]
     print(f"\n=== {report['config']} (n={m.get('n', 0)}) ===")

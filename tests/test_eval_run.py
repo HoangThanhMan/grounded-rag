@@ -78,3 +78,23 @@ def test_a_temporal_question_is_asked_on_its_own_date(indexed, monkeypatch, tmp_
     assert asked[first["question"]] == date(2024, 6, 1)
     assert asked[second["question"]] == date(2026, 9, 14)
     assert [c["as_of"] for c in report["cases"]] == ["2024-06-01", None]
+
+
+def test_a_resumed_run_skips_finished_cases_and_matches_a_fresh_one(indexed, monkeypatch, tmp_path):
+    checkpoint = tmp_path / "full.json.partial.jsonl"
+    first = asyncio.run(runner.run(indexed, DATASET, ClauseIndex(SAMPLE), 0.6, date(2026, 9, 14),
+                                   checkpoint=checkpoint))
+    assert len(checkpoint.read_text(encoding="utf-8").splitlines()) == 6
+    asked = []
+    real = runner.answer_question
+
+    async def spy(question, cfg, **kw):
+        asked.append(question)
+        return await real(question, cfg, **kw)
+
+    monkeypatch.setattr(runner, "answer_question", spy)
+    again = asyncio.run(runner.run(indexed, DATASET, ClauseIndex(SAMPLE), 0.6, date(2026, 9, 14),
+                                   checkpoint=checkpoint))
+    assert asked == []
+    assert [c["id"] for c in again["cases"]] == [c["id"] for c in first["cases"]]
+    assert again["metrics"] == first["metrics"]
