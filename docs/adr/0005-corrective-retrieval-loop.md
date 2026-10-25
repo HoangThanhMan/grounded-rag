@@ -5,9 +5,9 @@
 
 ## Bối cảnh
 
-Tài liệu tham khảo (`docs/reference-report.md`) đề xuất Agentic RAG: nhận diện ý
-định → lập kế hoạch truy vấn → chọn công cụ → tự đánh giá kết quả truy xuất,
-viết lại và tìm lại (CRAG), điều phối bằng LangGraph.
+Phương án được cân nhắc là Agentic RAG đầy đủ: nhận diện ý định → lập kế hoạch
+truy vấn → chọn công cụ → tự đánh giá kết quả truy xuất, viết lại và tìm lại
+(CRAG), điều phối bằng LangGraph.
 
 Docs 02 đã loại "agent, tool calling, reasoning nhiều bước" khỏi phạm vi. Nhưng
 ngưỡng retrieval (`min_score`) để lại hai lỗi thật mà một vòng lặp giải quyết
@@ -58,7 +58,7 @@ tìm được gì (`test_the_loop_is_bounded_even_if_nothing_ever_improves`).
 Giá trị thật của LangGraph là trạng thái bền vững (checkpoint), tạm dừng chờ
 người duyệt (human-in-the-loop), và đồ thị nhiều nhánh có điều kiện. Vòng này có
 hai nhánh và không cần thứ nào ở trên. Thêm framework thì có thêm dependency và
-một lớp trừu tượng che mất đúng phần cần giải thích khi phỏng vấn: điều kiện
+một lớp trừu tượng che mất đúng phần quan trọng nhất của vòng lặp: điều kiện
 dừng và ngân sách.
 
 **Khi nào đảo quyết định:** đồ thị vượt khoảng 5 node, cần tạm dừng chờ người

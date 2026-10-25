@@ -37,7 +37,7 @@ tự kiểm chứng được thì guard không cần tồn tại.
 | N6 | `docker compose up` là chạy | Bắt buộc |
 
 N4 và N5 quan trọng hơn vẻ ngoài của chúng: chúng khiến repo này ai clone về
-cũng chạy được, kể cả người phỏng vấn.
+cũng chạy được, không cần API key hay GPU.
 
 ## Ngoài phạm vi (cố tình)
 
@@ -51,9 +51,9 @@ cũng chạy được, kể cả người phỏng vấn.
 - Fine-tune model sinh ([ADR-0007](adr/0007-no-generator-fine-tuning.md)).
   Fine-tune NLI verifier trên ViNLI là phương án dự phòng, không phải mục tiêu
 
-**Lý do:** với vị trí intern/fresher, một dự án sâu có số liệu thắng năm dự án
-rộng không có số liệu. Mỗi mục trên đều tốn một tuần và không thêm được câu
-chuyện phỏng vấn nào mà guard chưa có.
+**Lý do:** với một người và ba tuần, một hệ thống hẹp có số đo đáng giá hơn một
+hệ thống rộng không đo được. Mỗi mục trên tốn khoảng một tuần và không trả lời
+thêm được câu hỏi nào về độ tin cậy của câu trả lời mà guard chưa trả lời.
 
 ## Ràng buộc
 

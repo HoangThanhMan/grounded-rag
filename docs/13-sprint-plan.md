@@ -69,7 +69,7 @@ tay chạy song song với S2. S5 cần S3 (rate limit phải tắt được khi
 
 ## Sprint 0 — Dọn dẹp (17–18/10, 5h)
 
-**Mục tiêu:** repo chỉ còn những thứ sẽ bảo vệ được khi phỏng vấn.
+**Mục tiêu:** repo chỉ còn những thứ đã chạy thật và còn được dùng; kế hoạch được commit trước khi viết code.
 
 | ID | Việc | Giờ | Xong khi |
 |---|---|---|---|
@@ -224,7 +224,7 @@ request/giây, bước nào chiếm thời gian, `/healthz` còn nhanh không.
 | S6-07 | Gộp [01](01-project-overview.md)–[05](05-api-design.md) thành một tài liệu kiến trúc ngắn, cập nhật mục lục **(cắt được)** | 3 | S2-09 | Không link nào trong `docs/` bị gãy |
 | S6-08 | Video demo 90 giây **(cắt được)** | 2 | S6-04 | Link trong README |
 | S6-09 | `CHANGELOG.md`, tag `v1.1.0`, đánh dấu xong trong [12](12-assessment-and-plan.md) §11 và [08](08-roadmap.md) | 1 | tất cả | Tag có trên GitHub, release note liệt kê các thay đổi |
-| S6-10 | Cập nhật CV theo [12](12-assessment-and-plan.md) §14, chỉ những dòng đã xong | 1 | S6-09 | Mọi con số trên CV có trong repo |
+| S6-10 | Rà [12](12-assessment-and-plan.md) §14: mỗi câu hỏi thiết kế có câu trả lời trong ADR hoặc tài liệu được dẫn | 1 | S6-09 | Không câu nào chỉ trả lời được bằng cách đọc code |
 
 **Demo cuối sprint:** gửi link cho một người chưa biết dự án; họ hỏi được một
 câu, thấy mệnh đề được kiểm chứng, và hiểu vì sao hệ thống từ chối một câu ngoài phạm vi.
@@ -239,7 +239,6 @@ Dùng theo thứ tự:
 2. Chạy lại eval nếu S5-05 đổi cấu hình truy xuất, cập nhật bảng số.
 3. Tùy chọn: tách embed / rerank / NLI ra tiến trình riêng (WS5a của
    [11](11-spec-v2.md)), chạy lại load test để so.
-4. Tùy chọn: luyện trả lời các câu ở [12](12-assessment-and-plan.md) §15 thành tiếng, mỗi câu dưới 2 phút.
 
 ---
 

@@ -1,10 +1,9 @@
-# 12 — Đánh giá hiện trạng & kế hoạch v1.1 (AI Engineer + Backend)
+# 12 — Đánh giá hiện trạng & kế hoạch v1.1
 
 | | |
 |---|---|
 | Trạng thái | **Đề xuất** — chờ duyệt trước khi bắt đầu tuần 1 |
 | Ngày | 2026-10-17 |
-| Vị trí nhắm tới | AI Engineer (Intern/Fresher), Backend Engineer (Fresher) |
 | Thay thế | Kế hoạch 12 tuần ở [11](11-spec-v2.md) §9. Tài liệu 11 giữ lại làm kho ý tưởng, không còn là lộ trình |
 | Thời lượng | 6 sprint việc + 1 sprint đệm, ~3h/ngày, một người — lịch và task chi tiết ở [13](13-sprint-plan.md) |
 | Đầu ra cuối | Tag `v1.1.0`, demo public, README có số đã được người kiểm chứng kèm khoảng tin cậy |
@@ -15,7 +14,7 @@
 
 1. [Tóm tắt](#1-tóm-tắt)
 2. [Đã kiểm chứng những gì](#2-đã-kiểm-chứng-những-gì)
-3. [Đối chiếu với kỹ năng cần có](#3-đối-chiếu-với-kỹ-năng-cần-có)
+3. [Năng lực hệ thống: có gì, thiếu gì](#3-năng-lực-hệ-thống-có-gì-thiếu-gì)
 4. [Tính ứng dụng](#4-tính-ứng-dụng)
 5. [Nhiều người dùng được không](#5-nhiều-người-dùng-được-không)
 6. [Deploy được không](#6-deploy-được-không)
@@ -26,25 +25,24 @@
 11. [Định nghĩa "xong" cho v1.1](#11-định-nghĩa-xong-cho-v11)
 12. [Rủi ro](#12-rủi-ro)
 13. [ADR cần viết](#13-adr-cần-viết)
-14. [Cách kể trên CV](#14-cách-kể-trên-cv)
-15. [Câu hỏi phỏng vấn cần chuẩn bị](#15-câu-hỏi-phỏng-vấn-cần-chuẩn-bị)
+14. [Câu hỏi thiết kế phải có câu trả lời](#14-câu-hỏi-thiết-kế-phải-có-câu-trả-lời)
 
 ---
 
 ## 1. Tóm tắt
 
-Về **độ sâu AI**, v1 đã vượt mức thường gặp ở Intern/Fresher: có benchmark tự
-xây với 40% câu không có đáp án, so sánh 4 cấu hình bằng cùng một thước đo, ADR
-cho mọi quyết định có phương án thay thế, và mục Limitations viết từ số đo.
+Phần **chất lượng câu trả lời** của v1 đã đo được: benchmark tự xây với 40% câu
+không có đáp án, 4 cấu hình chấm bằng cùng một thước đo, ADR cho mọi quyết định
+có phương án thay thế, và mục Limitations viết từ số đo.
 
 Bốn lỗ hổng chặn nó khỏi mức "đưa cho người khác dùng được":
 
 | # | Lỗ hổng | Ảnh hưởng tới |
 |---|---|---|
 | L1 | Con số hallucination chưa có kiểm chứng độc lập, và thước đo NLI chấm sai cả câu đúng của baseline (§7.2) | AI: độ tin của bảng Results |
-| L2 | Chưa có demo public, chưa có CD | Cả hai: nhà tuyển dụng không clone repo |
-| L3 | Không có database, không có job bất đồng bộ, không có auth/rate limit cho `/chat` | Backend: thiếu đúng những thứ phỏng vấn backend hỏi |
-| L4 | p95 69 s trên CPU so với yêu cầu N1 < 6 s, chưa có load test | Backend: không nói được hệ thống chịu tải tới đâu |
+| L2 | Chưa có demo public, chưa có CD | Người dùng: muốn thử phải clone repo và tự cài model |
+| L3 | Không có database, không có job bất đồng bộ, không có auth/rate limit cho `/chat` | Dịch vụ: không lưu được câu trả lời, ingest chặn request, link public tiêu hết quota |
+| L4 | p95 69 s trên CPU so với yêu cầu N1 < 6 s, chưa có load test | Dịch vụ: không biết hệ thống chịu tải tới đâu |
 
 Kế hoạch v1.1 chỉ nhắm vào bốn lỗ hổng này. Phần lõi (retrieval, guard, eval)
 giữ nguyên. Lớp mới thêm vào là **backend**, không phải frontend: UI vẫn là
@@ -69,37 +67,34 @@ Quy mô: ~3.850 dòng trong `src/` + `eval/`, 18 file test, ~3.100 dòng tài li
 
 ---
 
-## 3. Đối chiếu với kỹ năng cần có
+## 3. Năng lực hệ thống: có gì, thiếu gì
 
-### 3.1 AI Engineer (Intern/Fresher)
+### 3.1 Chất lượng câu trả lời
 
-| Kỹ năng thường có trong JD | Bằng chứng | Mức |
+| Năng lực | Hiện trạng | Kế hoạch |
 |---|---|---|
-| RAG: chunking, embedding, vector DB | Chunk theo Điều/Khoản ([ADR-0004](adr/0004-structural-chunking.md)), bge-m3, Qdrant | Mạnh |
-| Hybrid search + rerank | BM25 + dense, bge-reranker-v2-m3 ([ADR-0006](adr/0006-bm25-sparse-retrieval.md)) | Mạnh |
-| Tích hợp LLM, đổi provider | mock / Gemini / Ollama / vLLM / OpenAI / Anthropic qua config | Mạnh |
-| Prompt engineering | Sửa prompt theo lỗi đo được ([09](09-runbook.md)) | Khá |
-| Đánh giá LLM/RAG | Benchmark 100 câu, dev/test, một thước đo, ablation closed-book | Rất mạnh |
-| Phát hiện hallucination | NLI guard, luật con số, kiểm tra citation | Mạnh |
-| Thống kê khi so sánh | **Chưa có** khoảng tin cậy, chưa có kiểm định | Thiếu → tuần 1 |
-| Fine-tune / PyTorch | Không có — cố ý ([ADR-0007](adr/0007-no-generator-fine-tuning.md)) | Thiếu, chấp nhận |
-| Agent / tool calling / LangChain | Chỉ vòng corrective tự viết ([ADR-0005](adr/0005-corrective-retrieval-loop.md)) | Yếu so với JD, có lý do |
+| Truy xuất | Chunk theo Điều/Khoản ([ADR-0004](adr/0004-structural-chunking.md)), bge-m3 + BM25 ([ADR-0006](adr/0006-bm25-sparse-retrieval.md)), cross-encoder rerank, retrieval floor | Giữ; thêm recall@k, MRR (tuần 1) |
+| Sinh câu trả lời | Nhiều provider qua config; prompt sửa theo lỗi đo được ([09](09-runbook.md)) | Giữ |
+| Kiểm soát bịa | NLI guard, luật con số, kiểm tra citation ([06](06-guard-design.md)) | Giữ; đo lại bằng nhãn người (tuần 1) |
+| Đánh giá | Benchmark 100 câu, dev/test, một thước đo, ablation closed-book | Thêm khoảng tin cậy, so sánh cặp, `answer_correctness`, chấm tay (tuần 1) |
+| Điều phối nhiều bước | Một vòng corrective tự viết, có ngân sách ([ADR-0005](adr/0005-corrective-retrieval-loop.md)) | Giữ |
+| Tinh chỉnh model | Không — cố ý ([ADR-0007](adr/0007-no-generator-fine-tuning.md)) | Ngoài phạm vi |
 
-### 3.2 Backend Engineer (Fresher)
+### 3.2 Năng lực dịch vụ
 
-| Kỹ năng thường có trong JD | Bằng chứng | Mức |
+| Năng lực | Hiện trạng | Kế hoạch |
 |---|---|---|
-| REST API, validation | FastAPI, Pydantic, mã trạng thái có chủ đích (từ chối = 200, provider chết = 503) | Khá |
-| Streaming | SSE, kiểm chứng xong mới stream ([ADR-0003](adr/0003-verify-before-stream.md)) | Khá |
-| Concurrency | Pool chạy model ngoài event loop, ưu tiên request đến trước (`src/grounded_rag/compute.py`), có test | Tốt hơn mức fresher |
-| Bảo mật cơ bản | Admin key so sánh constant-time, chặn path traversal ở `/ingest` | Khá |
-| Database quan hệ, migration | **Không có** | Thiếu → tuần 2 |
-| Job nền, hàng đợi | **Không có** — ingest chạy đồng bộ trong request | Thiếu → tuần 3 |
-| Auth cho client, rate limit, cache | **Không có** cho `/chat` | Thiếu → tuần 2 |
-| Docker, CI | Image non-root, healthcheck, Actions trên Python 3.12 và 3.14 | Khá |
-| Observability | `/metrics` Prometheus, `meta.steps`; Langfuse chưa xem trên UI thật | Khá |
-| Load test, hiệu năng | **Không có** | Thiếu → tuần 4 |
-| Deploy, CD | **Không có** | Thiếu → tuần 4 |
+| REST API, validation | FastAPI, Pydantic, mã trạng thái có chủ đích (từ chối = 200, provider chết = 503) | `/v1`, problem+json (tuần 2) |
+| Streaming | SSE, kiểm chứng xong mới stream ([ADR-0003](adr/0003-verify-before-stream.md)) | Thêm sự kiện tiến độ (tuần 3) |
+| Concurrency | Pool chạy model ngoài event loop, ưu tiên request đến trước (`src/grounded_rag/compute.py`), có test | Giữ |
+| Bảo mật | Admin key so sánh constant-time, chặn path traversal ở `/ingest` | API key có hash + scope (tuần 2) |
+| Lưu trữ | **Không có** database | Postgres + Alembic (tuần 2) |
+| Job nền | **Không có** — ingest chạy đồng bộ trong request | Hàng đợi trên Postgres (tuần 3) |
+| Giới hạn truy cập, cache | **Không có** cho `/chat` | Rate limit, cache câu trả lời (tuần 2) |
+| Đóng gói, CI | Image non-root, healthcheck, Actions trên Python 3.12 và 3.14 | Thêm CD (tuần 4) |
+| Quan sát | `/metrics` Prometheus, `meta.steps`, trace Langfuse | Log JSON + request-id (tuần 2) |
+| Hiệu năng | **Chưa đo** dưới tải | Load test (tuần 4) |
+| Triển khai | **Không có** | Demo public (tuần 4) |
 
 ---
 
@@ -131,8 +126,8 @@ Hiện tại: demo cho vài người, chưa phải dịch vụ.
 | Model nằm chung tiến trình với API | `compute.py` (tự ghi là giải pháp tạm) | Không scale API và model riêng được |
 | Không có DB | — | Không có lịch sử, không có phản hồi, không đếm được ai dùng gì |
 
-Với vị trí fresher, không ai đòi chịu tải lớn. Thứ cần có là **biết điểm bão hòa
-ở đâu và vì sao** — một load test có số trước/sau (tuần 4). Tách model ra tiến
+Mục tiêu của v1.1 không phải chịu tải lớn mà là **biết điểm bão hòa ở đâu và
+vì sao** — một load test có số trước/sau (tuần 4). Tách model ra tiến
 trình riêng (WS5a của [11](11-spec-v2.md)) là việc tùy chọn, chỉ làm nếu còn thời gian.
 
 ---
@@ -234,15 +229,15 @@ Kiểm lại trên code ngày 2026-10-17:
 
 | Cắt | Lý do |
 |---|---|
-| Lộ trình 12 tuần ở [11](11-spec-v2.md) §9 | Fine-tune verifier, conformal, dataset 300 câu, OTel/Grafana, MCP, công bố HF: công sức lớn, không đổi được kết quả phỏng vấn tương xứng. 11 giữ làm kho ý tưởng |
+| Lộ trình 12 tuần ở [11](11-spec-v2.md) §9 | Fine-tune verifier, conformal, dataset 300 câu, OTel/Grafana, MCP, công bố HF: công sức lớn so với phần chất lượng đổi lại được. 11 giữ làm kho ý tưởng |
 | `app/streamlit_demo.py`, target `make demo`, extra `demo` | Trùng web UI ở `/` |
-| Langfuse và RAGAS khỏi dòng Stack của README **nếu** chưa chạy thật | Ghi trên CV thứ chưa từng chạy là rủi ro lớn nhất khi phỏng vấn. Chạy một lần + ảnh chụp thì giữ |
-| Gộp tài liệu 01–05 thành một file kiến trúc ngắn | 3.100 dòng là quá nhiều để bảo vệ từng đoạn. Giữ ADR, 06, 07, 09 |
+| Langfuse và RAGAS khỏi dòng Stack của README **nếu** chưa chạy thật | README chỉ ghi thứ đã chạy thật. Chạy một lần + ảnh chụp thì giữ |
+| Gộp tài liệu 01–05 thành một file kiến trúc ngắn | 3.100 dòng là quá nhiều để giữ khớp với code. Giữ ADR, 06, 07, 09 |
 
 ### 9.2 Sửa
 
 - **Đầu README**: 3 dòng tóm tắt, link demo, GIF. Bảng số chuyển xuống dưới.
-- **Con số chủ đạo**: không dùng "hallucination 0.000" làm thành tích. Sau tuần 1,
+- **Con số chủ đạo**: không dùng "hallucination 0.000" làm kết quả chính. Sau tuần 1,
   dẫn số có nhãn người và các kết quả không phụ thuộc thước đo NLI (ví dụ
   retrieval floor chặn 17/30 câu không trả lời được trước khi gọi LLM).
 - **Bước CI "Benchmark gate"** đổi tên thành "Pipeline smoke test (mock)".
@@ -251,9 +246,9 @@ Kiểm lại trên code ngày 2026-10-17:
 
 ### 9.3 Giữ
 
-- Cấu hình `agentic`: kết quả âm có đo đạc là câu chuyện phỏng vấn tốt.
+- Cấu hình `agentic`: kết quả âm có đo đạc vẫn là kết quả, và nó đo chi phí của vòng lặp.
 - Profile vLLM / Ollama: gần như không tốn gì.
-- Frontend JS thuần, không build step. Vị trí nhắm tới là backend.
+- Frontend JS thuần, không build step. Phần việc của v1.1 nằm ở backend.
 
 ### 9.4 Không làm trong v1.1
 
@@ -361,7 +356,7 @@ job ingest, deploy.
 
 | Rủi ro | Dấu hiệu sớm | Xử lý |
 |---|---|---|
-| Chấm tay cho thấy guard không có ích | Tuần 1 | Báo cáo trung thực; câu chuyện chuyển sang "lớp rẻ (floor, luật con số, citation) mới là thứ bảo vệ". **Không chỉnh số** |
+| Chấm tay cho thấy guard không có ích | Tuần 1 | Báo cáo trung thực; kết luận chuyển sang "lớp rẻ (floor, luật con số, citation) mới là thứ bảo vệ". **Không chỉnh số** |
 | Gói free không đủ RAM cho 3 model | Deploy thử ở đầu tuần 4 thất bại | Reranker nhỏ hơn hoặc tắt reranker ở bản demo, ghi rõ trong README; hoặc demo dùng ONNX/int8 |
 | Hết quota LLM khi demo public | 429 từ provider | Rate limit chặt hơn, cache, fallback Ollama |
 | Postgres trong CI làm test chậm/flaky | Tuần 2 | Unit test giữ in-memory; chỉ test tích hợp dùng service container |
@@ -379,43 +374,19 @@ job ingest, deploy.
 
 ---
 
-## 14. Cách kể trên CV
+## 14. Câu hỏi thiết kế phải có câu trả lời
 
-Chỉ ghi khi việc tương ứng đã xong. Mọi con số phải lấy từ repo.
-
-**AI Engineer**
-
-- Xây pipeline RAG cho luật lao động Việt Nam: hybrid search (bge-m3 + BM25),
-  cross-encoder rerank, kiểm chứng từng mệnh đề bằng NLI trước khi trả lời.
-- Tự xây benchmark 100 câu, 40% không có đáp án (3 loại bẫy); so sánh 4 cấu hình
-  bằng cùng một thước đo, tách dev/test, khoảng tin cậy bootstrap, đối chiếu với
-  30 câu chấm tay.
-- Chỉ ra guard NLI không tách được mệnh đề đúng khỏi sai trên dev; retrieval floor
-  chặn 17/30 câu không có đáp án mà không cần gọi LLM.
-
-**Backend Engineer**
-
-- API FastAPI với SSE, Postgres + Alembic lưu mọi câu trả lời và phản hồi; API
-  key có hash + scope, rate limit, cache.
-- Ingest bằng job nền trên Postgres (`SKIP LOCKED`), reindex Qdrant không
-  downtime bằng alias.
-- Chạy model CPU ngoài event loop bằng pool ưu tiên request đến trước; load test
-  có số đo điểm bão hòa; Docker non-root, CI/CD bằng GitHub Actions, deploy public.
-
----
-
-## 15. Câu hỏi phỏng vấn cần chuẩn bị
-
-Phải trả lời được bằng lời của mình, không đọc lại tài liệu:
+Mỗi câu dưới đây là một quyết định có phương án thay thế. v1.1 chỉ xong khi câu
+trả lời nằm trong tài liệu được dẫn bên cạnh, không chỉ nằm trong code:
 
 - Vì sao NLI thay vì LLM judge, và vì sao kết quả cho thấy NLI chưa đủ? ([ADR-0001](adr/0001-nli-over-llm-judge.md), [06](06-guard-design.md))
-- Đo hallucination bằng chính model của guard sai ở đâu? Bạn sửa thế nào? (§7.2, tuần 1)
-- Vì sao không dùng LangChain / LangGraph? ([ADR-0005](adr/0005-corrective-retrieval-loop.md))
+- Đo hallucination bằng chính model của guard sai ở đâu, và sửa bằng gì? (§7.2, tuần 1)
+- Vì sao vòng corrective tự viết thay vì dùng LangChain / LangGraph? ([ADR-0005](adr/0005-corrective-retrieval-loop.md))
 - Model đồng bộ trong handler async gây ra gì? Vì sao không dùng `asyncio.to_thread`? (`compute.py`)
 - Vì sao Postgres làm hàng đợi chứ không Celery? `SKIP LOCKED` làm gì? (ADR-0008)
 - Rate limit trong tiến trình hỏng khi nào? (ADR-0009)
 - Đổi alias khi đang có request thì chuyện gì xảy ra? (ADR-0010)
-- Load test cho thấy nghẽn ở đâu, và bạn sẽ scale thế nào nếu có GPU / nhiều máy?
+- Load test cho thấy nghẽn ở đâu, và scale thế nào nếu có GPU / nhiều máy? ([09](09-runbook.md), tuần 4)
 - Khác biệt 0.02 giữa hai cấu hình có ý nghĩa không? (khoảng tin cậy, tuần 1)
 
 ---

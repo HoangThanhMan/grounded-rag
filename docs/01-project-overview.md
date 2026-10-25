@@ -47,8 +47,7 @@ Không phải "chạy được", mà là "đo được và số liệu nói lên
 
 ## Bối cảnh
 
-Dự án portfolio cá nhân cho vị trí AI Engineer intern/fresher, làm một mình
-trong 3 tuần. Nối tiếp luận văn về phát hiện hallucination trong dịch máy —
+Dự án cá nhân, làm một mình trong 3 tuần. Nối tiếp luận văn về phát hiện hallucination trong dịch máy —
 cùng một câu hỏi (làm sao biết model đang bịa?), đặt trong bối cảnh RAG.
 
 ## Không phải mục tiêu

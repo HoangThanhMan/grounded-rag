@@ -37,6 +37,6 @@ xứng với ngân sách 3 tuần.
 
 ## Ghi chú
 
-Đây là câu hỏi phỏng vấn gần như chắc chắn được hỏi ("sao không stream?"). Câu
-trả lời không phải "vì khó" mà là "vì với người dùng này, đúng quan trọng hơn
-nhanh, và tôi có cờ để đo cả hai."
+Phản biện dễ gặp nhất với thiết kế này là "sao không stream?". Câu trả lời
+không phải "vì khó" mà là "vì với người dùng này, đúng quan trọng hơn nhanh, và
+có cờ để đo cả hai."

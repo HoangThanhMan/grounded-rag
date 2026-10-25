@@ -149,7 +149,7 @@ make ragas          # reports/<config>.ragas.json cho từng cấu hình
 Retrieval (hybrid + rerank) giống nhau ở mọi cấu hình, nên bảng cô lập được tác
 dụng của floor, guard và vòng sửa lỗi.
 
-`threshold` tồn tại để trả lời câu hỏi hiển nhiên của người phỏng vấn: *"Có
+`threshold` tồn tại để trả lời câu hỏi hiển nhiên nhất về thiết kế này: *"Có
 phải chỉ cần một ngưỡng đơn giản là đủ không, cần gì NLI?"* — có số liệu để
 trả lời.
 

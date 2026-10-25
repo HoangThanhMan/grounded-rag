@@ -97,8 +97,8 @@ sai đều được ≥ 0.70.
 
 ## Bối cảnh
 
-Dự án portfolio cá nhân, một người, ~3h/ngày, lõi làm trong 3 tuần (09–10/2026).
-Nhắm vị trí AI Engineer intern/fresher và Backend fresher. Nối tiếp luận văn về
+Dự án cá nhân, một người, ~3h/ngày, lõi làm trong 3 tuần (09–10/2026). Nối
+tiếp luận văn về
 phát hiện hallucination trong dịch máy.
 
 ## Cố tình không làm

@@ -1,7 +1,12 @@
 # Tài liệu dự án grounded-rag
 
 Tài liệu viết bằng tiếng Việt (tài liệu làm việc). `README.md` ở thư mục gốc
-viết bằng tiếng Anh vì đó là mặt tiền của repo với người tuyển dụng.
+viết bằng tiếng Anh vì đó là mặt tiền của repo.
+
+Quy trình: mỗi phần việc có spec trước khi có code. Yêu cầu (02) và kiến trúc
+(03–06) chốt phạm vi; kế hoạch đánh giá (07) chốt cách đo **trước** khi chạy;
+mọi quyết định có phương án thay thế thành một ADR; kế hoạch (08, 12, 13) chia
+việc thành task có tiêu chí "xong khi" kiểm chứng được.
 
 ## Đọc theo thứ tự
 
@@ -16,9 +21,8 @@ viết bằng tiếng Anh vì đó là mặt tiền của repo với người tu
 | 07 | [Kế hoạch đánh giá](07-evaluation-plan.md) | Đo cái gì, đo thế nào, ngưỡng bao nhiêu |
 | 08 | [Lộ trình 3 tuần](08-roadmap.md) | Làm gì vào ngày nào |
 | 09 | [Runbook](09-runbook.md) | Cài đặt, chạy, xử lý sự cố |
-| 10 | [Đối chiếu tài liệu tham khảo](10-reference-review.md) | Lấy gì từ `reference-report.md`, bỏ gì, vì sao |
 | 11 | [Spec nâng cấp v2](11-spec-v2.md) | Kho ý tưởng v2: verifier, đánh giá thống kê, serving, luật theo thời điểm. Lộ trình 12 tuần của nó đã được thay bằng 12 |
-| 12 | [Đánh giá hiện trạng & kế hoạch v1.1](12-assessment-and-plan.md) | Dự án đạt tới đâu so với AI Engineer / Backend fresher, cắt gì, thêm gì |
+| 12 | [Đánh giá hiện trạng & kế hoạch v1.1](12-assessment-and-plan.md) | Hệ thống đang ở đâu, lỗ hổng nào chặn việc dùng thật, cắt gì, thêm gì |
 | 13 | [Kế hoạch theo sprint](13-sprint-plan.md) | Task, ước lượng và tiêu chí xong của từng sprint tới `v1.1.0` (2026-11-29) |
 
 ## Handbook — bắt đầu từ đây nếu mới đọc dự án
@@ -29,18 +33,10 @@ từng bước, retrieval, guard, đánh giá, API, vận hành, kiểm thử, t
 hạn đã biết và cách mở rộng. Khi handbook và các tài liệu bên trên nói khác nhau,
 tin handbook ([13 — lệch tài liệu](handbook/13-known-gaps.md)).
 
-## Kiến thức nền — đọc khi gặp khái niệm lạ
-
-[`knowledge/`](knowledge/README.md) gồm 15 ghi chú ngắn, giải thích các khái niệm
-cần để hiểu dự án: Python/FastAPI/async, LLM, xử lý tiếng Việt, văn bản pháp luật,
-chunking, embedding, BM25 + RRF, reranking, NLI, guardrail, đánh giá RAG, thống kê
-cho bộ eval nhỏ, observability, kiểm thử. Handbook nói dự án *làm gì*; knowledge
-giải thích *vì sao làm vậy* ở mức khái niệm.
-
 ## Quyết định kiến trúc (ADR)
 
-Mỗi quyết định đáng tranh luận được ghi lại một lần, kèm cả phương án bị loại.
-Đây cũng là kho câu trả lời phỏng vấn.
+Mỗi quyết định đáng tranh luận được ghi lại một lần, kèm cả phương án bị loại
+và điều kiện để đảo quyết định.
 
 - [0001 — Dùng NLI thay vì LLM-as-judge](adr/0001-nli-over-llm-judge.md)
 - [0002 — Qdrant làm vector store](adr/0002-qdrant-as-vector-store.md)

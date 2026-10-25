@@ -30,7 +30,7 @@
 7. [Đặc tả API v1](#7-đặc-tả-api-v1)
 8. [Đặc tả dữ liệu](#8-đặc-tả-dữ-liệu)
 9. [Kế hoạch 12 tuần](#9-kế-hoạch-12-tuần)
-10. [Ma trận năng lực — dự án chứng minh điều gì](#10-ma-trận-năng-lực--dự-án-chứng-minh-điều-gì)
+10. [Mỗi workstream trả lời câu hỏi gì](#10-mỗi-workstream-trả-lời-câu-hỏi-gì)
 11. [Ngân sách](#11-ngân-sách)
 12. [Rủi ro](#12-rủi-ro)
 13. [ADR cần viết](#13-adr-cần-viết)
@@ -372,8 +372,8 @@ theo Điều.
 
 **Ưu tiên M · Tuần 3–6 · ~70h**
 
-Đây là phần chứng minh "hiểu sâu". Câu chuyện là: *đo được guard thất bại →
-xây dữ liệu đúng kiểu lỗi → huấn luyện → xếp tầng → hiệu chỉnh có bảo đảm*.
+Đây là phần lõi của v2. Chuỗi lập luận: *đo được guard thất bại → xây dữ liệu
+đúng kiểu lỗi → huấn luyện → xếp tầng → hiệu chỉnh có bảo đảm*.
 
 #### 2a. VN-LegalFact — tập mệnh đề có nhãn người
 
@@ -919,15 +919,18 @@ gantt
 
 **Quy tắc lùi việc:** nếu trễ quá một tuần, cắt theo thứ tự WS3 (fine-tune
 embedding) → WS6 (online eval) → WS4 (văn bản hướng dẫn) → WS8 (thư viện pip).
-**Không bao giờ cắt** WS0, WS1, WS2, WS5a — đó là xương sống của câu chuyện.
+**Không bao giờ cắt** WS0, WS1, WS2, WS5a — đó là xương sống của v2.
 
 ---
 
-## 10. Ma trận năng lực — dự án chứng minh điều gì
+## 10. Mỗi workstream trả lời câu hỏi gì
 
-### Hiểu sâu
+Một workstream chỉ đáng làm khi nó trả lời được một câu hỏi về hệ thống mà số đo
+hiện tại chưa trả lời.
 
-| Năng lực | Bằng chứng trong repo | Câu phỏng vấn trả lời được |
+### Câu hỏi chính
+
+| Lĩnh vực | Workstream và đầu ra | Câu hỏi được trả lời |
 |---|---|---|
 | Đánh giá LLM đúng phương pháp | WS1: CI bootstrap, paired test, κ, tách công cụ đo, AURC | "Làm sao biết thay đổi của bạn thật sự tốt hơn?" |
 | NLI / phát hiện hallucination | WS2: taxonomy lỗi, baseline zoo, phân tích theo `error_type` | "Vì sao NLI có sẵn thất bại với near-miss?" |
@@ -936,9 +939,9 @@ embedding) → WS6 (online eval) → WS4 (văn bản hướng dẫn) → WS8 (th
 | Bất định & bảo đảm thống kê | WS2e: calibration (ECE), ngưỡng conformal, kiểm chứng α | "Ngưỡng 0.83 ở đâu ra? Bảo đảm gì, không bảo đảm gì?" |
 | Thiết kế hệ thống xếp tầng | WS2d: luật → NLI → judge, tối ưu chi phí với ràng buộc chất lượng | "Khi nào đáng gọi LLM đắt tiền?" |
 
-### Học rộng
+### Mở rộng
 
-| Năng lực | Bằng chứng |
+| Lĩnh vực | Workstream và đầu ra |
 |---|---|
 | Retrieval (hybrid, rerank, đánh giá IR) | WS3: ablation, nDCG/MRR |
 | Serving model | WS5a: TEI, micro-batching, tách tiến trình |
@@ -1040,4 +1043,4 @@ sau lượt chạy đầu tiên.
 
 ---
 
-[← 10 — Đối chiếu tham khảo](10-reference-review.md) · [Mục lục tài liệu](README.md)
+[← 09 — Runbook](09-runbook.md) · [Mục lục tài liệu](README.md)

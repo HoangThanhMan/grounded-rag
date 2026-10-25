@@ -19,7 +19,7 @@ nhau, tin handbook và xem [13 — Lệch giữa tài liệu và code](13-known-
 | Hiểu sâu phần AI | [06](06-ingest-and-retrieval.md) → [07](07-guard.md) → [08](08-evaluation.md) | nửa ngày |
 | Chạy, sửa cấu hình, debug | [10](10-configuration-and-operations.md) → [11](11-testing.md) | 1 giờ |
 | Thêm tính năng | [14](14-how-to-extend.md) | khi cần |
-| Chuẩn bị phỏng vấn | [01](01-overview.md), [07](07-guard.md) mục "Guard sai ở đâu", [08](08-evaluation.md) mục "Điểm yếu", [13](13-known-gaps.md) | 2 giờ |
+| Biết hệ thống sai ở đâu | [07](07-guard.md) mục "Guard sai ở đâu", [08](08-evaluation.md) mục "Điểm yếu", [13](13-known-gaps.md) | 2 giờ |
 
 ## Mục lục
 
