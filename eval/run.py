@@ -70,7 +70,10 @@ async def run(
             gold_answer=raw.get("gold_answer"),
         )
         try:
-            answer = await _answer_with_retries(raw["question"], config, as_of)
+            # a temporal question is asked on its own date; the run's as_of is
+            # the date for every other question
+            on = date.fromisoformat(raw["as_of"]) if raw.get("as_of") else as_of
+            answer = await _answer_with_retries(raw["question"], config, on)
         except LLMUnavailable as e:
             # A provider outage is not a property of the configuration. Losing
             # an hour of benchmark to one 503 is worse than reporting n < 100,
@@ -118,6 +121,7 @@ def _case_record(raw: dict, row: Row, gold_text: dict[str, str]) -> dict:
     return {
         "id": row.case.id,
         "type": row.case.type,
+        "as_of": raw.get("as_of"),
         "tags": row.case.tags,
         "question": raw["question"],
         "gold_answer": raw.get("gold_answer"),

@@ -57,3 +57,24 @@ def test_a_healthy_run_reports_nothing_errored(indexed, monkeypatch):
     report = _report(indexed, monkeypatch, set())
     assert report["errored"] == []
     assert len(report["cases"]) == 6
+
+
+def test_a_temporal_question_is_asked_on_its_own_date(indexed, monkeypatch, tmp_path):
+    lines = DATASET.read_text(encoding="utf-8").splitlines()[:2]
+    first, second = json.loads(lines[0]), json.loads(lines[1])
+    first["as_of"] = "2024-06-01"
+    dataset = tmp_path / "two.jsonl"
+    dataset.write_text(json.dumps(first, ensure_ascii=False) + "\n"
+                       + json.dumps(second, ensure_ascii=False) + "\n", encoding="utf-8")
+    asked = {}
+    real = runner.answer_question
+
+    async def spy(question, cfg, **kw):
+        asked[question] = kw["as_of"]
+        return await real(question, cfg, **kw)
+
+    monkeypatch.setattr(runner, "answer_question", spy)
+    report = asyncio.run(runner.run(indexed, dataset, ClauseIndex(SAMPLE), 0.6, date(2026, 9, 14)))
+    assert asked[first["question"]] == date(2024, 6, 1)
+    assert asked[second["question"]] == date(2026, 9, 14)
+    assert [c["as_of"] for c in report["cases"]] == ["2024-06-01", None]
