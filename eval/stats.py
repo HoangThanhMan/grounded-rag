@@ -13,6 +13,7 @@ without the corpus or a model:
                   best retrieval score), trade answered share against the
                   hallucination rate among what is answered; AURC is the area
   over_seeds      mean ± sd of a metric across repeated runs
+  cohen_kappa     agreement beyond chance between two labelings
 """
 
 from __future__ import annotations
@@ -158,6 +159,18 @@ def floor_confidence(case: dict) -> float | None:
     """How sure retrieval was: the best rerank score among the sources."""
     scores = [s["score"] for s in case.get("sources", [])]
     return max(scores) if scores else None
+
+
+def cohen_kappa(a: Sequence[str], b: Sequence[str]) -> float:
+    """Agreement beyond chance between two labelings of the same items."""
+    if len(a) != len(b) or not a:
+        raise ValueError("two labelings of the same, non-empty set of items")
+    n = len(a)
+    observed = sum(x == y for x, y in zip(a, b, strict=True)) / n
+    pa = {k: list(a).count(k) for k in set(a)}
+    pb = {k: list(b).count(k) for k in set(b)}
+    expected = sum(pa.get(k, 0) * pb.get(k, 0) for k in set(pa) | set(pb)) / n**2
+    return 1.0 if expected == 1 else round((observed - expected) / (1 - expected), 4)
 
 
 def over_seeds(values: Sequence[float]) -> tuple[float, float]:

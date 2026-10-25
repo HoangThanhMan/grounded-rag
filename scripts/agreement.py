@@ -19,9 +19,13 @@ from __future__ import annotations
 import argparse
 import json
 import random
-from collections import Counter
+import sys
 from datetime import date
 from pathlib import Path
+
+sys.path.insert(0, ".")
+
+from eval.stats import cohen_kappa  # noqa: E402
 
 DATASET = Path("eval/dataset/questions.jsonl")
 SHEET = Path("eval/dataset/agreement/relabel.json")
@@ -31,17 +35,6 @@ SEED = 26
 MIN_DAYS = 10
 TYPES = ("answerable", "unanswerable_out_of_scope", "unanswerable_false_premise",
          "unanswerable_near_miss")
-
-
-def cohen_kappa(a: list[str], b: list[str]) -> float:
-    """Agreement beyond chance between two labelings of the same items."""
-    if len(a) != len(b) or not a:
-        raise ValueError("two labelings of the same, non-empty set of items")
-    n = len(a)
-    observed = sum(x == y for x, y in zip(a, b, strict=True)) / n
-    pa, pb = Counter(a), Counter(b)
-    expected = sum(pa[k] * pb[k] for k in set(pa) | set(pb)) / n**2
-    return 1.0 if expected == 1 else round((observed - expected) / (1 - expected), 4)
 
 
 def draw(rows: list[dict], n: int = N, seed: int = SEED) -> list[dict]:

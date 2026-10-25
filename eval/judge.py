@@ -30,8 +30,8 @@ import re
 from pathlib import Path
 
 from eval.metrics import _mean
+from eval.stats import cohen_kappa
 from grounded_rag.generation.llm_client import LLMUnavailable, OpenAICompatClient
-from scripts.agreement import cohen_kappa
 
 VERDICTS = ("supported", "unsupported", "contradicted")
 ERROR_TYPES = ("none", "wrong_number", "wrong_subject", "missing_condition", "outdated_law",
