@@ -139,7 +139,7 @@ Chạy trên mọi `push` và `pull_request`, ma trận Python **3.12** và **3.
 | Lint | `ruff check src eval tests app scripts` |
 | Unit tests | `pytest -q` |
 | Evaluation dataset | `python scripts/check_dataset.py` |
-| Benchmark gate | `eval.run --config configs/full.yaml --dataset questions.sample.jsonl --ingest data/sample_corpus --gate` (ngưỡng bị bỏ qua trên tập mẫu) |
+| Pipeline smoke test (mock) | `eval.run --config configs/full.yaml --dataset questions.sample.jsonl --ingest data/sample_corpus --gate` (ngưỡng bị bỏ qua trên tập mẫu) |
 | Corrective config | như trên với `configs/agentic.yaml` |
 | Upload artifact | `reports/ci-*.json` |
 

@@ -37,7 +37,7 @@ jobs:
 
       # The sample dataset and sample corpus only prove the pipeline runs end
       # to end; the real gate needs the full corpus and is run with `make eval-all`.
-      - name: Benchmark gate
+      - name: Pipeline smoke test (mock)
         run: >-
           python -m eval.run --config configs/full.yaml
           --dataset eval/dataset/questions.sample.jsonl
