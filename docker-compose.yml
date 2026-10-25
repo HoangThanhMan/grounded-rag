@@ -30,13 +30,20 @@ services:
       NEXTAUTH_SECRET: dev-secret-change-me
       SALT: dev-salt-change-me
       NEXTAUTH_URL: http://localhost:3000
-    depends_on: [langfuse-db]
+    # healthy, not just started: on a fresh volume Postgres spends seconds in
+    # initdb, and langfuse exits if its migration cannot connect
+    depends_on:
+      langfuse-db: {condition: service_healthy}
 
   langfuse-db:
     image: postgres:16-alpine
     environment:
       POSTGRES_PASSWORD: postgres
     volumes: ["./langfuse_pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      retries: 10
 
   # Optional, CPU is fine:  make up-ollama
   # An open model served locally, so a benchmark run costs no API quota. On a
