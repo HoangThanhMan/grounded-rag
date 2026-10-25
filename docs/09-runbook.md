@@ -52,6 +52,24 @@ khi chạy, nếu không máy sẽ swap tới mức treo.
 giây với chunk recursive — gần như toàn bộ là cross-encoder rerank 20 ứng viên.
 Muốn nhanh hơn: giảm `rerank_candidates`, hoặc chạy reranker trên GPU.
 
+### Xem trace trên Langfuse
+
+```bash
+make up                                  # langfuse :3000 chờ Postgres healthy rồi mới chạy
+.venv/bin/pip install -e ".[obs]"        # SDK v2: server là langfuse:2, SDK v3+ không nói chuyện được
+```
+
+Mở `http://localhost:3000`, đăng ký, tạo project, chép cặp key vào `.env`
+(`LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`), rồi `make run`. Mỗi câu hỏi là
+một trace `answer`, gắn tag theo config và status. Export là best effort: key
+sai hay SDK sai phiên bản chỉ ghi một dòng warning, câu trả lời vẫn ra — nên
+nếu không thấy trace, tìm `langfuse export failed` trong log trước.
+
+Không muốn đăng ký trên trình duyệt: server `langfuse:2` (đã thử trên 2.95) nhận các
+biến `LANGFUSE_INIT_*` (org, project, key, user) và tự tạo tất cả khi khởi
+động lần đầu — đặt chúng trong một file compose override, không sửa
+`docker-compose.yml`.
+
 ### Dùng Ollama (chi phí bằng 0)
 
 ```bash

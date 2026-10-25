@@ -199,6 +199,12 @@ Refusing to answer is a 200, not an error; an unreachable LLM provider is a 503.
 `GET /metrics` serves Prometheus metrics: per-step latency, answers by status and
 abstain reason, LLM calls and tokens.
 
+With `LANGFUSE_*` set, each answer is also sent to Langfuse as one trace: a span
+per step, the LLM call as a generation, and the guard's entailment scores
+attached to the trace.
+
+![A Langfuse trace: retrieve, generate and verify, with the guard's scores](docs/img/langfuse-trace.png)
+
 ## Demo UI
 
 `make run` serves a single-page UI from the API itself at
@@ -223,8 +229,12 @@ claim scored 0.99 against Điều 35 Khoản 1.
 ## Stack
 
 FastAPI · Qdrant (dense + BM25 sparse) · bge-m3 · bge-reranker-v2-m3 ·
-mDeBERTa-v3 XNLI · vLLM / Ollama / Gemini · RAGAS · Prometheus · Langfuse ·
-Docker Compose · GitHub Actions
+mDeBERTa-v3 XNLI · Gemini / Ollama · Prometheus · Langfuse · Docker Compose ·
+GitHub Actions
+
+Wired but not yet run for real: the vLLM, OpenAI and Anthropic providers
+(tested against a fake transport only — no GPU here for vLLM) and the RAGAS
+second opinion (`make ragas`, waiting on a judge from a different model family).
 
 No orchestration framework. The pipeline is a handful of steps, its only loop has
 two branches, and the interesting part is hand-written; a framework would hide it.

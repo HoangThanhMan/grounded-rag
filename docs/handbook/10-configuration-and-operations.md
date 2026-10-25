@@ -170,8 +170,10 @@ Chưa có Prometheus server hay Grafana trong compose — chỉ có endpoint.
 `export(question, answer)` gửi một trace mỗi câu trả lời: span mỗi bước,
 `generation` cho bước sinh, score `claims_supported` và `entailment` từng mệnh đề.
 Best effort: lỗi chỉ ghi warning. Viết cho **SDK v2** (`client.trace(...)`) và
-server `langfuse:2`; test dùng client giả; **chưa kiểm chứng trên UI thật**
-([13](13-known-gaps.md)).
+server `langfuse:2`; test dùng client giả. Đã kiểm chứng trên UI thật ở S0-05
+(langfuse 2.95, 3 câu hỏi thật qua Ollama) — ảnh ở `docs/img/langfuse-trace.png`,
+cách lấy key ở [09-runbook](../09-runbook.md#xem-trace-trên-langfuse). Bước sinh chỉ
+gửi `usage.total`, nên UI hiện input/output token là 0.
 
 ### Log
 

@@ -59,7 +59,7 @@ Phiên bản "khai báo" lấy từ `pyproject.toml` / `docker-compose.yml`; phi
 | Thư viện | Khai báo | Dùng để |
 |---|---|---|
 | prometheus-client | `>=0.21` | `/metrics`: histogram từng bước, counter câu trả lời, token, lời gọi LLM (`observability/metrics.py`). Không cài thì mọi hàm là no-op |
-| langfuse | `>=2.53,<3` (SDK v2) | Đẩy mỗi câu trả lời thành một trace (`observability/tracing.py`). **Lưu ý:** `.venv` local đang có langfuse 4.15, không khớp khai báo — xem [13](13-known-gaps.md) |
+| langfuse | `>=2.53,<3` (SDK v2) | Đẩy mỗi câu trả lời thành một trace (`observability/tracing.py`). Đã kiểm chứng với server `langfuse:2` 2.95 (S0-05, ảnh ở `docs/img/langfuse-trace.png`) |
 
 ## Extra `dev`
 

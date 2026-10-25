@@ -59,7 +59,7 @@ make lint                                   # ruff check src eval tests app scri
 - Model thật (bge-m3, reranker, mDeBERTa) — chỉ kiểm bằng `scripts/nli_probe.py`
   và các lượt eval thật.
 - Provider thật — chỉ `MockTransport`.
-- Langfuse server thật, Prometheus scrape thật.
+- Langfuse server thật (kiểm tay một lần ở S0-05, không có test tự động), Prometheus scrape thật.
 - Web UI (`app/web/`) — không có test frontend.
 - `scripts/` — không có test (trừ phần dùng chung với `eval/`).
 - Docker image — CI không build.
