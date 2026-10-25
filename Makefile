@@ -1,4 +1,4 @@
-.PHONY: python install seed check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas test lint up up-gpu down fmt
+.PHONY: python install seed check-dataset calibrate nli-probe closed-book up-ollama up-qdrant up-api dev-install corpus run ingest eval eval-all ragas eval-matrix test lint up up-gpu down fmt
 
 CONFIGS := baseline threshold full agentic
 PORT ?= 8000
@@ -78,6 +78,9 @@ eval-all:     ## the four-configuration comparison table
 		$(PY) -m eval.run --config configs/$$c.yaml --ingest data/corpus --out reports/$$c.json || exit 1; \
 	done
 	$(PY) -m eval.report $(foreach c,$(CONFIGS),reports/$(c).json)
+
+eval-matrix:  ## v2 benchmark: generators x configs x seeds, judged, resumable (eval/matrix.yaml)
+	$(PY) -m eval.matrix eval/matrix.yaml
 
 closed-book:  ## does retrieval buy anything? same questions, no documents
 	$(PY) -m eval.closed_book --n 20 --out reports/ablations/closed-book.json

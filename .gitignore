@@ -21,6 +21,8 @@ reports/*
 !reports/calibration/
 !reports/grading/
 reports/**/*.log
+# eval.run --resume checkpoints; the finished report replaces them
+reports/**/*.partial.jsonl
 qdrant_storage/
 .cache/
 # the optional langfuse service in docker-compose.yml keeps its database here

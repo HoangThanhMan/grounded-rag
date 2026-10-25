@@ -1,0 +1,26 @@
+# The v2 benchmark: python -m eval.matrix eval/matrix.yaml  (or make eval-matrix)
+# 240 test questions × 4 configurations × 3 runs at temperature > 0, then an
+# LLM judge from another model family. Free-tier quotas spread this over days;
+# rerun the same command and it resumes where it stopped.
+dataset: eval/dataset/questions.jsonl
+split: test
+as_of: "2026-10-26"          # the date every non-temporal question is asked on
+temperature: 0.7             # > 0 so the three runs measure the spread
+seeds: [1, 2, 3]
+configs: [baseline, threshold, full, agentic]
+out: reports/runs/2026-10-26-matrix
+retrieval_cache: .cache/retrieval
+
+generators:
+  - name: qwen3.8-27b
+    provider: openai
+    model: qwen/qwen3.8-27b
+    base_url: https://api.groq.com/openai/v1
+    api_key_env: GROQ_API_KEY
+    reasoning_effort: none   # Groq accepts only "none" for this model
+
+judge:                       # never the generator's family (eval/judge.py)
+  model: openai/gpt-oss-120b
+  base_url: https://api.groq.com/openai/v1
+  api_key_env: GROQ_API_KEY
+  reasoning_effort: low      # Groq accepts low / medium / high for this model
