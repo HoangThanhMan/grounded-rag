@@ -22,6 +22,8 @@ reports/*
 # the README Results table is generated from these; docs/11-spec-v2.md cites 2026-09-15
 !reports/2026-10-12-gemini/
 reports/2026-10-12-gemini/*.log
+# hand-graded labels are the independent check on the NLI instrument (docs/12 §7)
+!reports/hand-graded*.json
 !reports/2026-09-15/
 qdrant_storage/
 .cache/
