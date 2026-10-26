@@ -117,3 +117,13 @@ def test_a_spent_quota_stops_the_run_and_keeps_the_checkpoint(indexed, monkeypat
         asyncio.run(runner.run(indexed, DATASET, ClauseIndex(SAMPLE), 0.6, date(2026, 9, 14),
                                checkpoint=checkpoint, max_consecutive_errors=2))
     assert len(checkpoint.read_text(encoding="utf-8").splitlines()) == 1
+
+
+def test_a_run_against_an_empty_index_refuses_to_start(indexed, monkeypatch):
+    class Empty:
+        def dense_search(self, *a, **k):
+            return []
+
+    monkeypatch.setattr(runner, "get_store", lambda chunker: Empty())
+    with pytest.raises(SystemExit, match="index is empty"):
+        asyncio.run(runner.run(indexed, DATASET, ClauseIndex(SAMPLE), 0.6, date(2026, 9, 14)))

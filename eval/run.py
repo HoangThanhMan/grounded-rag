@@ -31,6 +31,7 @@ from grounded_rag.guard.nli_verifier import get_verifier
 from grounded_rag.ingest.pipeline import ingest
 from grounded_rag.retrieval import cache
 from grounded_rag.retrieval.corrective import search
+from grounded_rag.retrieval.store import get_store
 from grounded_rag.service import answer_question
 from grounded_rag.types import Claim
 
@@ -71,6 +72,12 @@ async def run(
     # configuration runs second.
     search("khởi động", config, as_of)
     verifier.entailment("khởi động", "khởi động")
+    # An empty index answers every question with the retrieval floor, quickly
+    # and plausibly - a run that measures nothing. Ask the store itself, past
+    # the retrieval cache.
+    if not get_store(config.retrieval.chunker).dense_search("khởi động", 1, None):
+        raise SystemExit(f"the {config.retrieval.chunker} index is empty: ingest the corpus first "
+                         "(make ingest, or --ingest)")
     done = _resume(checkpoint)
     rows: dict[str, Row] = {}
     records: dict[str, dict] = {}

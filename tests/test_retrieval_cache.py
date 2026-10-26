@@ -50,3 +50,25 @@ def test_the_key_changes_with_retrieval_parameters_and_corpus(tmp_path, monkeypa
     (tmp_path / "law.md").write_text("Điều 1. B", encoding="utf-8")
     cache.fingerprint.cache_clear()
     assert cache.get("q", on, RetrievalConfig(rerank_to=5)) is None
+
+
+def test_an_empty_search_is_never_cached(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "retrieval_cache_dir", str(tmp_path / "c"))
+    monkeypatch.setattr(settings, "retrieval_cache_corpus", str(tmp_path))
+    cache.fingerprint.cache_clear()
+
+    class Store:
+        def dense_search(self, *a):
+            return []
+
+        def sparse_search(self, *a):
+            return []
+
+    class Reranker:
+        def rerank(self, query, fused, k):
+            return []
+
+    monkeypatch.setattr(corrective, "get_store", lambda chunker: Store())
+    monkeypatch.setattr(corrective, "get_reranker", lambda: Reranker())
+    corrective.search("câu hỏi", RunConfig(), date(2026, 1, 1))
+    assert cache.get("câu hỏi", date(2026, 1, 1), RunConfig().retrieval) is None

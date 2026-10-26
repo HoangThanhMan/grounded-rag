@@ -76,6 +76,9 @@ jobs:
     env:
       GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       QDRANT_URL: http://localhost:6333
+      # the default provider is mock, which also mocks the embedder and the
+      # store: indexing would go to a throwaway in-memory store, not Qdrant
+      LLM_PROVIDER: openai
       CONFIG: ${{ matrix.cell.config }}
       SEED: ${{ matrix.cell.seed }}
       CELL: reports/runs/2026-10-26-matrix/qwen3.8-27b/${{ matrix.cell.config }}.s${{ matrix.cell.seed }}.json

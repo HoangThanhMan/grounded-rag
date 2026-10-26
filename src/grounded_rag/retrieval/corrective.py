@@ -59,7 +59,8 @@ def search(query: str, config: RunConfig, as_of: date | None) -> Hits:
         runs.append(store.sparse_search(query, r.top_k_sparse, as_of))
     fused = reciprocal_rank_fusion(runs)[: r.rerank_candidates]
     hits = get_reranker().rerank(query, fused, r.rerank_to)
-    if cache.enabled():
+    # an empty result means an empty index, never a fact about the query
+    if cache.enabled() and hits:
         cache.put(query, as_of, r, hits)
     return hits
 
