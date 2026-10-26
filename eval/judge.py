@@ -16,8 +16,10 @@ grading its own family shares its blind spots. `calibrate` scores the judge
 and the NLI instrument against the hand-graded answers (Cohen's κ), which is
 what says how far either can be trusted on the questions nobody graded.
 
-Judging is resumable: a case already judged by the same model is skipped and
-the report is saved after every case.
+Judging is resumable: a case already judged by the same model is skipped, a
+case whose judging failed is tried again, and the report is saved after every
+case. MAX_FAILURES failures in a row mean a spent quota: judging stops (exit 3)
+instead of marking every remaining case as failed.
 """
 
 from __future__ import annotations
@@ -40,6 +42,8 @@ ERROR_TYPES = ("none", "wrong_number", "wrong_subject", "missing_condition", "ou
 # 429 means "wait", not "fail".
 RATE_LIMIT_WAIT_S = 30.0
 RATE_LIMIT_TRIES = 8
+MAX_FAILURES = 5
+QUOTA_EXIT = 3
 FAMILIES = {"qwen": "qwen", "llama": "llama", "gpt": "openai", "o1": "openai", "o3": "openai",
             "o4": "openai", "openai": "openai", "gemini": "google", "gemma": "google",
             "claude": "anthropic", "mistral": "mistral", "mixtral": "mistral",
@@ -140,7 +144,8 @@ async def run_reports(paths: list[Path], client: OpenAICompatClient, model: str,
         if family(generator) == family(model):
             raise SystemExit(f"{path}: judge {model} is the same family as generator {generator}")
         todo = [c for c in report["cases"] if c["status"] in ("answered", "partial")
-                and (c.get("judge") or {}).get("model") != model]
+                and ((c.get("judge") or {}).get("model") != model or "error" in c["judge"])]
+        failures = 0
         for k, case in enumerate(todo[:limit] if limit else todo, start=1):
             claims = case.get("claims", [])
             try:
@@ -150,6 +155,9 @@ async def run_reports(paths: list[Path], client: OpenAICompatClient, model: str,
                                  "hallucinated": any(v["verdict"] != "supported" for v in verdicts)}
             except Exception as e:  # noqa: BLE001 - one bad reply must not lose the run
                 case["judge"] = {"model": model, "error": str(e)[:300], "hallucinated": None}
+                failures += 1
+            else:
+                failures = 0
             case.setdefault("scores", {})["judge_hallucination_rate"] = judge_value(case)
             for c in report["cases"]:
                 c.setdefault("scores", {})["judge_hallucination_rate"] = judge_value(c)
@@ -160,6 +168,9 @@ async def run_reports(paths: list[Path], client: OpenAICompatClient, model: str,
             path.write_text(json.dumps(report, indent=2, ensure_ascii=False), "utf-8")
             print(f"[judge] {path.name} {k}/{len(todo)} {case['id']} "
                   f"hallucinated={case['judge']['hallucinated']}", flush=True)
+            if failures >= MAX_FAILURES:
+                print(f"[stop] {failures} judge calls in a row failed; rerun to resume", flush=True)
+                raise SystemExit(QUOTA_EXIT)
 
 
 async def calibrate(sheet_path: Path, client: OpenAICompatClient, model: str,

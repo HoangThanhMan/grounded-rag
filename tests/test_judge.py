@@ -80,3 +80,15 @@ def test_a_judge_from_the_generator_family_is_refused(tmp_path):
     client, _ = _client([])
     with pytest.raises(SystemExit, match="same family"):
         asyncio.run(judge.run_reports([path], client, "openai/gpt-oss-120b", None))
+
+
+def test_a_failed_case_is_judged_again_on_the_next_pass(tmp_path):
+    path = _report(tmp_path)
+    good = ('{"claims": [{"id": 1, "verdict": "supported", "error_type": "none", '
+            '"rationale": "ok"}]}')
+    client, calls = _client(["not json", "still not json", good])
+    asyncio.run(judge.run_reports([path], client, "openai/gpt-oss-120b", None))
+    assert "error" in json.loads(path.read_text(encoding="utf-8"))["cases"][0]["judge"]
+    asyncio.run(judge.run_reports([path], client, "openai/gpt-oss-120b", None))
+    case = json.loads(path.read_text(encoding="utf-8"))["cases"][0]
+    assert case["judge"]["hallucinated"] is False and "error" not in case["judge"]
