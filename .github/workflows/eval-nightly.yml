@@ -4,8 +4,10 @@ name: eval-nightly
 # Too slow and too costly for every push: the push workflow runs the mock
 # smoke test, this one runs at night or by hand. Needs the GROQ_API_KEY secret.
 on:
-  schedule:
-    - cron: "0 18 * * *"          # 01:00 in Asia/Ho_Chi_Minh
+  # The schedule is off while eval-matrix.yml works through the v2 matrix: both
+  # draw on one free-tier quota. Put it back once the matrix is in:
+  #   schedule:
+  #     - cron: "0 18 * * *"      # 01:00 in Asia/Ho_Chi_Minh
   workflow_dispatch:
     inputs:
       config:

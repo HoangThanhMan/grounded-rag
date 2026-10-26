@@ -10,6 +10,7 @@ seeds: [1, 2, 3]
 configs: [baseline, threshold, full, agentic]
 out: reports/runs/2026-10-26-matrix
 retrieval_cache: .cache/retrieval
+max_consecutive_errors: 5   # provider failures in a row that mean the daily quota is spent
 
 generators:
   - name: qwen3.8-27b

@@ -3,6 +3,7 @@
     python -m eval.matrix eval/matrix.yaml               # everything not done yet
     python -m eval.matrix eval/matrix.yaml --dry-run     # what would run
     python -m eval.matrix eval/matrix.yaml --only-config full --no-judge
+    python -m eval.matrix eval/matrix.yaml --only-config full --only-seed 2   # one cell
 
 Each cell is one `python -m eval.run --resume` in its own process - the NLI
 cache would otherwise flatter whichever configuration runs second - with the
@@ -68,7 +69,9 @@ def run_cell(cell: dict, spec: dict) -> int:
     cmd = [sys.executable, "-m", "eval.run", "--config", f"configs/{cell['config']}.yaml",
            "--dataset", spec["dataset"], "--split", spec["split"], "--as-of", str(spec["as_of"]),
            "--temperature", str(spec["temperature"]), "--seed", str(cell["seed"]),
-           "--out", str(cell["path"]), "--resume"]
+           "--out", str(cell["path"]), "--resume",
+           # a spent daily quota stops the cell instead of erroring every question
+           "--max-consecutive-errors", str(spec.get("max_consecutive_errors", 5))]
     print(f"[matrix] {cell['generator']['name']} {cell['config']} s{cell['seed']}", flush=True)
     return subprocess.run(cmd, env=env_for(cell["generator"], spec)).returncode
 
@@ -87,12 +90,14 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only-config")
     ap.add_argument("--only-generator")
+    ap.add_argument("--only-seed", type=int)
     ap.add_argument("--no-judge", action="store_true")
     args = ap.parse_args()
     spec = yaml.safe_load(args.spec.read_text(encoding="utf-8"))
     todo = [c for c in cells(spec)
             if (not args.only_config or c["config"] == args.only_config)
-            and (not args.only_generator or c["generator"]["name"] == args.only_generator)]
+            and (not args.only_generator or c["generator"]["name"] == args.only_generator)
+            and (args.only_seed is None or c["seed"] == args.only_seed)]
     for c in todo:
         state = "done" if done(c["path"]) else "todo"
         if args.dry_run:
@@ -109,8 +114,9 @@ def main() -> int:
             print(f"[matrix] stopped at {c['path']}; rerun to resume", flush=True)
             break
     finished = [c["path"] for c in todo if done(c["path"])]
-    if finished and spec.get("judge") and not args.no_judge:
-        judge(finished, spec)
+    if finished and spec.get("judge") and not args.no_judge and judge(finished, spec) != 0:
+        print("[matrix] judging stopped early; rerun to resume", flush=True)
+        failed.append("judge")
     if finished:
         out = Path(spec["out"])
         subprocess.run([sys.executable, "-m", "eval.report", *map(str, finished),

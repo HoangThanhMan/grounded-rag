@@ -1,0 +1,204 @@
+name: eval-matrix
+
+# The v2 benchmark matrix (eval/matrix.yaml) on GitHub's runners: one job per
+# configuration × run, the real corpus, real models on CPU, the Groq generator
+# and judge. A free-tier day runs out before the matrix does, so every job
+# keeps its checkpoint in the Actions cache and the next run - by hand or the
+# daily schedule - carries on where it stopped. A finished cell is skipped in
+# seconds. Needs the GROQ_API_KEY secret.
+on:
+  schedule:
+    - cron: "30 0 * * *"          # 07:30 in Asia/Ho_Chi_Minh, once the daily quota has reset
+  workflow_dispatch:
+    inputs:
+      configs:
+        description: "configurations, comma separated (empty = all in eval/matrix.yaml)"
+        default: ""
+      seeds:
+        description: "runs, comma separated (empty = all in eval/matrix.yaml)"
+        default: ""
+      max_parallel:
+        description: "jobs at once; the generator's tokens-per-minute limit is shared"
+        default: "3"
+
+concurrency:
+  group: eval-matrix
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      cells: ${{ steps.cells.outputs.cells }}
+      skip: ${{ steps.key.outputs.skip }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the API key
+        id: key
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          if [ -z "$GROQ_API_KEY" ]; then
+            echo "::notice::GROQ_API_KEY is not set; nothing to run"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: List the cells
+        id: cells
+        env:
+          CONFIGS: ${{ github.event.inputs.configs }}
+          SEEDS: ${{ github.event.inputs.seeds }}
+        run: |
+          pip install --quiet pyyaml
+          python - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, os, yaml
+          spec = yaml.safe_load(open("eval/matrix.yaml"))
+          configs = [c for c in os.environ["CONFIGS"].split(",") if c] or spec["configs"]
+          seeds = [int(s) for s in os.environ["SEEDS"].split(",") if s] or spec["seeds"]
+          cells = [{"config": c, "seed": s} for s in seeds for c in configs]
+          print("cells=" + json.dumps(cells))
+          EOF
+
+  cell:
+    needs: plan
+    if: needs.plan.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJSON(github.event.inputs.max_parallel || '3') }}
+      matrix:
+        cell: ${{ fromJSON(needs.plan.outputs.cells) }}
+    name: ${{ matrix.cell.config }} s${{ matrix.cell.seed }}
+    services:
+      qdrant:
+        image: qdrant/qdrant:v1.19.1      # the version docker-compose.yml pins
+        ports: ["6333:6333"]
+    env:
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      QDRANT_URL: http://localhost:6333
+      CONFIG: ${{ matrix.cell.config }}
+      SEED: ${{ matrix.cell.seed }}
+      CELL: reports/runs/2026-10-26-matrix/qwen3.8-27b/${{ matrix.cell.config }}.s${{ matrix.cell.seed }}.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Restore this cell's checkpoint
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ${{ env.CELL }}
+            ${{ env.CELL }}.partial.jsonl
+          key: matrix-${{ matrix.cell.config }}-s${{ matrix.cell.seed }}-${{ github.run_id }}
+          restore-keys: matrix-${{ matrix.cell.config }}-s${{ matrix.cell.seed }}-
+
+      - name: Done already?
+        id: state
+        run: |
+          python3 - <<'EOF' >> "$GITHUB_OUTPUT"
+          import json, os
+          path = os.environ["CELL"]
+          report = json.load(open(path)) if os.path.exists(path) else None
+          judged = report and all(c.get("judge") and "error" not in c["judge"]
+                                  for c in report["cases"] if c["status"] in ("answered", "partial"))
+          print("done=" + ("true" if report and not report.get("errored") and judged else "false"))
+          EOF
+
+      - uses: actions/setup-python@v5
+        if: steps.state.outputs.done != 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Cache model weights
+        if: steps.state.outputs.done != 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ hashFiles('src/grounded_rag/config.py') }}
+
+      - name: Restore the retrieval cache
+        if: steps.state.outputs.done != 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/retrieval
+          key: retrieval-${{ hashFiles('data/corpus/**') }}-${{ github.run_id }}-${{ matrix.cell.config }}-s${{ matrix.cell.seed }}
+          restore-keys: retrieval-${{ hashFiles('data/corpus/**') }}-
+
+      - name: Install
+        if: steps.state.outputs.done != 'true'
+        # the CUDA build of torch is ~3 GB of wheels this runner cannot use
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[models,dev]"
+
+      - name: Index the corpus for this configuration's chunker
+        if: steps.state.outputs.done != 'true'
+        run: python -m grounded_rag.ingest.pipeline --source data/corpus --config "configs/$CONFIG.yaml"
+
+      - name: Run, judge and tabulate
+        id: run
+        if: steps.state.outputs.done != 'true'
+        timeout-minutes: 300
+        continue-on-error: true        # a spent quota still saves the checkpoint below
+        run: python -m eval.matrix eval/matrix.yaml --only-config "$CONFIG" --only-seed "$SEED"
+
+      - name: Save this cell's checkpoint
+        if: always() && steps.state.outputs.done != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            ${{ env.CELL }}
+            ${{ env.CELL }}.partial.jsonl
+          key: matrix-${{ matrix.cell.config }}-s${{ matrix.cell.seed }}-${{ github.run_id }}
+
+      - name: Save the retrieval cache
+        if: always() && steps.state.outputs.done != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/retrieval
+          key: retrieval-${{ hashFiles('data/corpus/**') }}-${{ github.run_id }}-${{ matrix.cell.config }}-s${{ matrix.cell.seed }}
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cell-${{ matrix.cell.config }}-s${{ matrix.cell.seed }}
+          path: |
+            ${{ env.CELL }}
+            ${{ env.CELL }}.partial.jsonl
+          if-no-files-found: ignore
+
+      - name: Unfinished cells fail, so the run shows what is left
+        if: steps.run.outcome == 'failure'
+        run: |
+          echo "::warning::$CONFIG s$SEED is not finished (spent quota or timeout); the next run resumes it"
+          exit 1
+
+  summarize:
+    needs: [plan, cell]
+    if: always() && needs.plan.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cell-*
+          merge-multiple: true
+          path: reports/runs/2026-10-26-matrix/qwen3.8-27b
+      - name: Tabulate every finished cell
+        run: |
+          shopt -s nullglob
+          dir=reports/runs/2026-10-26-matrix
+          reports=()
+          for f in "$dir"/qwen3.8-27b/*.json; do
+            python3 -c "import json,sys; sys.exit(1 if json.load(open('$f')).get('errored') else 0)" && reports+=("$f")
+          done
+          if [ ${#reports[@]} -eq 0 ]; then echo "::notice::no finished cell yet"; exit 0; fi
+          PYTHONPATH=. python3 -m eval.report "${reports[@]}" --out "$dir/summary.md" --svg "$dir/risk-coverage.svg"
+          cat "$dir/summary.md" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: matrix-summary
+          path: reports/runs/2026-10-26-matrix/
