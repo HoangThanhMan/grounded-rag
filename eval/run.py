@@ -40,6 +40,12 @@ _CASE_RETRIES = 3
 _CASE_BACKOFF_S = 15.0
 
 DEFAULT_GATES = {"hallucination_rate": 0.10, "false_abstention": 0.15}
+QUOTA_EXIT = 3
+
+
+class ProviderExhausted(RuntimeError):
+    """Too many questions in a row failed on the provider: a spent daily quota,
+    not a flaky call. The checkpoint keeps every finished case."""
 
 
 def load_cases(path: Path) -> list[dict]:
@@ -55,6 +61,7 @@ async def run(
     split: str = "all",
     checkpoint: Path | None = None,
     seed: int | None = None,
+    max_consecutive_errors: int = 0,
 ) -> dict:
     # The measuring instrument: same verifier, same threshold, every config.
     verifier = get_verifier()
@@ -70,6 +77,7 @@ async def run(
     errored = []
     gold_text = index.gold_text()
     order = []
+    streak = 0
     for raw in load_cases(dataset):
         # dev questions calibrate τ (scripts/calibrate_tau.py); a number
         # reported on them would be scored on its own training data
@@ -101,7 +109,11 @@ async def run(
             # so the case is recorded as errored and the run continues.
             print(f"[error] {raw['id']}: {e}", flush=True)
             errored.append({"id": raw["id"], "error": str(e)[:300]})
+            streak += 1
+            if max_consecutive_errors and streak >= max_consecutive_errors:
+                raise ProviderExhausted(f"{streak} questions in a row failed: {e}") from e
             continue
+        streak = 0
         judged = judge_claims(answer, verifier, judge_threshold, index)
         row = Row(case=case, answer=answer, judged=judged)
         rows[raw["id"]] = row
@@ -218,6 +230,9 @@ def main() -> None:
                     help="checkpoint each case to <out>.partial.jsonl and skip finished ones")
     ap.add_argument("--temperature", type=float, help="override the config's temperature")
     ap.add_argument("--seed", type=int, help="label of a repeated run, stored in the report")
+    ap.add_argument("--max-consecutive-errors", type=int, default=0,
+                    help="stop without a report after this many provider failures in a row "
+                         "(exit 3); with --resume the next run carries on")
     ap.add_argument(
         "--split",
         choices=["test", "dev", "all"],
@@ -258,10 +273,15 @@ def main() -> None:
     checkpoint = Path(f"{args.out}.partial.jsonl") if args.resume and args.out else None
     if checkpoint:
         checkpoint.parent.mkdir(parents=True, exist_ok=True)
-    report = asyncio.run(
-        run(config, dataset, index, args.judge_threshold, args.as_of, args.split,
-            checkpoint=checkpoint, seed=args.seed)
-    )
+    try:
+        report = asyncio.run(
+            run(config, dataset, index, args.judge_threshold, args.as_of, args.split,
+                checkpoint=checkpoint, seed=args.seed,
+                max_consecutive_errors=args.max_consecutive_errors)
+        )
+    except ProviderExhausted as e:
+        print(f"[stop] {e}; resume later with the same command", flush=True)
+        raise SystemExit(QUOTA_EXIT) from e
 
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

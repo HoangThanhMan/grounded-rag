@@ -98,3 +98,22 @@ def test_a_resumed_run_skips_finished_cases_and_matches_a_fresh_one(indexed, mon
     assert asked == []
     assert [c["id"] for c in again["cases"]] == [c["id"] for c in first["cases"]]
     assert again["metrics"] == first["metrics"]
+
+
+def test_a_spent_quota_stops_the_run_and_keeps_the_checkpoint(indexed, monkeypatch, tmp_path):
+    checkpoint = tmp_path / "full.json.partial.jsonl"
+    real = runner.answer_question
+    lines = DATASET.read_text(encoding="utf-8").splitlines()
+    first = json.loads(lines[0])["question"]
+
+    async def quota_after_first(question, cfg, **kw):
+        if question != first:
+            raise LLMUnavailable("HTTP 429: daily limit")
+        return await real(question, cfg, **kw)
+
+    monkeypatch.setattr(runner, "answer_question", quota_after_first)
+    monkeypatch.setattr(runner, "_CASE_BACKOFF_S", 0.0)
+    with pytest.raises(runner.ProviderExhausted):
+        asyncio.run(runner.run(indexed, DATASET, ClauseIndex(SAMPLE), 0.6, date(2026, 9, 14),
+                               checkpoint=checkpoint, max_consecutive_errors=2))
+    assert len(checkpoint.read_text(encoding="utf-8").splitlines()) == 1
