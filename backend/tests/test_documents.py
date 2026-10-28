@@ -127,3 +127,61 @@ def test_seed_corpus_indexes_new_files_once():
     assert asyncio.run(seed_corpus(Path("data/sample_corpus"))) in (0, 1)
     assert asyncio.run(seed_corpus(Path("data/sample_corpus"))) == 0
     assert _get("bo_luat_lao_dong_2019")["status"] == "ready"
+
+
+def _law(tmp_path: Path, name: str, clauses: int = 3) -> Path:
+    body = "\n".join(f"{i}. Khoản số {i} quy định nội dung thứ {i}." for i in range(1, clauses + 1))
+    path = tmp_path / name
+    path.write_text(f"---\ntitle: {name}\neffective_date: 2020-01-01\n---\n"
+                    f"Điều 1. Phạm vi\n{body}\n", encoding="utf-8")
+    return path
+
+
+def test_reindex_missing_restores_a_ready_document_whose_chunks_are_gone(tmp_path):
+    """The mock store lives in the process: after a restart the library still
+    says ready, the index is empty."""
+    from grounded_rag.documents import reindex_missing, seed_corpus
+
+    _law(tmp_path, "luat_mat_index.md")
+    asyncio.run(seed_corpus(tmp_path))
+    assert _get("luat_mat_index")["status"] == "ready"
+    get_store().delete_document("luat_mat_index")          # what a restart does
+    assert asyncio.run(reindex_missing()) >= 1
+    assert _indexed("luat_mat_index") == 3
+    assert _get("luat_mat_index")["status"] == "ready"
+
+
+def test_seeding_retries_a_corpus_file_that_failed(tmp_path):
+    """A first start interrupted mid-index must not leave the law failed for good."""
+    from grounded_rag.documents import reindex_missing
+
+    path = _law(tmp_path, "luat_bi_ngat.md")
+
+    async def interrupted() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="luat_bi_ngat", title="x", filename=path.name, path=str(path),
+                           status="failed", error="interrupted by a restart"))
+            await s.commit()
+
+    asyncio.run(interrupted())
+    asyncio.run(reindex_missing())
+    assert _get("luat_bi_ngat")["status"] == "ready"
+
+
+def test_indexing_hands_the_model_pool_back_between_batches(tmp_path, monkeypatch):
+    """One run_model call per batch, so a question asked during an upload
+    waits for one batch, not for the whole law."""
+    from grounded_rag import documents
+
+    calls = []
+    real = documents.run_model
+
+    async def counting(fn, *args, **kw):
+        calls.append(fn)
+        return await real(fn, *args, **kw)
+
+    monkeypatch.setattr(documents, "run_model", counting)
+    _law(tmp_path, "luat_dai.md", clauses=documents.INDEX_BATCH * 2 + 1)
+    asyncio.run(documents.seed_corpus(tmp_path))
+    assert _get("luat_dai")["chunks"] == documents.INDEX_BATCH * 2 + 1
+    assert len(calls) >= 3

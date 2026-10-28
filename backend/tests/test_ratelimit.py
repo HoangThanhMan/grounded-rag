@@ -55,3 +55,18 @@ def test_forwarded_for_counts_only_behind_a_trusted_proxy(monkeypatch):
     assert client.post("/api/chat", json=body, headers=spoofed).status_code == 429
     monkeypatch.setattr(settings, "trust_proxy", True)
     assert client.post("/api/chat", json=body, headers=spoofed).status_code == 200
+
+
+def test_a_spoofed_first_hop_does_not_buy_a_new_bucket(monkeypatch):
+    """nginx appends the address it saw to whatever X-Forwarded-For the client
+    sent: only the last hop is the proxy's word."""
+    from grounded_rag.config import settings
+
+    monkeypatch.setattr(ratelimit, "limiter", TokenBucketLimiter(1, clock=Clock()))
+    monkeypatch.setattr(settings, "trust_proxy", True)
+    client = TestClient(app)
+    body = {"question": "Thời giờ làm việc?"}
+    assert client.post("/api/chat", json=body,
+                       headers={"X-Forwarded-For": "1.1.1.1, 7.7.7.7"}).status_code == 200
+    again = client.post("/api/chat", json=body, headers={"X-Forwarded-For": "2.2.2.2, 7.7.7.7"})
+    assert again.status_code == 429

@@ -10,6 +10,7 @@ retries.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 import unicodedata
@@ -21,10 +22,15 @@ from grounded_rag.compute import run_model
 from grounded_rag.db.models import Document
 from grounded_rag.db.session import SessionLocal
 from grounded_rag.ingest.loaders import iter_corpus, load_file
-from grounded_rag.ingest.pipeline import ingest_file
+from grounded_rag.ingest.pipeline import chunk_file
+from grounded_rag.retrieval.lexical import tokenize
+from grounded_rag.retrieval.store import get_store
 from grounded_rag.types import DocMeta
 
 log = logging.getLogger("grounded_rag.documents")
+# Chunks embedded per model-pool call. A question asked during an upload
+# waits for one batch - seconds on CPU - not for the whole law.
+INDEX_BATCH = 32
 
 
 def doc_id_for(filename: str) -> str:
@@ -55,12 +61,43 @@ async def index_document(doc_id: str) -> None:
         if doc is None:
             return
         try:
-            doc.chunks = await run_model(ingest_file, Path(doc.path), doc_id, meta_of(doc))
+            doc.chunks = await _index(Path(doc.path), doc_id, meta_of(doc))
             doc.status, doc.error = "ready", None
         except Exception as e:
             log.exception("indexing %s failed", doc_id)
             doc.status, doc.chunks, doc.error = "failed", 0, str(e) or type(e).__name__
         await session.commit()
+
+
+async def _index(path: Path, doc_id: str, meta: DocMeta) -> int:
+    chunks = await run_model(chunk_file, path, doc_id, meta)
+    store = get_store()
+    await run_model(store.delete_document, doc_id)
+    avg_len = sum(len(tokenize(c.text)) for c in chunks) / len(chunks)
+    for i in range(0, len(chunks), INDEX_BATCH):
+        await run_model(store.upsert, chunks[i : i + INDEX_BATCH], avg_len)
+    return len(chunks)
+
+
+async def reindex_missing() -> int:
+    """Index again every document the library lists but the index does not
+    hold, from the file it was indexed from: the mock index lives in the
+    process and is empty after a restart, a first start can be interrupted
+    mid-corpus, a Qdrant volume can be wiped. Returns how many it re-indexed."""
+    store = get_store()
+    async with SessionLocal() as session:
+        docs = (await session.scalars(select(Document))).all()
+        missing = []
+        for doc in docs:
+            if Path(doc.path).is_file() and not await asyncio.to_thread(
+                store.has_document, doc.id
+            ):
+                doc.status, doc.error = "processing", None
+                missing.append(doc.id)
+        await session.commit()
+    for doc_id in missing:
+        await index_document(doc_id)
+    return len(missing)
 
 
 async def seed_corpus(directory: Path) -> int:

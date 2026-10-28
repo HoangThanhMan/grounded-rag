@@ -84,3 +84,19 @@ def test_the_default_store_is_the_structural_index():
     from grounded_rag.retrieval.store import get_store
 
     assert get_store() is get_store("structural")
+
+
+def test_upsert_in_batches_scores_like_one_upsert_given_the_corpus_length(chunks):
+    from grounded_rag.retrieval.lexical import tokenize
+
+    whole = QdrantStore("a", client=qdrant_client.QdrantClient(location=":memory:"),
+                        embedder=HashEmbedder())
+    batched = QdrantStore("b", client=qdrant_client.QdrantClient(location=":memory:"),
+                          embedder=HashEmbedder())
+    whole.upsert(chunks)
+    avg = sum(len(tokenize(c.text)) for c in chunks) / len(chunks)
+    batched.upsert(chunks[:1], avg_len=avg)
+    batched.upsert(chunks[1:], avg_len=avg)
+    q = "nghỉ hằng năm hưởng nguyên lương"
+    assert [round(s, 6) for _, s in whole.sparse_search(q, 5)] == [
+        round(s, 6) for _, s in batched.sparse_search(q, 5)]

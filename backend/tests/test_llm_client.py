@@ -213,3 +213,27 @@ async def test_mock_condense_returns_the_question():
     prompt = build_condense_prompt(history, "Còn hợp đồng xác định thời hạn?")
     res = await MockClient().complete(CONDENSE_SYSTEM_PROMPT, prompt)
     assert res.text == "Còn hợp đồng xác định thời hạn?"
+
+
+@pytest.mark.asyncio
+async def test_a_stream_that_stops_without_finishing_is_unavailable():
+    cut = 'data: {"choices":[{"delta":{"content":"Phải "}}]}\n\n'
+    with pytest.raises(LLMUnavailable, match="ended before"):
+        _ = [t async for t in _client(lambda r: httpx.Response(200, text=cut)).stream("s", "u")]
+
+
+@pytest.mark.asyncio
+async def test_a_finish_reason_without_done_is_a_finished_stream():
+    sse = 'data: {"choices":[{"delta":{"content":"Xong"},"finish_reason":"stop"}]}\n\n'
+    client = _client(lambda r: httpx.Response(200, text=sse))
+    assert "".join([t async for t in client.stream("s", "u")]) == "Xong"
+
+
+@pytest.mark.asyncio
+async def test_a_stream_cut_at_max_tokens_is_logged(caplog):
+    sse = ('data: {"choices":[{"delta":{"content":"Công dân"},"finish_reason":"length"}]}\n\n'
+           "data: [DONE]\n\n")
+    client = _client(lambda r: httpx.Response(200, text=sse))
+    with caplog.at_level("WARNING"):
+        _ = [t async for t in client.stream("s", "u")]
+    assert "max_tokens" in caplog.text

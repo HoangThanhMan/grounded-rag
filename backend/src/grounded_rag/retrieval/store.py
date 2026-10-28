@@ -33,11 +33,12 @@ Hits = list[tuple[Chunk, float]]
 
 
 class VectorStore(Protocol):
-    def upsert(self, chunks: list[Chunk]) -> int: ...
+    def upsert(self, chunks: list[Chunk], avg_len: float | None = None) -> int: ...
     def dense_search(self, query: str, top_k: int, as_of: date | None = None) -> Hits: ...
     def sparse_search(self, query: str, top_k: int, as_of: date | None = None) -> Hits: ...
     def reset(self) -> None: ...
     def delete_document(self, doc_id: str) -> None: ...
+    def has_document(self, doc_id: str) -> bool: ...
     def ping(self) -> None: ...
 
 
@@ -65,10 +66,13 @@ class InMemoryStore:
         for c in chunks:
             self._bm25.add(tokenize(c.text))
 
+    def has_document(self, doc_id: str) -> bool:
+        return any(c.doc_id == doc_id for c in self._chunks)
+
     def ping(self) -> None:
         pass
 
-    def upsert(self, chunks: list[Chunk]) -> int:
+    def upsert(self, chunks: list[Chunk], avg_len: float | None = None) -> int:
         known = {c.chunk_id for c in self._chunks}
         fresh = list({c.chunk_id: c for c in chunks if c.chunk_id not in known}.values())
         if fresh:
@@ -165,10 +169,23 @@ class QdrantStore:
             ),
         )
 
+    def has_document(self, doc_id: str) -> bool:
+        from qdrant_client import models
+
+        if not self.client.collection_exists(self.collection):
+            return False
+        doc = models.FieldCondition(key="doc_id", match=models.MatchValue(value=doc_id))
+        found, _ = self.client.scroll(
+            self.collection, scroll_filter=models.Filter(must=[doc]), limit=1
+        )
+        return bool(found)
+
     def ping(self) -> None:
         self.client.get_collections()
 
-    def upsert(self, chunks: list[Chunk]) -> int:
+    def upsert(self, chunks: list[Chunk], avg_len: float | None = None) -> int:
+        """`avg_len` is the mean token count of the whole document when the
+        caller sends it in batches: BM25 normalises length against it."""
         from qdrant_client import models
 
         self._ensure_collection()
@@ -187,7 +204,8 @@ class QdrantStore:
         fresh = [c for cid, c in unique.items() if ids[cid] not in existing]
 
         # BM25 length normalisation is relative to the whole batch, not the new part.
-        avg_len = sum(len(tokenize(c.text)) for c in unique.values()) / len(unique)
+        if avg_len is None:
+            avg_len = sum(len(tokenize(c.text)) for c in unique.values()) / len(unique)
         now = datetime.now(UTC).isoformat()
         for batch in _batched(fresh, 64):
             dense = self.embedder.encode([c.text for c in batch])

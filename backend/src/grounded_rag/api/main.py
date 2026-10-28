@@ -18,7 +18,7 @@ from grounded_rag.api import errors
 from grounded_rag.api.middleware import RequestContext
 from grounded_rag.api.routes import chat, conversations, documents, health
 from grounded_rag.config import settings
-from grounded_rag.documents import fail_stale_processing, seed_corpus
+from grounded_rag.documents import fail_stale_processing, reindex_missing, seed_corpus
 from grounded_rag.generation.llm_client import get_llm_client
 from grounded_rag.observability import metrics
 
@@ -31,15 +31,22 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     stale = await fail_stale_processing()
     if stale:
         log.warning("%d document(s) were mid-index at the last shutdown, marked failed", stale)
-    seeding = None
-    if settings.auto_seed_dir:
-        seeding = asyncio.create_task(seed_corpus(Path(settings.auto_seed_dir)))
+    indexing = asyncio.create_task(_catch_up())
     yield
-    if seeding is not None:
-        seeding.cancel()
+    indexing.cancel()
     # the provider client keeps a connection pool open for the life of the app
     if close := getattr(get_llm_client(), "aclose", None):
         await close()
+
+
+async def _catch_up() -> None:
+    """After startup, in the background: what the library lists but the index
+    lacks, then whatever the seed directory has that the library does not."""
+    restored = await reindex_missing()
+    if restored:
+        log.info("re-indexed %d document(s) missing from the index", restored)
+    if settings.auto_seed_dir:
+        await seed_corpus(Path(settings.auto_seed_dir))
 
 
 app = FastAPI(

@@ -129,10 +129,10 @@ interactive docs are at `localhost:8000/docs`.
   generator actually made and doubled p95 latency. The cheap checks did the
   work, so they stayed and the model went. That research is kept at the tag
   [`research-v0`](https://github.com/HoangThanhMan/grounded-rag/tree/research-v0).
-- **Background tasks, not a job queue.** Uploads are rare and an admin can
-  retry, so `BackgroundTasks` plus a status column is enough. An index
-  interrupted by a restart is marked failed at startup rather than left
-  "processing".
+- **Background tasks, not a job queue.** Uploads are rare, so
+  `BackgroundTasks` plus a status column is enough. At startup the app
+  re-indexes any document the library lists but the index lacks - an upload
+  cut off by a restart, or a wiped Qdrant volume - from the file it keeps.
 - **No agent framework.** Five steps and one branch read better as one plain
   function.
 

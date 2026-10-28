@@ -11,6 +11,7 @@ from __future__ import annotations
 import asyncio
 import functools
 import json
+import logging
 import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
@@ -19,6 +20,8 @@ from typing import Any, Protocol
 import httpx
 
 from grounded_rag.config import settings
+
+log = logging.getLogger("grounded_rag.llm")
 
 _RETRYABLE = {408, 429, 500, 502, 503, 504}
 _BACKOFF_S = 0.5
@@ -182,15 +185,30 @@ class OpenAICompatClient:
                             break
                         wait = _retry_wait(r, attempt)
                         continue
+                    finish = None
                     async for line in r.aiter_lines():
                         if not line.startswith("data:"):
                             continue
                         payload = line[5:].strip()
                         if payload == "[DONE]":
-                            return
+                            break
                         for choice in json.loads(payload).get("choices") or []:
                             if delta := (choice.get("delta") or {}).get("content"):
                                 yield delta
+                            finish = choice.get("finish_reason") or finish
+                    else:
+                        if finish is None:
+                            # neither [DONE] nor a finish_reason: the connection
+                            # dropped, and what was said is half an answer
+                            raise LLMUnavailable(
+                                f"{self.url} -> stream ended before the answer did"
+                            )
+                    if finish == "length":
+                        log.warning(
+                            "answer cut off at max_tokens=%d. Thinking models spend output "
+                            "tokens on reasoning: raise MAX_TOKENS or set LLM_REASONING_EFFORT.",
+                            max_tokens,
+                        )
                     return
             except httpx.HTTPError as e:
                 raise LLMUnavailable(f"{self.url} -> {type(e).__name__}: {e}") from e

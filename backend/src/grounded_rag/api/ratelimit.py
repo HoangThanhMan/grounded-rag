@@ -59,8 +59,10 @@ limiter = TokenBucketLimiter(settings.rate_limit_per_minute)
 
 
 def client_key(request: Request) -> str:
+    """Behind the proxy, the last X-Forwarded-For hop: the address the proxy
+    itself saw. Hops before it are whatever the client chose to send."""
     if settings.trust_proxy and (forwarded := request.headers.get("x-forwarded-for")):
-        return forwarded.split(",")[0].strip()
+        return forwarded.split(",")[-1].strip()
     return request.client.host if request.client else "unknown"
 
 
