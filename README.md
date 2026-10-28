@@ -93,9 +93,34 @@ flowchart LR
 
 A follow-up is first rewritten as a standalone question. Dense and BM25 results
 are fused with reciprocal rank fusion, and a cross-encoder keeps the best five.
-If the answer fails the citation check although retrieval found good sources,
-a stronger model can try once more. The whole pipeline is one file,
+The whole pipeline is one file,
 [`service.py`](backend/src/grounded_rag/service.py).
+
+### When a model fails
+
+A cheap model answers most questions, and two mechanisms switch to another
+model on their own when it is not enough:
+
+- **Failover** (`LLM_FALLBACKS`). The provider is down, out of quota or keeps
+  timing out. The next model in the list is asked, as long as no token has
+  reached the user yet. The answer is labelled *mô hình dự phòng*.
+- **Cascade** (`LLM_ESCALATION`). Retrieval found relevant clauses, but the
+  answer was refused, cited nothing, or was cut off. A stronger model gets the
+  same prompt and the same sources, once. Its answer goes through the same
+  citation check. A question below the retrieval floor is never escalated,
+  because the stronger model would have nothing more to read.
+
+In the example below, `gemini-3.1-flash-lite` refused a question comparing the
+2014 and 2024 laws, although Điều 85 was among its sources. The UI drops the
+draft and says it is asking again:
+
+![The first answer had no citation, so the app asks a stronger model](assets/cascade-retry.png)
+
+`gemini-3.5-flash` then answers from Điều 85, khoản 2, and says that the 2014
+rule is not in its sources instead of guessing it. The line under the answer
+names the model and why it was asked:
+
+![The stronger model's answer, citing Điều 85, khoản 2, with the model named under it](assets/cascade-answer.png)
 
 Laws are chunked along their own structure, one chunk per khoản (clause).
 Each chunk carries its law, chapter and section. Without that context,
@@ -144,8 +169,9 @@ curl -N -c jar -b jar localhost:8080/api/chat \
 ```
 
 The response is a stream of events: `meta`, then `sources`, then `token`
-repeated, then `done` (or `error`). The cookie jar keeps the conversation for
-follow-up questions.
+repeated, then `done` (or `error`). A `retry` event means the cascade started
+over with the stronger model, and the tokens before it should be discarded.
+The cookie jar keeps the conversation for follow-up questions.
 
 | Endpoint | Description |
 |---|---|
