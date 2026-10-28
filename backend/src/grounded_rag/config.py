@@ -19,61 +19,71 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # mock | ollama | vllm | openai | gemini | anthropic. An unknown value is a
-    # startup error, never a silent fallback to mock.
-    llm_provider: Literal["mock", "ollama", "vllm", "openai", "gemini", "anthropic"] = "mock"
+    # mock runs the whole app with no key and no model weights: a canned LLM,
+    # a hashing embedder and a lexical reranker. An unknown value is a startup
+    # error, never a silent fallback to mock.
+    llm_provider: Literal["mock", "openai"] = "mock"
+    # Any OpenAI-compatible endpoint: Groq, Gemini, Ollama, vLLM, OpenAI.
+    # .env.example has a preset for each.
+    llm_base_url: str = "https://api.groq.com/openai/v1"
+    llm_api_key: str = ""
     llm_model: str = "mock-model"
     llm_timeout_s: float = 60.0
     llm_max_retries: int = 2
-    # Sent as `reasoning_effort` to OpenAI-compatible providers when set
-    # ("none", "low", ...). Thinking tokens count against max_tokens.
+    # Sent as `reasoning_effort` when set ("none", "low", ...). Thinking
+    # tokens count against max_tokens.
     llm_reasoning_effort: str = ""
-    # USD per million tokens, so meta.cost_usd means something for paid APIs
-    llm_input_usd_per_mtok: float = 0.0
-    llm_output_usd_per_mtok: float = 0.0
-
-    ollama_base_url: str = "http://localhost:11434"
-    vllm_base_url: str = "http://localhost:8001/v1"
-    vllm_api_key: str = "EMPTY"
-    openai_base_url: str = "https://api.openai.com/v1"
-    openai_api_key: str = ""
-    gemini_api_key: str = ""
-    anthropic_api_key: str = ""
-    # Opus 4.7+ reject `temperature` outright, Sonnet 5.x / Haiku 5.5 reject
-    # non-default values: true only for a model that still accepts it.
-    anthropic_send_temperature: bool = False
+    temperature: float = 0.0
+    max_tokens: int = 512
+    # Earlier question/answer pairs used to rewrite a follow-up question
+    history_turns: int = Field(default=3, ge=0)
 
     # ":memory:" runs Qdrant's embedded mode - the real code path, no server
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "grounded_rag"
-
     embedding_model: str = "BAAI/bge-m3"
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
-    nli_model: str = "MoritzLaurer/mDeBERTa-v3-base-xnli-multilingual-nli-2mil7"
-    # Model calls (embed, rerank, NLI) running at once - see compute.py. Each
+    # Model calls (embed, rerank) running at once - see compute.py. Each
     # already uses every core through torch's intra-op threads, so 1 is right
     # on a CPU box; more only helps with spare cores and a smaller torch pool.
     model_workers: int = Field(default=1, ge=1)
-    # (premise, claim) pairs the NLI verifier remembers. A regeneration
-    # re-checks most of the same pairs; an unbounded cache is a leak.
-    nli_cache_size: int = Field(default=4096, ge=0)
-    # Evaluation only: store each search() result on disk so configurations
-    # with the same retrieval reuse it (retrieval/cache.py). Empty = off.
-    retrieval_cache_dir: str = ""
-    retrieval_cache_corpus: str = "data/corpus"
 
-    # Threshold of the NLI *measuring instrument* in eval/run.py. The guard's
-    # own threshold lives in configs/*.yaml.
-    entailment_threshold: float = 0.50
+    database_url: str = "sqlite+aiosqlite:///./data/app.db"
+    upload_dir: Path = Path("data/uploads")
+    max_upload_mb: int = 10
+    # Indexed at startup, file by file, when the document table does not know
+    # them yet: what makes `docker compose up` answer questions on first run.
+    auto_seed_dir: str = ""
 
-    # POST /ingest reads directories on the server, so it is an admin call:
-    # off until a key is set, and only below data_root even then.
+    # Requests per minute per client on /api/chat; 0 turns the limit off
+    rate_limit_per_minute: int = Field(default=20, ge=0)
+    # Behind nginx the client address is the first X-Forwarded-For hop.
+    # Off by default: trusted from anyone else, the header is a free bypass.
+    trust_proxy: bool = False
+    # Document upload and delete are off until a key is set
     admin_api_key: str = ""
-    data_root: Path = Path("data")
+    cors_origins: list[str] = Field(default_factory=list)
 
-    langfuse_public_key: str = ""
-    langfuse_secret_key: str = ""
-    langfuse_host: str = "http://localhost:3000"
+
+class RetrievalOptions(BaseModel):
+    """How a question is turned into sources. The app runs the defaults; the
+    evaluation also runs a naive RAG through the same code by switching the
+    legal-specific parts off."""
+
+    chunker: Literal["recursive", "structural"] = "structural"
+    hybrid: bool = True             # dense + BM25; false = dense only
+    rerank: bool = True
+    top_k_dense: int = 20
+    top_k_sparse: int = 20
+    rerank_candidates: int = 20     # fused list is cut here before the cross-encoder
+    top_n: int = 5
+    # Below this rerank score a source is dropped; no source left means no
+    # LLM call. None = no floor.
+    min_score: float | None = 0.30
+
+
+def retrieval_options() -> RetrievalOptions:
+    return RetrievalOptions()
 
 
 class RetrievalConfig(BaseModel):

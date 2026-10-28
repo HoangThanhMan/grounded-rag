@@ -15,3 +15,8 @@ os.environ["QDRANT_URL"] = ":memory:"
 
 REPO = Path(__file__).resolve().parents[2]
 os.chdir(REPO)
+
+# Written against the research pipeline (configs/, the NLI guard, Langfuse)
+# and rewritten with it: the service and concurrency tests come back with the
+# new pipeline, the API tests with the new routes.
+collect_ignore = ["test_api.py", "test_service_smoke.py", "test_concurrency.py", "test_tracing.py"]

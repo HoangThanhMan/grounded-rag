@@ -1,12 +1,9 @@
-"""One interface, several providers.
+"""One client for every provider.
 
-Swapping provider is a config change, not a code change - which is what
-makes "we ran out of free tier" a five-minute problem instead of a rewrite.
-
-vLLM, Ollama, Gemini's compatibility endpoint and OpenAI all speak the OpenAI
-chat-completions protocol, so one client covers them and each provider is only
-a preset (base URL + key). Anthropic gets its own small client. Both talk
-plain HTTP through httpx - no SDKs, so the protocol stays visible.
+Groq, Gemini's compatibility endpoint, Ollama, vLLM and OpenAI all speak the
+OpenAI chat-completions protocol, so swapping provider is a base URL and a key
+in .env - "we ran out of free tier" is a five-minute problem, not a rewrite.
+Plain HTTP through httpx, no SDK, so the protocol stays visible.
 """
 
 from __future__ import annotations
@@ -23,8 +20,6 @@ import httpx
 
 from grounded_rag.config import settings
 
-GEMINI_OPENAI_URL = "https://generativelanguage.googleapis.com/v1beta/openai"
-ANTHROPIC_URL = "https://api.anthropic.com/v1/messages"
 _RETRYABLE = {408, 429, 500, 502, 503, 504}
 _BACKOFF_S = 0.5
 # 5xx means the provider is overloaded, not that we asked too fast: backing off
@@ -41,16 +36,10 @@ class LLMUnavailable(RuntimeError):
     """The provider failed after retries. The API turns this into a 503."""
 
 
-class BudgetExceeded(RuntimeError):
-    """More LLM calls than RunConfig.max_llm_calls. The loops check the budget
-    before calling, so this should never fire - which is why it is an error."""
-
-
 @dataclass
 class LLMResponse:
     text: str
     tokens: int = 0
-    cost_usd: float = 0.0
     # The provider stopped at max_tokens: the text is unfinished. Thinking
     # models spend output tokens on reasoning first, so this happens with
     # budgets that look generous - and a cut-off sentence has no citation.
@@ -177,105 +166,38 @@ class OpenAICompatClient:
     async def stream(
         self, system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 512
     ) -> AsyncIterator[str]:
+        """The answer token by token. A rate limit or an overloaded server is
+        retried like `complete` does - but only before the first token: once
+        text has reached the user, a retry would repeat it."""
         body = {**self._body(system, user, temperature, max_tokens), "stream": True}
-        try:
-            async with self._http.get().stream(
-                "POST", self.url, json=body, headers=self.headers
-            ) as r:
-                if r.status_code >= 400:
-                    raise LLMUnavailable(f"{self.url} -> HTTP {r.status_code}")
-                async for line in r.aiter_lines():
-                    if not line.startswith("data:"):
+        error, wait = "no attempt made", 0.0
+        for attempt in range(self.retries + 1):
+            if attempt:
+                await _sleep(wait)
+            try:
+                async with self._http.get().stream(
+                    "POST", self.url, json=body, headers=self.headers
+                ) as r:
+                    if r.status_code >= 400:
+                        text = (await r.aread()).decode(errors="replace")
+                        error = f"HTTP {r.status_code}: {text[:200]}"
+                        if r.status_code not in _RETRYABLE:
+                            break
+                        wait = _retry_wait(r, attempt)
                         continue
-                    payload = line[5:].strip()
-                    if payload == "[DONE]":
-                        return
-                    for choice in json.loads(payload).get("choices") or []:
-                        if delta := (choice.get("delta") or {}).get("content"):
-                            yield delta
-        except httpx.HTTPError as e:
-            raise LLMUnavailable(f"{self.url} -> {type(e).__name__}: {e}") from e
-
-
-class AnthropicClient:
-    """POST /v1/messages.
-
-    `temperature` is dropped unless `send_temperature` is set: Opus 4.7 and
-    later answer 400 to any value, Sonnet 5 / 5.5 and Haiku 5.5 to anything
-    but the default. Set it only for a model that still takes one (the 4.5 /
-    4.6 line), where it is what makes a benchmark run repeatable."""
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str,
-        *,
-        send_temperature: bool = False,
-        timeout: float | None = None,
-        retries: int | None = None,
-        transport: httpx.AsyncBaseTransport | None = None,
-    ) -> None:
-        self.headers = {"x-api-key": api_key, "anthropic-version": "2023-06-01"}
-        self.model = model
-        self.send_temperature = send_temperature
-        self.timeout = timeout or settings.llm_timeout_s
-        self.retries = settings.llm_max_retries if retries is None else retries
-        self._http = _ConnectionPool(self.timeout, transport)
-
-    async def aclose(self) -> None:
-        await self._http.aclose()
-
-    async def complete(
-        self, system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 512
-    ) -> LLMResponse:
-        body: dict[str, Any] = {
-            "model": self.model,
-            "max_tokens": max_tokens,
-            "system": system,
-            "messages": [{"role": "user", "content": user}],
-        }
-        if self.send_temperature:
-            body["temperature"] = temperature
-        data = await _post_json(self._http.get(), ANTHROPIC_URL, body, self.headers, self.retries)
-        blocks = data.get("content") or []
-        text = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
-        usage = data.get("usage") or {}
-        return _response(
-            text,
-            usage.get("input_tokens", 0),
-            usage.get("output_tokens", 0),
-            truncated=data.get("stop_reason") == "max_tokens",
-        )
-
-    async def stream(self, system: str, user: str, **kw) -> AsyncIterator[str]:
-        # Answers are verified before anything is streamed, so
-        # token-level streaming from the provider is never on the answer path.
-        yield (await self.complete(system, user, **kw)).text
-
-
-class MeteredLLM:
-    """Wraps the client for one question: enforces the call budget and adds up
-    tokens and cost over every call - planner, generation, regeneration."""
-
-    def __init__(self, client: LLMClient, max_calls: int) -> None:
-        self.client = client
-        self.max_calls = max_calls
-        self.calls = 0
-        self.tokens = 0
-        self.cost_usd = 0.0
-
-    @property
-    def left(self) -> int:
-        return self.max_calls - self.calls
-
-    async def complete(self, system: str, user: str, **kw) -> LLMResponse:
-        if self.left <= 0:
-            raise BudgetExceeded(f"already made {self.max_calls} LLM calls for this question")
-        self.calls += 1
-        res = await self.client.complete(system, user, **kw)
-        self.tokens += res.tokens
-        self.cost_usd += res.cost_usd
-        return res
+                    async for line in r.aiter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        payload = line[5:].strip()
+                        if payload == "[DONE]":
+                            return
+                        for choice in json.loads(payload).get("choices") or []:
+                            if delta := (choice.get("delta") or {}).get("content"):
+                                yield delta
+                    return
+            except httpx.HTTPError as e:
+                raise LLMUnavailable(f"{self.url} -> {type(e).__name__}: {e}") from e
+        raise LLMUnavailable(f"{self.url} -> {error}")
 
 
 async def _post_json(
@@ -324,35 +246,16 @@ def _retry_wait(r: httpx.Response, attempt: int) -> float:
 def _response(
     text: str, input_tokens: int, output_tokens: int, *, truncated: bool = False
 ) -> LLMResponse:
-    cost = (
-        input_tokens * settings.llm_input_usd_per_mtok
-        + output_tokens * settings.llm_output_usd_per_mtok
-    ) / 1_000_000
-    return LLMResponse(
-        text=text.strip(),
-        tokens=input_tokens + output_tokens,
-        cost_usd=cost,
-        truncated=truncated,
-    )
+    return LLMResponse(text=text.strip(), tokens=input_tokens + output_tokens, truncated=truncated)
 
 
 @functools.lru_cache(maxsize=1)
 def get_llm_client() -> LLMClient:
-    provider = settings.llm_provider
-    if provider == "mock":
+    if settings.llm_provider == "mock":
         return MockClient()
-    if provider == "anthropic":
-        return AnthropicClient(
-            settings.anthropic_api_key,
-            settings.llm_model,
-            send_temperature=settings.anthropic_send_temperature,
-        )
-    base_url, key = {
-        "ollama": (f"{settings.ollama_base_url.rstrip('/')}/v1", ""),
-        "vllm": (settings.vllm_base_url, settings.vllm_api_key),
-        "openai": (settings.openai_base_url, settings.openai_api_key),
-        "gemini": (GEMINI_OPENAI_URL, settings.gemini_api_key),
-    }[provider]
     return OpenAICompatClient(
-        base_url, key, settings.llm_model, reasoning_effort=settings.llm_reasoning_effort
+        settings.llm_base_url,
+        settings.llm_api_key,
+        settings.llm_model,
+        reasoning_effort=settings.llm_reasoning_effort,
     )

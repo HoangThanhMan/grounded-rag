@@ -1,4 +1,4 @@
-"""Provider clients against httpx.MockTransport: the request each one sends,
+"""The provider client against httpx.MockTransport: the request each one sends,
 the response each one parses, and how failures surface."""
 
 import json
@@ -9,19 +9,13 @@ from pydantic import ValidationError
 
 from grounded_rag.config import Settings
 from grounded_rag.generation import llm_client
-from grounded_rag.generation.llm_client import (
-    AnthropicClient,
-    BudgetExceeded,
-    LLMResponse,
-    LLMUnavailable,
-    MeteredLLM,
-    OpenAICompatClient,
-)
+from grounded_rag.generation.llm_client import LLMUnavailable, OpenAICompatClient
 
 
 @pytest.fixture(autouse=True)
 def no_backoff(monkeypatch):
     monkeypatch.setattr(llm_client, "_BACKOFF_S", 0.0)
+    monkeypatch.setattr(llm_client, "_SERVER_BACKOFF_S", 0.0)
 
 
 def _reply(text="Phải báo trước 45 ngày [C1].", prompt_tokens=100, completion_tokens=12):
@@ -130,15 +124,6 @@ async def test_connection_errors_surface_as_unavailable():
 
 
 @pytest.mark.asyncio
-async def test_cost_comes_from_token_prices(monkeypatch):
-    monkeypatch.setattr(llm_client.settings, "llm_input_usd_per_mtok", 1.0)
-    monkeypatch.setattr(llm_client.settings, "llm_output_usd_per_mtok", 4.0)
-    reply = _reply(prompt_tokens=1000, completion_tokens=500)
-    res = await _client(lambda r: httpx.Response(200, json=reply)).complete("s", "u")
-    assert res.cost_usd == pytest.approx((1000 * 1.0 + 500 * 4.0) / 1_000_000)
-
-
-@pytest.mark.asyncio
 async def test_stream_yields_the_deltas():
     sse = (
         'data: {"choices":[{"delta":{"content":"Phải "}}]}\n\n'
@@ -150,36 +135,49 @@ async def test_stream_yields_the_deltas():
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_request_and_response():
-    seen = {}
+async def test_stream_retries_a_429_before_the_first_token():
+    sse = (
+        'data: {"choices":[{"delta":{"content":"Xin "}}]}\n\n'
+        'data: {"choices":[{"delta":{"content":"chào"}}]}\n\n'
+        "data: [DONE]\n\n"
+    )
+    calls = []
 
-    def handler(request: httpx.Request) -> httpx.Response:
-        seen.update(key=request.headers["x-api-key"], body=json.loads(request.content))
-        return httpx.Response(200, json={
-            "content": [{"type": "text", "text": "Có [C1]."}],
-            "usage": {"input_tokens": 50, "output_tokens": 5},
-        })
+    def handler(request):
+        calls.append(request)
+        if len(calls) == 1:
+            return httpx.Response(429, headers={"retry-after": "0"})
+        return httpx.Response(200, text=sse)
 
-    client = AnthropicClient("key", "model", transport=httpx.MockTransport(handler), retries=0)
-    res = await client.complete("sys", "user")
-    assert seen["key"] == "key"
-    assert seen["body"]["system"] == "sys"
-    assert seen["body"]["messages"] == [{"role": "user", "content": "user"}]
-    assert (res.text, res.tokens) == ("Có [C1].", 55)
+    client = _client(handler, retries=2)
+    assert "".join([t async for t in client.stream("s", "u")]) == "Xin chào"
+    assert len(calls) == 2
 
 
 @pytest.mark.asyncio
-async def test_the_call_budget_is_a_hard_ceiling():
-    class Echo:
-        async def complete(self, system, user, **kw):
-            return LLMResponse(text="x", tokens=3, cost_usd=0.01)
+async def test_stream_raises_unavailable_after_retries():
+    calls = []
 
-    llm = MeteredLLM(Echo(), 2)
-    await llm.complete("s", "u")
-    await llm.complete("s", "u")
-    assert (llm.calls, llm.tokens, llm.left) == (2, 6, 0)
-    with pytest.raises(BudgetExceeded):
-        await llm.complete("s", "u")
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(503)
+
+    with pytest.raises(LLMUnavailable, match="503"):
+        _ = [t async for t in _client(handler, retries=2).stream("s", "u")]
+    assert len(calls) == 3
+
+
+@pytest.mark.asyncio
+async def test_stream_does_not_retry_a_client_error():
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(401, text="invalid key")
+
+    with pytest.raises(LLMUnavailable, match="401"):
+        _ = [t async for t in _client(handler, retries=2).stream("s", "u")]
+    assert len(calls) == 1
 
 
 def test_a_misspelt_provider_is_a_startup_error_not_a_silent_mock():
@@ -187,29 +185,10 @@ def test_a_misspelt_provider_is_a_startup_error_not_a_silent_mock():
         Settings(llm_provider="antropic")
 
 
-def _anthropic(seen: dict, **kw) -> AnthropicClient:
-    def handler(request: httpx.Request) -> httpx.Response:
-        seen["body"] = json.loads(request.content)
-        return httpx.Response(200, json={"content": [{"type": "text", "text": "Có [C1]."}]})
-
-    return AnthropicClient("key", "model", transport=httpx.MockTransport(handler), retries=0, **kw)
-
-
-@pytest.mark.asyncio
-async def test_anthropic_sends_no_temperature_unless_told_to():
-    # Opus 4.7 and later reject `temperature` with a 400 whatever its value;
-    # the pipeline asks for 0.0 everywhere, so passing it through breaks them.
-    seen: dict = {}
-    await _anthropic(seen).complete("sys", "user", temperature=0.0, max_tokens=64)
-    assert "temperature" not in seen["body"]
-    assert seen["body"]["max_tokens"] == 64
-
-
-@pytest.mark.asyncio
-async def test_anthropic_sends_temperature_for_models_that_still_take_it():
-    seen: dict = {}
-    await _anthropic(seen, send_temperature=True).complete("sys", "user", temperature=0.0)
-    assert seen["body"]["temperature"] == 0.0
+def test_a_dropped_provider_is_a_startup_error():
+    # one OpenAI-compatible client now covers Gemini, Groq and Ollama
+    with pytest.raises(ValidationError):
+        Settings(llm_provider="gemini")
 
 
 @pytest.mark.asyncio
