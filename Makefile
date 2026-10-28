@@ -1,4 +1,4 @@
-.PHONY: python install up down dev-api dev-web test lint fmt ingest eval
+.PHONY: python install lock up down dev-api dev-web test lint fmt ingest eval
 
 PORT ?= 8000
 
@@ -15,6 +15,11 @@ endif
 install:      ## backend with the models, frontend packages
 	$(PY) -m pip install -e "backend[models,obs,dev]"
 	cd frontend && npm ci
+
+lock:         ## pin the image's Python dependencies (needs uv)
+	cd backend && uv pip compile pyproject.toml --extra models --extra obs \
+	  --python-version 3.12 --python-platform x86_64-manylinux_2_28 --torch-backend cpu \
+	  --no-header -o requirements.lock
 
 up:           ## the whole app in containers -> http://localhost:8080
 	docker compose up -d --build
