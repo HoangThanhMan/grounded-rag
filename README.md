@@ -97,9 +97,12 @@ Before putting it on a server:
 - Set `POSTGRES_PASSWORD` and `ADMIN_API_KEY` in `.env` **before the first
   `up`**. Postgres keeps the password it was created with, so changing it later
   means changing it inside the database too.
-- Put TLS in front of port 8080, then set `COOKIE_SECURE=true`, and set
-  `REAL_IP_FROM` to the proxy's address so the rate limit sees real clients
-  (for a proxy on the same host, the Docker network: `172.16.0.0/12`).
+- Put TLS in front of port 8080 (Caddy, nginx, a load balancer) and set
+  `COOKIE_SECURE=true`. With the proxy on the same host, set
+  `WEB_BIND=127.0.0.1:8080` so clients cannot skip it, and `REAL_IP_FROM` to
+  the one address the proxy reaches nginx from - the Docker network's gateway,
+  `docker network inspect grounded-rag_default -f '{{(index .IPAM.Config 0).Gateway}}'`
+  - so the rate limit sees real clients. Trust that address only, not a range.
 - Give the machine ~6 GB of RAM for the two models.
 
 Every setting, with its default, is in [`.env.example`](.env.example).
@@ -121,9 +124,13 @@ to the API), `make test`, `make lint`.
 | GET | `/metrics` | Prometheus; on the API port (127.0.0.1:8000) only, not through nginx |
 
 ```bash
-curl -N localhost:8080/api/chat -H 'content-type: application/json' \
+curl -N -c jar -b jar localhost:8080/api/chat -H 'content-type: application/json' \
   -d '{"question": "Nghỉ việc phải báo trước bao nhiêu ngày?"}'
 ```
+
+Conversations belong to the browser - the cookie - that started them, so a
+script that asks follow-ups (`"conversation_id": "…"`) keeps its cookie jar
+(`-c jar -b jar`).
 
 Every error has one shape, `{"error": {"code", "message", "request_id"}}`, and
 the request id matches the `X-Request-ID` header and the request's JSON log

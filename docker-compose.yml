@@ -8,10 +8,11 @@ services:
   web:
     build: ./frontend
     restart: unless-stopped
-    ports: ["8080:80"]
+    # Behind a TLS proxy on this host, set WEB_BIND=127.0.0.1:8080 so nothing
+    # reaches nginx except through that proxy.
+    ports: ["${WEB_BIND:-8080}:80"]
     environment:
-      # the TLS proxy in front, if any; on this same host that is the docker
-      # network gateway, e.g. 172.16.0.0/12
+      # the one address X-Forwarded-For is believed from: the TLS proxy in front
       REAL_IP_FROM: ${REAL_IP_FROM:-127.0.0.1}
     depends_on:
       api: {condition: service_healthy}

@@ -33,13 +33,31 @@ async function fail(r: Response): Promise<never> {
   throw new ApiError(r.status, code, message, Number.isFinite(retry) && retry > 0 ? retry : undefined);
 }
 
+// The server hands each browser its history cookie on the first request.
+// Requests sent alongside that first one would each be handed a different
+// cookie - and a conversation started under the losing one would vanish from
+// the sidebar. So one request goes first and every other call waits for it.
+let session: Promise<void> | null = null;
+
+function ready(): Promise<void> {
+  session ??= fetch("/healthz").then(
+    () => undefined,
+    () => {
+      session = null; // offline: let the next call try again
+    },
+  );
+  return session;
+}
+
 async function json<T>(path: string, init?: RequestInit): Promise<T> {
+  await ready();
   const r = await fetch(path, init);
   if (!r.ok) await fail(r);
   return r.json() as Promise<T>;
 }
 
 async function empty(path: string, init?: RequestInit): Promise<void> {
+  await ready();
   const r = await fetch(path, init);
   if (!r.ok) await fail(r);
 }
@@ -55,6 +73,7 @@ export async function streamChat(
   onEvent: (e: ChatEvent) => void,
   signal?: AbortSignal,
 ): Promise<void> {
+  await ready();
   const r = await fetch("/api/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },

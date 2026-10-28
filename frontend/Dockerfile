@@ -6,6 +6,8 @@ COPY . .
 RUN npm run build
 
 FROM nginx:1.27-alpine
+# outside compose too: trust no proxy unless told which one
+ENV REAL_IP_FROM=127.0.0.1
 # rendered to /etc/nginx/conf.d/default.conf by the image entrypoint (envsubst)
 COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY security-headers.conf /etc/nginx/security-headers.conf
