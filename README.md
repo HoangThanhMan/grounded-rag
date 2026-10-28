@@ -2,178 +2,249 @@
 
 [![ci](https://github.com/HoangThanhMan/grounded-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThanhMan/grounded-rag/actions/workflows/ci.yml)
 
-**Ask about Vietnamese labour and social-insurance law; every answer cites the clause it rests on, and the app says so when the law has no answer.**
+Vietnamese labour-law Q&A that cites the clause behind every answer and refuses when the law is silent.
 
-![Asking about working hours: the answer cites Điều 105, khoản 1, and the clause opens beside it](assets/ui.png)
+![The answer cites Điều 105, khoản 1, and the clause opens beside it](assets/ui.png)
 
-## What it does
+## Table of contents
 
-- **Cites the clause.** An answer is shown only if it cites a clause it was
-  given; click a citation and the clause opens beside the answer with its law
-  and effective date.
-- **Refuses instead of guessing.** If nothing in the library is relevant enough,
-  or the model cannot tie its answer to a clause, the user sees "not found"
-  rather than a plausible invention.
-- **Reads the law as of a date.** The 2014 and 2024 Social Insurance Laws are
-  both in the library. Ask "as of 01/01/2025" and only clauses in force that day
-  are searched.
-- **Is a whole app.** Streaming answers, follow-up questions, a private
-  conversation history per browser (an anonymous cookie, no sign-up),
-  👍/👎 feedback, and a document library where an admin uploads a law
-  (`.md` or `.pdf`) and watches it being indexed.
+- [About](#about)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Evaluation](#evaluation)
+- [Development](#development)
+- [Project status](#project-status)
+- [Limitations](#limitations)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
 
-Corpus: Bộ luật Lao động 2019, Luật Bảo hiểm xã hội 2014 and 2024, from the
-official gazette (Công báo).
+## About
+
+When an answer about the law sounds right but is invented, it does more harm
+than no answer at all. This app answers questions about Vietnamese labour and
+social-insurance law in one of two ways: with an answer tied to the exact
+clause it comes from, or with a plain "not found".
+
+- **Cited answers.** An answer is shown only if it cites a clause that was
+  retrieved for it. Click a citation and the clause opens with its law and
+  effective date.
+- **Refusal over invention.** If no clause is relevant enough, the LLM is not
+  called at all. The same applies when the answer cites nothing it was given.
+- **The law as of a date.** Only clauses in force on the chosen day are
+  searched, so the 2014 and 2024 Social Insurance Laws never mix.
+- **A complete web app.** Answers stream in, and follow-up questions work. Each
+  browser keeps its own history, with no sign-up, and can rate answers 👍/👎.
+  An admin can upload new laws.
+
+The library holds Bộ luật Lao động 2019 and Luật Bảo hiểm xã hội 2014 and
+2024, split into 1,375 clause-level chunks.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    U[Browser] --> W["web<br/>React + Vite, served by nginx"]
-    W -- "/api (SSE for answers)" --> A["api<br/>FastAPI"]
-    A --> P["RAG pipeline"]
-    A -. "background task" .-> I["Ingest<br/>parse → chunk → embed"]
-    A --> D[("Postgres<br/>conversations · messages<br/>feedback · documents")]
-    P --> L["LLM<br/>any OpenAI-compatible API"]
-    P --> M["bge-m3 · bge-reranker-v2-m3<br/>in-process, CPU"]
+    B["Browser<br/>React + TypeScript"]
+    N["nginx<br/>static UI · /api proxy"]
+    subgraph api["api container"]
+        F["FastAPI<br/>routes · rate limit"]
+        P["RAG pipeline"]
+        I["Indexer<br/>background task"]
+        M["bge-m3<br/>bge-reranker-v2-m3"]
+    end
+    PG[("Postgres<br/>history · documents")]
+    Q[("Qdrant<br/>dense + BM25")]
+    L["LLM API<br/>OpenAI-compatible"]
+
+    B -- "HTTPS · SSE" --> N
+    N -- "/api" --> F
+    F --> PG
+    F --> P
+    F -. "upload" .-> I
+    P --> M
     I --> M
-    P --> Q[("Qdrant<br/>dense + BM25 vectors")]
+    P --> L
+    P --> Q
     I --> Q
 ```
 
-Four containers in [`docker-compose.yml`](docker-compose.yml). nginx serves the
-built UI and forwards `/api` to FastAPI, so the browser sees one origin. FastAPI
-answers questions, stores every conversation in Postgres (SQLAlchemy +
-Alembic), and indexes uploaded laws after the upload request has returned. The
-embedding and reranking models run inside the API process on a bounded thread
-pool, so they never block the event loop.
+| Component | Technology | Role |
+|---|---|---|
+| Web | React, Vite, nginx | Serves the UI and proxies `/api` from the same origin |
+| API | FastAPI, SQLAlchemy (async), Alembic | Streams answers over server-sent events, stores history, indexes uploads |
+| Models | bge-m3, bge-reranker-v2-m3 on CPU | Embedding and reranking, run in a thread pool off the event loop |
+| Storage | Postgres, Qdrant | Conversations and the document library; clause vectors with dates |
+| LLM | Any OpenAI-compatible API | Gemini, Groq, Ollama or vLLM, with optional fallback models |
 
 ### How a question is answered
 
 ```mermaid
 flowchart LR
-    Q[Question] --> F{Follow-up?}
-    F -- yes --> C["LLM rewrites it<br/>as a standalone question"] --> R
-    F -- no --> R["Hybrid search<br/>bge-m3 + BM25 → RRF<br/>only clauses in force on the date"]
-    R --> K[Rerank top 20 → 5]
-    K --> T{"best score ≥ 0.30?"}
-    T -- no --> X["Not found<br/>(no LLM call)"]
-    T -- yes --> G["LLM streams the answer<br/>citing [C1]…[C5]"]
-    G --> V{"cites a clause<br/>it was given?"}
-    V -- no --> X
+    Q[Question] --> R["Hybrid search<br/>bge-m3 + BM25<br/>in force on the date"]
+    R --> K["Rerank<br/>top 20 → 5"]
+    K --> T{"Score ≥ floor?"}
+    T -- no --> X["Not found"]
+    T -- yes --> G["LLM streams<br/>a cited answer"]
+    G --> V{"Valid citation?"}
     V -- yes --> A["Answer + clauses"]
+    V -- no --> X
 ```
 
-The pipeline is one file, [`service.py`](backend/src/grounded_rag/service.py),
-top to bottom. Laws are chunked along their own structure, one chunk per
-*khoản* (clause) carrying its *Điều* (article) heading, so a citation lands on
-a real clause ([`chunkers.py`](backend/src/grounded_rag/ingest/chunkers.py)).
+A follow-up is first rewritten as a standalone question. Dense and BM25 results
+are fused with reciprocal rank fusion, and a cross-encoder keeps the best five.
+If the answer fails the citation check although retrieval found good sources,
+a stronger model can try once more. The whole pipeline is one file,
+[`service.py`](backend/src/grounded_rag/service.py).
 
-## Evaluation
+Laws are chunked along their own structure, one chunk per khoản (clause).
+Each chunk carries its law, chapter and section. Without that context,
+Điều 95 of the 2024 law, which pays 2,000,000 đồng per child under *voluntary*
+insurance only, reads like every worker's entitlement.
 
-One question, measured once: **compared with a naive RAG, does the app cite
-the right clause, and does it refuse when the law says nothing?** 100 test
-questions, 60 answerable and 40 not. The same LLM and prompt for both systems.
-Scoring is automatic. Method and limits: [`eval/README.md`](eval/README.md).
+## Getting started
 
-> Results pending: run `make ingest && make eval` (needs an LLM key in `.env`)
-> and the table from `eval/results/summary.md` goes here.
+### Requirements
 
-## Run it
+- Docker with Compose
+- To use the real models: about 6 GB of RAM and 7 GB of disk
+- An API key for an OpenAI-compatible LLM; Gemini and Groq have free tiers
+
+### Run with Docker
 
 ```bash
-cp .env.example .env          # optional: pick an LLM preset (Groq, Gemini, Ollama)
-docker compose up --build     # → http://localhost:8080
+git clone https://github.com/HoangThanhMan/grounded-rag.git
+cd grounded-rag
+cp .env.example .env    # uncomment one LLM preset and set ADMIN_API_KEY
+docker compose up --build -d
 ```
 
-Without a key the app runs on the `mock` provider: every page works and
-answers are canned echoes of the top clause. The first start indexes the three
-laws in `data/corpus/`; with real models that downloads bge-m3 and the reranker
-(~4.6 GB) and takes a few minutes on CPU. Set `ADMIN_API_KEY` in `.env` to
-upload or delete documents.
+Open http://localhost:8080. The first start downloads the models and indexes
+the three laws, which takes a few minutes on CPU. Follow it with
+`docker compose logs -f api`.
 
-Before putting it on a server:
+Without an LLM key the app runs in mock mode: every page works, but the
+answers are canned. This is enough to look around the UI.
 
-- Set `POSTGRES_PASSWORD` and `ADMIN_API_KEY` in `.env` **before the first
-  `up`**. Postgres keeps the password it was created with, so changing it later
-  means changing it inside the database too.
-- Put TLS in front of port 8080 (Caddy, nginx, a load balancer) and set
-  `COOKIE_SECURE=true`. With the proxy on the same host, set
-  `WEB_BIND=127.0.0.1:8080` so clients cannot skip it, and `REAL_IP_FROM` to
-  the one address the proxy reaches nginx from - the Docker network's gateway,
-  `docker network inspect grounded-rag_default -f '{{(index .IPAM.Config 0).Gateway}}'`
-  - so the rate limit sees real clients. Trust that address only, not a range.
-- Give the machine ~6 GB of RAM for the two models.
+## Usage
 
-Every setting, with its default, is in [`.env.example`](.env.example).
+- **Ask.** Type a question in Vietnamese. Pick a date to read the law as of
+  that day.
+- **Check the source.** Click a citation number to open the clause beside the
+  answer.
+- **Manage documents.** On the *Văn bản* page, enter the admin key to upload a
+  `.md` or `.pdf` law and watch it being indexed.
 
-For development: `make dev-api` and `make dev-web` (Vite on :5173 with a proxy
-to the API), `make test`, `make lint`.
-
-## API
-
-| Method | Path | |
-|---|---|---|
-| POST | `/api/chat` | Answer a question. Server-sent events: `meta` → `sources` → `token`… → `done` (or `error`) |
-| GET | `/api/conversations` · `/api/conversations/{id}` | History, with sources and feedback |
-| DELETE | `/api/conversations/{id}` | |
-| PUT | `/api/messages/{id}/feedback` | `{"rating": "up" \| "down"}` |
-| GET | `/api/documents` | The library and each law's indexing status |
-| POST · DELETE | `/api/documents` · `/api/documents/{id}` | Admin (`X-API-Key`): upload a `.md`/`.pdf`, remove a law |
-| GET | `/healthz` · `/readyz` | Alive · Qdrant and Postgres reachable |
-| GET | `/metrics` | Prometheus; on the API port (127.0.0.1:8000) only, not through nginx |
+The same works over HTTP:
 
 ```bash
-curl -N -c jar -b jar localhost:8080/api/chat -H 'content-type: application/json' \
+curl -N -c jar -b jar localhost:8080/api/chat \
+  -H 'content-type: application/json' \
   -d '{"question": "Nghỉ việc phải báo trước bao nhiêu ngày?"}'
 ```
 
-Conversations belong to the browser - the cookie - that started them, so a
-script that asks follow-ups (`"conversation_id": "…"`) keeps its cookie jar
-(`-c jar -b jar`).
+The response is a stream of events: `meta`, then `sources`, then `token`
+repeated, then `done` (or `error`). The cookie jar keeps the conversation for
+follow-up questions.
 
-Every error has one shape, `{"error": {"code", "message", "request_id"}}`, and
-the request id matches the `X-Request-ID` header and the request's JSON log
-line. `/api/chat` is rate-limited per client (20 a minute by default). The
-interactive docs are at `localhost:8000/docs`.
+| Endpoint | Description |
+|---|---|
+| `POST /api/chat` | Ask a question; server-sent events |
+| `GET /api/conversations`, `GET · DELETE /api/conversations/{id}` | This browser's history |
+| `PUT /api/messages/{id}/feedback` | Rate an answer up or down |
+| `GET /api/documents`, `POST · DELETE` (admin) | The law library |
+| `GET /healthz`, `GET /readyz` | Liveness and readiness |
 
-## Design decisions
+Interactive API docs: http://localhost:8000/docs.
 
-- **Chunk by clause, not by token count.** A legal answer is a clause; a
-  fixed-size window splits clauses and merges neighbours, and its citation
-  points at neither.
-- **Hybrid search and a reranker.** People type the law's own words ("đơn
-  phương chấm dứt", "Điều 35"), which BM25 matches exactly and embeddings blur;
-  the cross-encoder then orders the merged list.
-- **A retrieval floor and mandatory citations instead of an NLI verifier.** An
-  earlier version checked every sentence against its clause with an NLI model.
-  Measured against hand-graded answers, it caught none of the errors the
-  generator actually made and doubled p95 latency. The cheap checks did the
-  work, so they stayed and the model went. That research is kept at the tag
-  [`research-v0`](https://github.com/HoangThanhMan/grounded-rag/tree/research-v0).
-- **Background tasks, not a job queue.** Uploads are rare, so
-  `BackgroundTasks` plus a status column is enough. At startup the app
-  re-indexes any document the library lists but the index lacks - an upload
-  cut off by a restart, or a wiped Qdrant volume - from the file it keeps.
-- **No agent framework.** Five steps and one branch read better as one plain
-  function.
+## Configuration
+
+Settings come from `.env`. All of them are listed with defaults in
+[`.env.example`](.env.example). The ones you are most likely to change:
+
+| Variable | Purpose |
+|---|---|
+| `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` | The model that answers |
+| `LLM_FALLBACKS`, `LLM_ESCALATION` | Backup models, and a stronger model for a second try |
+| `ADMIN_API_KEY` | Enables document upload and delete |
+| `RETRIEVAL_MIN_SCORE` | The rerank score below which the app refuses (default `0.30`) |
+| `RATE_LIMIT_PER_MINUTE` | Questions per client per minute (default `20`) |
+| `POSTGRES_PASSWORD` | Set it before the first start |
+
+For a public deployment, also put TLS in front of port 8080 and set
+`COOKIE_SECURE=true`. If the proxy runs on the same host, set `WEB_BIND` and
+`REAL_IP_FROM` as described in `.env.example`.
+
+## Evaluation
+
+The evaluation asks whether the app retrieves and cites the right clause, and
+whether it refuses when the law has no answer. It uses 100 test questions:
+60 answerable and 40 that are out of scope, rest on a false premise, or ask for
+a detail the law does not give. A further 15 hard questions are kept apart;
+they need several clauses, contain a trap between insurance schemes, or
+compare law versions. Scoring is automatic.
+
+These are the results of the first run, at commit `b03a054`:
+
+| Gold clause in top 5 | Correct answer | Refuses when the law is silent | Refuses an answerable question |
+|---|---|---|---|
+| 0.98 (59/60) | 0.85 (51/60) | 0.95 (38/40) | 0.02 (1/60) |
+
+The method, the scoring rules and their limits are in
+[`eval/README.md`](eval/README.md).
+
+## Development
+
+```bash
+make install                 # backend with models, frontend packages
+docker compose up -d qdrant
+make dev-api                 # API on :8000 with reload (SQLite)
+make dev-web                 # UI on :5173, proxying /api
+make test                    # backend and frontend tests
+make lint
+```
+
+CI runs the backend tests on both SQLite and Postgres, and the frontend
+typecheck, tests and build.
+
+```
+backend/      FastAPI app, Alembic migrations, tests
+frontend/     React app, nginx config
+eval/         questions, runner, scoring, results
+data/corpus/  the three laws, with YAML front matter
+scripts/      rebuild the corpus from Công báo
+```
+
+## Project status
+
+The app is complete and runs end to end with real models. Work in progress:
+
+- Rerun the evaluation on the current code, which adds chunk context, and
+  compare it with the naive baseline and with the stronger-model cascade.
+- Follow cross-references between articles, such as "khoản 1 Điều 139 của Bộ
+  luật này".
+- Answer questions that compare two versions of a law.
 
 ## Limitations
 
-- Three laws. Decrees and circulars that detail them (nghị định, thông tư)
-  are not in the library, so some practical questions are refused.
-- The models run on the API's CPU: the reranker alone takes 5–15 seconds
-  before the first token, and indexing a large upload slows answers down
-  meanwhile.
-- One API replica: the rate limiter and the indexer live in its process.
-- A lookup tool, not legal advice. The UI says so under every question box.
+- **Three laws only.** The decrees and circulars that detail them (nghị định,
+  thông tư) are not in the library.
+- **Article-level citations for the 2014 law.** The source copy lost its clause
+  numbers, so that law is cited by Điều only.
+- **CPU latency.** The first token usually arrives after 10–20 seconds.
+- **Not legal advice.** This is a lookup tool, and the UI says so.
 
-## Layout
+## Acknowledgements
 
-```
-backend/    FastAPI app (src/grounded_rag), Alembic migrations, tests
-frontend/   React + TypeScript UI, nginx config
-eval/       the evaluation: questions, runner, results
-data/       the corpus (committed) and uploads
-scripts/    rebuild the corpus from Công báo
-```
+- Legal texts come from the official gazette (Công báo). The 2014 Social
+  Insurance Law comes from a third-party copy, checked against the gazette
+  scan where noted in its front matter.
+- Some evaluation questions are adapted from
+  [TVPL-Retrieval-VN](https://huggingface.co/datasets/GreenNode/TVPL-Retrieval-VN)
+  (CC-BY-SA-4.0) and from the Zalo AI Legal Text Retrieval dataset (MIT). See
+  [`eval/LABELING.md`](eval/LABELING.md).
+
+## License
+
+No license has been chosen yet. Evaluation questions adapted from
+TVPL-Retrieval-VN remain under CC-BY-SA-4.0.
