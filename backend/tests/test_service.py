@@ -134,3 +134,35 @@ def test_today_is_the_day_in_vietnam():
 
     # 23:30 UTC on the 27th is 06:30 on the 28th in Hà Nội
     assert law_today(datetime(2026, 10, 27, 23, 30, tzinfo=UTC)) == date(2026, 10, 28)
+
+
+@pytest.mark.asyncio
+async def test_an_answer_cut_off_at_max_tokens_is_refused(monkeypatch):
+    """A legal answer cut mid-sentence can drop the condition that matters."""
+
+    class CutOff:
+        finish_reason = "length"
+
+        def __init__(self):
+            self._words = iter(["Phải ", "báo ", "trước [C1] ", "trừ khi"])
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            try:
+                return next(self._words)
+            except StopIteration:
+                raise StopAsyncIteration from None
+
+    class Llm:
+        async def complete(self, *a, **kw):
+            return LLMResponse(text="")
+
+        def stream(self, *a, **kw):
+            return CutOff()
+
+    _use(monkeypatch, Llm())
+    answer = await answer_question(NOTICE)
+    assert answer.status is AnswerStatus.ABSTAINED
+    assert answer.meta.abstain_reason == "truncated"

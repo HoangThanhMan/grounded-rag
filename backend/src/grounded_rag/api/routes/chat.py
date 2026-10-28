@@ -24,6 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from grounded_rag.api.errors import AppError
+from grounded_rag.api.owner import current_owner
 from grounded_rag.api.ratelimit import rate_limit
 from grounded_rag.api.schemas import ChatRequest, SourceOut
 from grounded_rag.config import settings
@@ -36,17 +37,18 @@ from grounded_rag.types import Answer, Turn
 router = APIRouter(prefix="/api", tags=["chat"])
 log = logging.getLogger("grounded_rag.chat")
 Session = Annotated[AsyncSession, Depends(get_session)]
+Owner = Annotated[str, Depends(current_owner)]
 
 
 @router.post("/chat", dependencies=[Depends(rate_limit)])
-async def chat(req: ChatRequest, session: Session) -> StreamingResponse:
+async def chat(req: ChatRequest, session: Session, owner: Owner) -> StreamingResponse:
     if req.conversation_id:
         conv = await session.get(Conversation, req.conversation_id)
-        if conv is None:
+        if conv is None or conv.owner_id != owner:
             raise AppError(404, "not_found", f"no conversation {req.conversation_id!r}")
         history = await _history(session, conv.id)
     else:
-        conv = Conversation(id=new_id(), title=req.question[:60])
+        conv = Conversation(id=new_id(), owner_id=owner, title=req.question[:60])
         session.add(conv)
         history = []
     session.add(Message(conversation_id=conv.id, role="user", content=req.question))

@@ -22,13 +22,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from grounded_rag.api.deps import require_admin
 from grounded_rag.api.schemas import DocumentOut
-from grounded_rag.compute import run_model
 from grounded_rag.config import settings
 from grounded_rag.db.models import Document
 from grounded_rag.db.session import get_session
-from grounded_rag.documents import doc_id_for, index_document
+from grounded_rag.documents import delete_document as tombstone
+from grounded_rag.documents import doc_id_for, index_document, is_busy
 from grounded_rag.ingest.loaders import load_file
-from grounded_rag.retrieval.store import get_store
 from grounded_rag.types import DocMeta
 
 router = APIRouter(prefix="/api/documents", tags=["documents"])
@@ -39,7 +38,11 @@ MAX_NAME = 255
 
 @router.get("", response_model=list[DocumentOut])
 async def list_documents(session: Session):
-    return (await session.scalars(select(Document).order_by(Document.title))).all()
+    return (
+        await session.scalars(
+            select(Document).where(Document.status != "deleted").order_by(Document.title)
+        )
+    ).all()
 
 
 @router.post(
@@ -70,7 +73,7 @@ async def upload_document(
     except ValueError as e:
         raise HTTPException(400, str(e)) from e
     existing = await session.get(Document, doc_id)
-    if existing is not None and existing.status == "processing":
+    if existing is not None and is_busy(existing):
         raise HTTPException(409, f"{doc_id!r} is still being indexed, try again when it is done")
     data = await _read_capped(file, settings.max_upload_mb * 1024 * 1024)
 
@@ -113,13 +116,12 @@ async def upload_document(
 @router.delete("/{doc_id}", status_code=204, dependencies=[Depends(require_admin)])
 async def delete_document(doc_id: str, session: Session) -> Response:
     doc = await session.get(Document, doc_id)
-    if doc is None:
+    if doc is None or doc.status == "deleted":
         raise HTTPException(404, f"no document {doc_id!r}")
-    if doc.status == "processing":
+    if is_busy(doc):
         raise HTTPException(409, f"{doc_id!r} is being indexed, try again when it is done")
-    await run_model(get_store().delete_document, doc_id)
+    await tombstone(doc)
     _remove_upload(doc.path)
-    await session.delete(doc)
     await session.commit()
     return Response(status_code=204)
 

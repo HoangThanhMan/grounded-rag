@@ -106,15 +106,20 @@ async def answer_stream(
         else:
             parts: list[str] = []
             with trace("generate"):
-                async for token in llm.stream(
+                stream = llm.stream(
                     SYSTEM_PROMPT,
                     build_user_prompt(standalone, sources),
                     temperature=settings.temperature,
                     max_tokens=settings.max_tokens,
-                ):
+                )
+                async for token in stream:
                     parts.append(token)
                     yield TokenEvent(text=token)
-            answer = _checked("".join(parts), sources)
+            if getattr(stream, "finish_reason", None) == "length":
+                # cut mid-sentence: the part missing may be the condition that matters
+                answer = _declined(AnswerStatus.ABSTAINED, AbstainReason.TRUNCATED)
+            else:
+                answer = _checked("".join(parts), sources)
         answer.sources = sources
         answer.standalone_question = standalone
 

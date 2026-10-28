@@ -61,12 +61,14 @@ class Settings(BaseSettings):
 
     # Requests per minute per client on /api/chat; 0 turns the limit off
     rate_limit_per_minute: int = Field(default=20, ge=0)
-    # Behind nginx the client address is the first X-Forwarded-For hop.
+    # Behind nginx the client address is the last X-Forwarded-For hop.
     # Off by default: trusted from anyone else, the header is a free bypass.
     trust_proxy: bool = False
     # Document upload and delete are off until a key is set
     admin_api_key: str = ""
     cors_origins: list[str] = Field(default_factory=list)
+    # Mark the anonymous-owner cookie Secure: true once the site is on HTTPS
+    cookie_secure: bool = False
 
 
 class RetrievalOptions(BaseModel):

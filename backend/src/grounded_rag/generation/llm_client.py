@@ -13,7 +13,7 @@ import functools
 import json
 import logging
 import re
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass
 from typing import Any, Protocol
 
@@ -163,14 +163,17 @@ class OpenAICompatClient:
             truncated=choice.get("finish_reason") == "length",
         )
 
-    async def stream(
+    def stream(
         self, system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 512
-    ) -> AsyncIterator[str]:
-        """The answer token by token. A rate limit or an overloaded server is
-        retried like `complete` does - but only before the first token: once
-        text has reached the user, a retry would repeat it."""
+    ) -> Stream:
+        """The answer token by token. A rate limit, an overloaded server or a
+        dropped connection is retried like `complete` does - but only before
+        the first token: once text has reached the user, a retry would repeat it."""
         body = {**self._body(system, user, temperature, max_tokens), "stream": True}
-        error, wait = "no attempt made", 0.0
+        return Stream(lambda out: self._tokens(out, body, max_tokens))
+
+    async def _tokens(self, out: Stream, body: dict, max_tokens: int) -> AsyncIterator[str]:
+        error, wait, sent = "no attempt made", 0.0, False
         for attempt in range(self.retries + 1):
             if attempt:
                 await _sleep(wait)
@@ -185,34 +188,57 @@ class OpenAICompatClient:
                             break
                         wait = _retry_wait(r, attempt)
                         continue
-                    finish = None
                     async for line in r.aiter_lines():
                         if not line.startswith("data:"):
                             continue
                         payload = line[5:].strip()
                         if payload == "[DONE]":
                             break
-                        for choice in json.loads(payload).get("choices") or []:
+                        try:
+                            choices = json.loads(payload).get("choices") or []
+                        except (json.JSONDecodeError, AttributeError) as e:
+                            raise LLMUnavailable(
+                                f"{self.url} -> unreadable chunk: {payload[:80]!r}"
+                            ) from e
+                        for choice in choices:
                             if delta := (choice.get("delta") or {}).get("content"):
+                                sent = True
                                 yield delta
-                            finish = choice.get("finish_reason") or finish
+                            out.finish_reason = choice.get("finish_reason") or out.finish_reason
                     else:
-                        if finish is None:
+                        if out.finish_reason is None:
                             # neither [DONE] nor a finish_reason: the connection
                             # dropped, and what was said is half an answer
                             raise LLMUnavailable(
                                 f"{self.url} -> stream ended before the answer did"
                             )
-                    if finish == "length":
+                    if out.finish_reason == "length":
                         log.warning(
                             "answer cut off at max_tokens=%d. Thinking models spend output "
                             "tokens on reasoning: raise MAX_TOKENS or set LLM_REASONING_EFFORT.",
                             max_tokens,
                         )
                     return
+            except httpx.TransportError as e:
+                error = f"{type(e).__name__}: {e}"
+                if sent:
+                    break
+                wait = _BACKOFF_S * 2**attempt
             except httpx.HTTPError as e:
                 raise LLMUnavailable(f"{self.url} -> {type(e).__name__}: {e}") from e
         raise LLMUnavailable(f"{self.url} -> {error}")
+
+
+class Stream:
+    """The answer as it arrives, and - once it has - why it stopped:
+    "stop", or "length" when max_tokens cut it off."""
+
+    def __init__(self, tokens: Callable[[Stream], AsyncIterator[str]]) -> None:
+        self.finish_reason: str | None = None
+        self._tokens = tokens(self)
+
+    def __aiter__(self) -> AsyncIterator[str]:
+        return self._tokens
 
 
 async def _post_json(

@@ -8,6 +8,7 @@ to Redis.
 
 from __future__ import annotations
 
+import ipaddress
 import math
 import time
 from collections.abc import Callable
@@ -60,10 +61,21 @@ limiter = TokenBucketLimiter(settings.rate_limit_per_minute)
 
 def client_key(request: Request) -> str:
     """Behind the proxy, the last X-Forwarded-For hop: the address the proxy
-    itself saw. Hops before it are whatever the client chose to send."""
+    itself saw. Hops before it are whatever the client chose to send. IPv6
+    clients count per /64, the block one subscriber is handed."""
     if settings.trust_proxy and (forwarded := request.headers.get("x-forwarded-for")):
-        return forwarded.split(",")[-1].strip()
-    return request.client.host if request.client else "unknown"
+        host = forwarded.split(",")[-1].strip()
+    else:
+        host = request.client.host if request.client else "unknown"
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return host
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped:
+            return str(ip.ipv4_mapped)
+        return str(ipaddress.ip_network(f"{ip}/64", strict=False))
+    return str(ip)
 
 
 async def rate_limit(request: Request) -> None:

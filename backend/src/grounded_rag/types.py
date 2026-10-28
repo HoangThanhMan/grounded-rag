@@ -77,6 +77,7 @@ class AbstainReason(StrEnum):
     RETRIEVAL_FLOOR = "retrieval_floor"
     MODEL = "model"                     # the model used the refusal sentence itself
     NO_CITATION = "no_citation"         # the answer cited no source it was given
+    TRUNCATED = "truncated"             # max_tokens cut the answer off mid-way
 
 
 ABSTAIN_TEXT = "Không tìm thấy thông tin này trong tài liệu."

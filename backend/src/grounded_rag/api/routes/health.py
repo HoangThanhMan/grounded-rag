@@ -4,6 +4,7 @@ its database should be taken out of rotation, not restarted."""
 from __future__ import annotations
 
 import asyncio
+import logging
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
@@ -12,6 +13,7 @@ from grounded_rag.db.session import ping_db
 from grounded_rag.retrieval.store import get_store
 
 router = APIRouter(tags=["health"])
+log = logging.getLogger("grounded_rag.health")
 
 
 @router.get("/healthz")
@@ -28,8 +30,11 @@ async def readyz() -> JSONResponse:
 
 
 async def _check(probe) -> str:
+    """"ok" or "unavailable": the reason goes to the log, not to whoever asks -
+    it can name hosts and users."""
     try:
         await asyncio.wait_for(probe, timeout=3)
         return "ok"
-    except Exception as e:
-        return f"{type(e).__name__}: {e}"
+    except Exception:
+        log.exception("readiness check failed")
+        return "unavailable"

@@ -237,3 +237,33 @@ async def test_a_stream_cut_at_max_tokens_is_logged(caplog):
     with caplog.at_level("WARNING"):
         _ = [t async for t in client.stream("s", "u")]
     assert "max_tokens" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_a_stream_reports_how_it_finished():
+    sse = ('data: {"choices":[{"delta":{"content":"Công dân"},"finish_reason":"length"}]}\n\n'
+           "data: [DONE]\n\n")
+    stream = _client(lambda r: httpx.Response(200, text=sse)).stream("s", "u")
+    _ = [t async for t in stream]
+    assert stream.finish_reason == "length"
+
+
+@pytest.mark.asyncio
+async def test_garbage_from_the_provider_is_unavailable_not_a_crash():
+    sse = 'data: {"choices": [oops\n\n'
+    with pytest.raises(LLMUnavailable, match="unreadable"):
+        _ = [t async for t in _client(lambda r: httpx.Response(200, text=sse)).stream("s", "u")]
+
+
+@pytest.mark.asyncio
+async def test_a_timeout_before_the_first_token_is_retried():
+    sse = 'data: {"choices":[{"delta":{"content":"Xong"},"finish_reason":"stop"}]}\n\n'
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        if len(calls) == 1:
+            raise httpx.ReadTimeout("slow")
+        return httpx.Response(200, text=sse)
+
+    assert "".join([t async for t in _client(handler, retries=1).stream("s", "u")]) == "Xong"

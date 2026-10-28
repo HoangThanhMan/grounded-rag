@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from grounded_rag.api.main import app
 from grounded_rag.db.models import Document
 from grounded_rag.db.session import SessionLocal
-from grounded_rag.documents import doc_id_for, fail_stale_processing
+from grounded_rag.documents import doc_id_for, requeue_interrupted
 from grounded_rag.retrieval.store import get_store
 
 SAMPLE = Path("data/sample_corpus/bo_luat_lao_dong_2019.md")
@@ -170,18 +170,18 @@ def test_delete_removes_from_store_and_db():
     assert client.delete("/api/documents/xoa_toi", headers=ADMIN).status_code == 404
 
 
-def test_stale_processing_marked_failed():
-    async def scenario() -> tuple[int, Document | None]:
+def test_an_interrupted_document_without_its_file_is_failed():
+    async def scenario() -> tuple[list[str], Document | None]:
         async with SessionLocal() as s:
-            s.add(Document(id="dang_do", title="Dang do", filename="x.md", path="x.md",
+            s.add(Document(id="dang_do", title="Dang do", filename="x.md", path="khong/co.md",
                            status="processing"))
             await s.commit()
-        n = await fail_stale_processing()
+        ids = await requeue_interrupted()
         async with SessionLocal() as s:
-            return n, await s.get(Document, "dang_do")
+            return ids, await s.get(Document, "dang_do")
 
-    n, doc = asyncio.run(scenario())
-    assert n >= 1
+    ids, doc = asyncio.run(scenario())
+    assert "dang_do" not in ids
     assert doc.status == "failed"
     assert doc.error == "interrupted by a restart"
 
@@ -283,3 +283,93 @@ def test_a_first_start_lists_the_corpus_before_any_model_loads(tmp_path):
     assert _get("luat_moi_dang_ky")["status"] == "processing"
     assert _indexed("luat_moi_dang_ky") == 0
     assert asyncio.run(register_corpus(tmp_path)) == []      # once
+
+
+def test_a_failed_index_leaves_no_partial_chunks(tmp_path, monkeypatch):
+    """Half a law answered from, while the library says failed, is worse than none."""
+    from grounded_rag import documents
+
+    store = get_store()
+    real, calls = store.upsert, []
+
+    def flaky(chunks, avg_len=None):
+        calls.append(1)
+        if len(calls) == 2:
+            raise ConnectionError("qdrant went away")
+        return real(chunks, avg_len)
+
+    monkeypatch.setattr(store, "upsert", flaky)
+    _law(tmp_path, "luat_dut_giua.md", clauses=documents.INDEX_BATCH * 2 + 1)
+    asyncio.run(documents.seed_corpus(tmp_path))
+    doc = _get("luat_dut_giua")
+    assert doc["status"] == "failed"
+    assert _indexed("luat_dut_giua") == 0
+    assert "qdrant" not in doc["error"]          # internals stay in the log
+
+
+def test_an_index_cut_off_by_a_restart_is_redone(tmp_path):
+    from grounded_rag import documents
+
+    path = _law(tmp_path, "luat_bi_cat.md", clauses=5)
+    chunks = documents.chunk_file(path, "luat_bi_cat", documents.DocMeta())
+    get_store().upsert(chunks[:2])                    # what the first batch left
+
+    async def interrupted() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="luat_bi_cat", title="x", filename=path.name, path=str(path),
+                           status="processing"))
+            await s.commit()
+
+    asyncio.run(interrupted())
+    assert "luat_bi_cat" in asyncio.run(requeue_interrupted())
+    asyncio.run(documents.index_document("luat_bi_cat"))
+    assert _get("luat_bi_cat")["status"] == "ready"
+    assert _indexed("luat_bi_cat") == 5
+
+
+def test_a_deleted_seed_law_stays_deleted_after_a_restart(tmp_path):
+    from grounded_rag.documents import mark_missing, register_corpus, seed_corpus
+
+    _law(tmp_path, "luat_da_xoa.md")
+    asyncio.run(seed_corpus(tmp_path))
+    assert client.delete("/api/documents/luat_da_xoa", headers=ADMIN).status_code == 204
+    assert (tmp_path / "luat_da_xoa.md").exists()        # the corpus file is not the app's
+    assert asyncio.run(register_corpus(tmp_path)) == []
+    assert "luat_da_xoa" not in asyncio.run(mark_missing())
+    assert all(d["id"] != "luat_da_xoa" for d in client.get("/api/documents").json())
+    assert client.delete("/api/documents/luat_da_xoa", headers=ADMIN).status_code == 404
+    _upload("luat_da_xoa.md", "---\ntitle: x\n---\nĐiều 1. A\n1. Trở lại.\n".encode())  # revived
+    assert _get("luat_da_xoa")["status"] == "ready"
+
+
+def test_a_database_blip_when_recording_the_result_is_retried(tmp_path, monkeypatch):
+    from grounded_rag import documents
+
+    monkeypatch.setattr(documents, "RECORD_RETRY_S", 0)
+    real, opened = documents.SessionLocal, []
+
+    def flaky_session():
+        opened.append(1)
+        if len(opened) == 2:                      # the session that records the result
+            raise ConnectionError("database restarting")
+        return real()
+
+    _law(tmp_path, "luat_db_chap_chon.md")
+    asyncio.run(documents.register_corpus(tmp_path))
+    monkeypatch.setattr(documents, "SessionLocal", flaky_session)
+    asyncio.run(documents.index_document("luat_db_chap_chon"))
+    assert _get("luat_db_chap_chon")["status"] == "ready"
+
+
+def test_a_document_stuck_processing_for_long_can_be_deleted():
+    from datetime import UTC, datetime, timedelta
+
+    async def stuck() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="ket_lau", title="x", filename="x.md", path="x.md",
+                           status="processing",
+                           updated_at=datetime.now(UTC) - timedelta(hours=2)))
+            await s.commit()
+
+    asyncio.run(stuck())
+    assert client.delete("/api/documents/ket_lau", headers=ADMIN).status_code == 204

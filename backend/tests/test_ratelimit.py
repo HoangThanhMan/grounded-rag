@@ -70,3 +70,15 @@ def test_a_spoofed_first_hop_does_not_buy_a_new_bucket(monkeypatch):
                        headers={"X-Forwarded-For": "1.1.1.1, 7.7.7.7"}).status_code == 200
     again = client.post("/api/chat", json=body, headers={"X-Forwarded-For": "2.2.2.2, 7.7.7.7"})
     assert again.status_code == 429
+
+
+def test_ipv6_clients_are_counted_per_slash_64():
+    """One home network gets a /64; counting each address would give it 2^64 buckets."""
+    from starlette.requests import Request
+
+    def key(host):
+        return ratelimit.client_key(Request({"type": "http", "headers": [], "client": (host, 1)}))
+
+    assert key("2001:db8:1:2:aaaa::1") == key("2001:db8:1:2:bbbb::9")
+    assert key("2001:db8:1:2::1") != key("2001:db8:1:3::1")
+    assert key("203.0.113.7") == "203.0.113.7"

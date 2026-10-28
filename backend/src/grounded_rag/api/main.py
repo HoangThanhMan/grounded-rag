@@ -16,14 +16,15 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from grounded_rag.api import errors
 from grounded_rag.api.middleware import RequestContext
+from grounded_rag.api.owner import OwnerCookie
 from grounded_rag.api.routes import chat, conversations, documents, health
 from grounded_rag.compute import run_model
 from grounded_rag.config import settings
 from grounded_rag.documents import (
-    fail_stale_processing,
     index_document,
     mark_missing,
     register_corpus,
+    requeue_interrupted,
 )
 from grounded_rag.generation.llm_client import get_llm_client
 from grounded_rag.observability import metrics
@@ -44,19 +45,18 @@ log = logging.getLogger("grounded_rag.api")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    stale = await fail_stale_processing()
-    if stale:
-        log.warning("%d document(s) were mid-index at the last shutdown", stale)
     # Before anything loads: the library lists the corpus, and a document the
-    # index lacks says so - not "ready", not absent - while the models take
-    # minutes to arrive.
+    # index lacks - or that a restart caught mid-index - says so, not "ready",
+    # while the models take minutes to arrive.
     pending: list[str] = []
     try:
+        pending += await requeue_interrupted()
         pending += await mark_missing()
         if settings.auto_seed_dir:
             pending += await register_corpus(Path(settings.auto_seed_dir))
     except Exception:
         log.exception("could not compare the library with the index")
+    pending = list(dict.fromkeys(pending))
     indexing = asyncio.create_task(_catch_up(pending))
     yield
     indexing.cancel()
@@ -99,6 +99,7 @@ if settings.cors_origins:
         allow_headers=["*"],
         expose_headers=["X-Request-ID", "Retry-After"],
     )
+app.add_middleware(OwnerCookie)
 app.add_middleware(RequestContext)
 
 if metrics.enabled():

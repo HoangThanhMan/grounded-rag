@@ -183,8 +183,7 @@ def test_readyz_ok_and_reports_db_failure(monkeypatch):
     monkeypatch.setattr(health, "ping_db", down)
     r = client.get("/readyz")
     assert r.status_code == 503
-    assert r.json()["qdrant"] == "ok"
-    assert "db is down" in r.json()["db"]
+    assert r.json() == {"qdrant": "ok", "db": "unavailable"}
 
 
 def test_unknown_route_has_the_error_shape():
@@ -213,3 +212,57 @@ def test_a_crash_still_answers_in_the_error_shape_with_the_request_id():
     assert r.headers["x-request-id"] == "crash-1"
     assert r.json() == {"error": {"code": "internal", "message": "internal server error",
                                   "request_id": "crash-1"}}
+
+
+def test_conversations_belong_to_the_browser_that_started_them():
+    """No accounts, but no shared history either: each browser gets an
+    anonymous id in a cookie, and sees only its own conversations."""
+    alice, bob = TestClient(app), TestClient(app)
+    events = _events(alice.post("/api/chat", json={"question": HOURS}))
+    conv, answer = events[0][1]["conversation_id"], events[-1][1]["message_id"]
+
+    assert conv in [c["id"] for c in alice.get("/api/conversations").json()]
+    assert conv not in [c["id"] for c in bob.get("/api/conversations").json()]
+    assert bob.get(f"/api/conversations/{conv}").status_code == 404
+    assert bob.delete(f"/api/conversations/{conv}").status_code == 404
+    assert bob.post("/api/chat", json={"question": "Còn gì nữa?",
+                                       "conversation_id": conv}).status_code == 404
+    assert bob.put(f"/api/messages/{answer}/feedback", json={"rating": "down"}).status_code == 404
+    assert alice.get(f"/api/conversations/{conv}").status_code == 200
+
+
+def test_the_owner_cookie_is_http_only_and_set_once():
+    fresh = TestClient(app)
+    first = fresh.get("/api/conversations")
+    cookie = first.headers["set-cookie"]
+    assert "gr_owner=" in cookie and "HttpOnly" in cookie and "SameSite=Lax" in cookie
+    assert "set-cookie" not in fresh.get("/api/conversations").headers
+
+
+@pytest.mark.asyncio
+async def test_two_quick_ratings_do_not_collide():
+    """👍 then 👎 in quick succession: both requests may find no rating yet."""
+    import asyncio
+
+    import httpx
+
+    events = _chat(question=HOURS)
+    message_id = events[-1][1]["message_id"]
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),
+                                 base_url="http://t", cookies=dict(client.cookies.items())) as c:
+        replies = await asyncio.gather(*(
+            c.put(f"/api/messages/{message_id}/feedback", json={"rating": r})
+            for r in ("up", "down", "up", "down")
+        ))
+    assert [r.status_code for r in replies] == [200] * 4
+
+
+def test_readyz_does_not_show_internals_publicly(monkeypatch):
+    async def down():
+        raise ConnectionError("password authentication failed for user grounded_rag")
+
+    monkeypatch.setattr(health, "ping_db", down)
+    r = client.get("/readyz")
+    assert r.status_code == 503
+    assert r.json()["db"] == "unavailable"
+    assert "password" not in r.text
