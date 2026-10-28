@@ -1,0 +1,10 @@
+# For eval/ at the repository root; backend/pyproject.toml holds the same
+# rules for the backend.
+line-length = 100
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[lint.isort]
+known-first-party = ["grounded_rag", "eval"]

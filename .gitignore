@@ -15,8 +15,6 @@ frontend/dist/
 # data/sample_corpus/ IS committed too: the fast path for tests.
 data/app.db
 data/uploads/
-# eval.run appends here case by case; the finished results are committed
-eval/results/*.partial.jsonl
 qdrant_storage/
 .cache/
 # left over from the research setup's Langfuse service
