@@ -4,12 +4,11 @@
 
 `code` is stable and meant for the client to branch on; `message` is for
 people. The request id is the one in the X-Request-ID header and in the log
-line of that request, so a user's screenshot leads straight to the log.
+line of that request, so a user's screenshot leads straight to the log. A
+crash nobody planned for gets the same shape, from the middleware.
 """
 
 from __future__ import annotations
-
-import logging
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -19,14 +18,13 @@ from starlette.exceptions import HTTPException
 from grounded_rag.api.middleware import current_request_id
 from grounded_rag.generation.llm_client import LLMUnavailable
 
-log = logging.getLogger("grounded_rag.api")
-
 CODES = {
     400: "bad_request",
     401: "unauthorized",
     403: "forbidden",
     404: "not_found",
     405: "method_not_allowed",
+    409: "conflict",
     413: "too_large",
     422: "validation_error",
     429: "rate_limited",
@@ -73,8 +71,3 @@ def install(app: FastAPI) -> None:
     async def llm_down(request: Request, exc: LLMUnavailable) -> JSONResponse:
         # Refusing to answer is a 200. Failing to reach the model is not.
         return error_response(503, "llm_unavailable", f"LLM provider unavailable: {exc}")
-
-    @app.exception_handler(Exception)
-    async def crashed(request: Request, exc: Exception) -> JSONResponse:
-        log.exception("unhandled error")
-        return error_response(500, "internal", "internal server error")

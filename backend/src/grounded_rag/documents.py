@@ -55,54 +55,75 @@ def meta_of(doc: Document) -> DocMeta:
 
 
 async def index_document(doc_id: str) -> None:
-    """Never raises: whatever goes wrong ends up in the row's `error`."""
+    """Never raises: whatever goes wrong ends up in the row's `error`.
+
+    No session is held while the models work, and the row is read again
+    afterwards: it may have been deleted meanwhile, and then the chunks just
+    written must go too."""
     async with SessionLocal() as session:
         doc = await session.get(Document, doc_id)
         if doc is None:
             return
-        try:
-            doc.chunks = await _index(Path(doc.path), doc_id, meta_of(doc))
-            doc.status, doc.error = "ready", None
-        except Exception as e:
-            log.exception("indexing %s failed", doc_id)
-            doc.status, doc.chunks, doc.error = "failed", 0, str(e) or type(e).__name__
+        path, meta = Path(doc.path), meta_of(doc)
+
+    chunks, error = 0, None
+    try:
+        chunks = await _index(path, doc_id, meta)
+    except Exception as e:
+        log.exception("indexing %s failed", doc_id)
+        error = str(e) or type(e).__name__
+
+    async with SessionLocal() as session:
+        doc = await session.get(Document, doc_id)
+        if doc is None:
+            await run_model(get_store().delete_document, doc_id)
+            return
+        doc.status = "failed" if error else "ready"
+        doc.chunks, doc.error = (0, error) if error else (chunks, None)
         await session.commit()
 
 
 async def _index(path: Path, doc_id: str, meta: DocMeta) -> int:
-    chunks = await run_model(chunk_file, path, doc_id, meta)
     store = get_store()
+    # First: whatever happens next, the previous version is not answered from.
     await run_model(store.delete_document, doc_id)
+    chunks = await run_model(chunk_file, path, doc_id, meta)
     avg_len = sum(len(tokenize(c.text)) for c in chunks) / len(chunks)
     for i in range(0, len(chunks), INDEX_BATCH):
         await run_model(store.upsert, chunks[i : i + INDEX_BATCH], avg_len)
     return len(chunks)
 
 
-async def reindex_missing() -> int:
-    """Index again every document the library lists but the index does not
-    hold, from the file it was indexed from: the mock index lives in the
-    process and is empty after a restart, a first start can be interrupted
-    mid-corpus, a Qdrant volume can be wiped. Returns how many it re-indexed."""
+async def mark_missing() -> list[str]:
+    """Every document the library lists but the index does not hold, set
+    back to `processing` and returned, for `index_document` to redo from the
+    file it was indexed from. The mock index lives in the process and is
+    empty after a restart; a first start can be interrupted mid-corpus; a
+    Qdrant volume can be wiped. Needs no model, so it runs before any loads."""
     store = get_store()
     async with SessionLocal() as session:
-        docs = (await session.scalars(select(Document))).all()
         missing = []
-        for doc in docs:
+        for doc in (await session.scalars(select(Document))).all():
             if Path(doc.path).is_file() and not await asyncio.to_thread(
                 store.has_document, doc.id
             ):
                 doc.status, doc.error = "processing", None
                 missing.append(doc.id)
         await session.commit()
+    return missing
+
+
+async def reindex_missing() -> int:
+    missing = await mark_missing()
     for doc_id in missing:
         await index_document(doc_id)
     return len(missing)
 
 
-async def seed_corpus(directory: Path) -> int:
-    """Register and index every file of `directory` the library does not
-    know yet. Returns how many it indexed."""
+async def register_corpus(directory: Path) -> list[str]:
+    """Add every file of `directory` the library does not know yet, as
+    `processing`, and return their ids. Reads front matter only - no model -
+    so a first start lists the corpus at once and indexes it afterwards."""
     async with SessionLocal() as session:
         known = set((await session.scalars(select(Document.id))).all())
         fresh: list[str] = []
@@ -126,6 +147,13 @@ async def seed_corpus(directory: Path) -> int:
             )
             fresh.append(doc_id)
         await session.commit()
+    return fresh
+
+
+async def seed_corpus(directory: Path) -> int:
+    """Register and index every file of `directory` the library does not
+    know yet. Returns how many it indexed."""
+    fresh = await register_corpus(directory)
     for doc_id in fresh:
         await index_document(doc_id)
     return len(fresh)

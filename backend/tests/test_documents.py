@@ -64,10 +64,75 @@ def test_form_metadata_wins_over_front_matter():
 
 
 def test_reupload_replaces_chunks():
-    _upload()
-    first = _indexed("bo_luat_lao_dong_2019")
-    _upload()
-    assert _indexed("bo_luat_lao_dong_2019") == first > 0
+    """Changed text, so content-hashed ids cannot hide old chunks."""
+    old = "---\ntitle: v1\n---\nĐiều 1. A\n1. Bản cũ khoản một.\n2. Bản cũ khoản hai.\n"
+    _upload("Thay thế.md", old.encode())
+    assert _indexed("thay_the") == 2
+    _upload("Thay thế.md", "---\ntitle: v2\n---\nĐiều 1. A\n1. Bản mới khoản một.\n".encode())
+    texts = [c.text for c in get_store()._chunks if c.doc_id == "thay_the"]
+    assert len(texts) == 1 and "Bản mới" in texts[0]
+
+
+def test_a_failed_reupload_leaves_no_old_chunks_behind():
+    _upload("Hỏng sau.md", "---\ntitle: v1\n---\nĐiều 1. A\n1. Khoản một.\n".encode())
+    assert _indexed("hong_sau") == 1
+    _upload("Hỏng sau.md", b"---\ntitle: v2\n---\n")
+    assert _get("hong_sau")["status"] == "failed"
+    assert _indexed("hong_sau") == 0
+
+
+def test_malformed_front_matter_is_400_and_keeps_the_previous_file():
+    _upload("Giữ nguyên.md", "---\ntitle: Tot\n---\nĐiều 1. A\n1. Khoản một.\n".encode())
+    from grounded_rag.config import settings
+    saved = (settings.upload_dir / "giu_nguyen.md").read_bytes()
+    for bad in ("---\neffective_date: hom qua\n---\nĐiều 1. A\n".encode(),
+                "---\ntitle: [chua dong\n---\nĐiều 1. A\n".encode()):
+        r = _upload("Giữ nguyên.md", bad)
+        assert r.status_code == 400, r.text
+        assert r.json()["error"]["code"] == "bad_request"
+    assert (settings.upload_dir / "giu_nguyen.md").read_bytes() == saved
+    assert _get("giu_nguyen")["status"] == "ready"
+
+
+def test_overlong_metadata_is_rejected_not_a_500():
+    assert _upload("Dai.md", title="x" * 301).status_code == 422
+    assert _upload("Dai.md", number="1" * 101).status_code == 422
+    long_title = b"---\ntitle: " + b"y" * 301 + "\n---\nĐiều 1. A\n1. B.\n".encode()
+    assert _upload("Dai.md", long_title).status_code == 400
+    assert _upload("x" * 260 + ".md").status_code == 400
+
+
+def test_deleting_a_document_while_it_is_indexed_leaves_no_orphans(monkeypatch):
+    """The row can go away while its chunks are being embedded."""
+    from grounded_rag import documents
+
+    real = documents._index
+
+    async def delete_midway(path, doc_id, meta):
+        n = await real(path, doc_id, meta)
+        async with SessionLocal() as s:
+            await s.delete(await s.get(Document, doc_id))
+            await s.commit()
+        return n
+
+    monkeypatch.setattr(documents, "_index", delete_midway)
+    r = _upload("Đang xoá.md")
+    assert r.status_code == 202
+    assert _indexed("dang_xoa") == 0
+    assert all(d["id"] != "dang_xoa" for d in client.get("/api/documents").json())
+
+
+def test_cannot_delete_a_document_that_is_being_indexed():
+    async def processing() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="dang_chay", title="x", filename="x.md", path="x.md",
+                           status="processing"))
+            await s.commit()
+
+    asyncio.run(processing())
+    r = client.delete("/api/documents/dang_chay", headers=ADMIN)
+    assert r.status_code == 409
+    assert r.json()["error"]["code"] == "conflict"
 
 
 def test_empty_document_fails():
@@ -185,3 +250,36 @@ def test_indexing_hands_the_model_pool_back_between_batches(tmp_path, monkeypatc
     asyncio.run(documents.seed_corpus(tmp_path))
     assert _get("luat_dai")["chunks"] == documents.INDEX_BATCH * 2 + 1
     assert len(calls) >= 3
+
+
+def test_cannot_reupload_a_document_that_is_being_indexed():
+    async def processing() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="dang_chay_lai", title="x", filename="x.md", path="x.md",
+                           status="processing"))
+            await s.commit()
+
+    asyncio.run(processing())
+    assert _upload("dang_chay_lai.md").status_code == 409
+
+
+def test_startup_marks_unindexed_documents_before_any_model_loads(tmp_path):
+    """Loading a model takes minutes on a first start; until the index holds
+    a document, the library must not call it ready."""
+    from grounded_rag.documents import mark_missing, seed_corpus
+
+    _law(tmp_path, "luat_cho_index.md")
+    asyncio.run(seed_corpus(tmp_path))
+    get_store().delete_document("luat_cho_index")
+    assert "luat_cho_index" in asyncio.run(mark_missing())
+    assert _get("luat_cho_index")["status"] == "processing"
+
+
+def test_a_first_start_lists_the_corpus_before_any_model_loads(tmp_path):
+    from grounded_rag.documents import register_corpus
+
+    _law(tmp_path, "luat_moi_dang_ky.md")
+    assert asyncio.run(register_corpus(tmp_path)) == ["luat_moi_dang_ky"]
+    assert _get("luat_moi_dang_ky")["status"] == "processing"
+    assert _indexed("luat_moi_dang_ky") == 0
+    assert asyncio.run(register_corpus(tmp_path)) == []      # once

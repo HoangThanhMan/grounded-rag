@@ -1,9 +1,11 @@
-"""Request id and access log, as plain ASGI so a streamed answer is neither
-buffered nor logged before it has finished.
+"""Request id, access log and the last-resort 500, as plain ASGI so a
+streamed answer is neither buffered nor logged before it has finished.
 
 The id is taken from X-Request-ID when the client (or nginx) sends a sane
 one, generated otherwise, returned in the response header, and written on the
-request's one JSON log line.
+request's one JSON log line. An exception nothing else handled is answered
+here too: Starlette's own handler for it runs outside this middleware, where
+the request id is already gone.
 """
 
 from __future__ import annotations
@@ -40,11 +42,12 @@ class RequestContext:
         token = _request_id.set(rid)
         started = time.perf_counter()
         status = 500
+        response_started = False
 
         async def send_with_id(message: Message) -> None:
-            nonlocal status
+            nonlocal status, response_started
             if message["type"] == "http.response.start":
-                status = message["status"]
+                status, response_started = message["status"], True
                 message.setdefault("headers", [])
                 message["headers"] = [
                     *message["headers"], (b"x-request-id", rid.encode("latin-1"))
@@ -53,6 +56,20 @@ class RequestContext:
 
         try:
             await self.app(scope, receive, send_with_id)
+        except Exception:
+            log.exception("unhandled error")
+            if response_started:
+                raise       # headers are out; nothing left to do but drop the connection
+            body = json.dumps({"error": {
+                "code": "internal", "message": "internal server error", "request_id": rid,
+            }}).encode()
+            await send_with_id({
+                "type": "http.response.start",
+                "status": 500,
+                "headers": [(b"content-type", b"application/json"),
+                            (b"content-length", str(len(body)).encode())],
+            })
+            await send_with_id({"type": "http.response.body", "body": body})
         finally:
             log.info(json.dumps({
                 "request_id": rid,

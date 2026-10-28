@@ -17,12 +17,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from grounded_rag.api import errors
 from grounded_rag.api.middleware import RequestContext
 from grounded_rag.api.routes import chat, conversations, documents, health
+from grounded_rag.compute import run_model
 from grounded_rag.config import settings
-from grounded_rag.documents import fail_stale_processing, reindex_missing, seed_corpus
+from grounded_rag.documents import (
+    fail_stale_processing,
+    index_document,
+    mark_missing,
+    register_corpus,
+)
 from grounded_rag.generation.llm_client import get_llm_client
 from grounded_rag.observability import metrics
+from grounded_rag.retrieval.search import warm_up
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+# The access log is already JSON: one bare line each, for whatever ships the logs.
+_access = logging.getLogger("grounded_rag.access")
+_access_handler = logging.StreamHandler()
+_access_handler.setFormatter(logging.Formatter("%(message)s"))
+_access.addHandler(_access_handler)
+_access.propagate = False
+# one line per HTTP call to Qdrant, the LLM and the model hub is noise
+for noisy in ("httpx", "httpx2", "httpcore", "huggingface_hub"):
+    logging.getLogger(noisy).setLevel(logging.WARNING)
 log = logging.getLogger("grounded_rag.api")
 
 
@@ -30,8 +46,18 @@ log = logging.getLogger("grounded_rag.api")
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     stale = await fail_stale_processing()
     if stale:
-        log.warning("%d document(s) were mid-index at the last shutdown, marked failed", stale)
-    indexing = asyncio.create_task(_catch_up())
+        log.warning("%d document(s) were mid-index at the last shutdown", stale)
+    # Before anything loads: the library lists the corpus, and a document the
+    # index lacks says so - not "ready", not absent - while the models take
+    # minutes to arrive.
+    pending: list[str] = []
+    try:
+        pending += await mark_missing()
+        if settings.auto_seed_dir:
+            pending += await register_corpus(Path(settings.auto_seed_dir))
+    except Exception:
+        log.exception("could not compare the library with the index")
+    indexing = asyncio.create_task(_catch_up(pending))
     yield
     indexing.cancel()
     # the provider client keeps a connection pool open for the life of the app
@@ -39,14 +65,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await close()
 
 
-async def _catch_up() -> None:
-    """After startup, in the background: what the library lists but the index
-    lacks, then whatever the seed directory has that the library does not."""
-    restored = await reindex_missing()
-    if restored:
-        log.info("re-indexed %d document(s) missing from the index", restored)
-    if settings.auto_seed_dir:
-        await seed_corpus(Path(settings.auto_seed_dir))
+async def _catch_up(pending: list[str]) -> None:
+    """After startup, in the background: load the models, then index what
+    the library lists but the index lacks."""
+    try:
+        await run_model(warm_up)
+    except Exception:
+        # a broken model shows up on the first question too; not fatal here
+        log.exception("warming the models up failed")
+    for doc_id in pending:
+        await index_document(doc_id)
+    if pending:
+        log.info("indexed %d document(s) at startup", len(pending))
 
 
 app = FastAPI(

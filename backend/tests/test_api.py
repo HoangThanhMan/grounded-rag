@@ -191,3 +191,25 @@ def test_unknown_route_has_the_error_shape():
     r = client.get("/api/khong-co")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "not_found"
+
+
+def test_a_crash_still_answers_in_the_error_shape_with_the_request_id():
+    from fastapi import FastAPI
+
+    from grounded_rag.api import errors
+    from grounded_rag.api.middleware import RequestContext
+
+    crashy = FastAPI()
+    errors.install(crashy)
+    crashy.add_middleware(RequestContext)
+
+    @crashy.get("/boom")
+    async def boom():
+        raise RuntimeError("secret detail")
+
+    r = TestClient(crashy, raise_server_exceptions=False).get(
+        "/boom", headers={"X-Request-ID": "crash-1"})
+    assert r.status_code == 500
+    assert r.headers["x-request-id"] == "crash-1"
+    assert r.json() == {"error": {"code": "internal", "message": "internal server error",
+                                  "request_id": "crash-1"}}

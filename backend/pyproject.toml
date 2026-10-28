@@ -16,6 +16,8 @@ dependencies = [
     "aiosqlite>=0.20",
     "alembic>=1.13",
     "python-multipart>=0.0.9",
+    # zoneinfo's data where the OS has none (python:*-slim images)
+    "tzdata>=2024.1",
 ]
 
 [project.optional-dependencies]

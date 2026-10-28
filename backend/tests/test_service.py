@@ -125,3 +125,12 @@ async def test_first_question_is_not_condensed(monkeypatch):
     answer = await answer_question(NOTICE)
     assert answer.standalone_question == NOTICE
     assert len(llm.calls) == 1
+
+
+def test_today_is_the_day_in_vietnam():
+    from datetime import UTC, datetime
+
+    from grounded_rag.service import law_today
+
+    # 23:30 UTC on the 27th is 06:30 on the 28th in Hà Nội
+    assert law_today(datetime(2026, 10, 27, 23, 30, tzinfo=UTC)) == date(2026, 10, 28)

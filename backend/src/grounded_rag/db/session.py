@@ -20,7 +20,11 @@ from grounded_rag.config import settings
 def _engine():
     url = settings.database_url
     if not url.startswith("sqlite"):
-        return create_async_engine(url, pool_pre_ping=True)
+        if settings.database_pool_size == 0:
+            return create_async_engine(url, poolclass=NullPool)
+        return create_async_engine(
+            url, pool_size=settings.database_pool_size, pool_pre_ping=True
+        )
     eng = create_async_engine(url, poolclass=NullPool)
 
     @event.listens_for(eng.sync_engine, "connect")

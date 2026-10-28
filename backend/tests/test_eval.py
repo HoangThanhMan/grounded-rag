@@ -102,3 +102,23 @@ def test_report_counts_each_column_over_its_own_questions():
     assert "1.00 (2/2)" in out          # app hit@5 and correct
     assert "0.00 (0/1)" in out          # naive correct refusal
     assert out.count("\n|") == 3        # header rule + two systems
+
+
+def test_a_window_that_holds_part_of_a_long_clause_matches_it():
+    """Matching is on text for both systems: a fixed-size window that holds a
+    long run of a clause counts like the clause chunk's own piece does."""
+    from eval.gold import RUN_WORDS, covers
+
+    clause = " ".join(f"tu{i}" for i in range(200))
+    window = "phần đầu " + " ".join(f"tu{i}" for i in range(150, 150 + RUN_WORDS)) + " phần sau"
+    assert covers(window, clause)
+    short_overlap = " ".join(f"tu{i}" for i in range(10))
+    assert not covers(short_overlap, clause)
+
+
+def test_matching_ignores_the_ref_and_reads_the_text():
+    from eval.gold import matches
+
+    wrong_text = Chunk(chunk_id="x", doc_id="bo_luat_lao_dong_2019", text="Điều 35\nkhác hẳn",
+                       article="Điều 35", clause="Khoản 1")
+    assert not matches(wrong_text, "bo_luat_lao_dong_2019:Điều 35:1", GOLD)

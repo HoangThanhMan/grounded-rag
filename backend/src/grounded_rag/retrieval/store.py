@@ -136,7 +136,16 @@ class QdrantStore:
             return
         from qdrant_client import models
 
-        if not self.client.collection_exists(self.collection):
+        if self.client.collection_exists(self.collection):
+            info = self.client.get_collection(self.collection)
+            size = info.config.params.vectors[DENSE].size
+            if size != self.embedder.dim:
+                raise RuntimeError(
+                    f"collection {self.collection!r} holds {size}-dimensional vectors but "
+                    f"EMBEDDING_MODEL makes {self.embedder.dim}: it was built with another "
+                    "model. Use another QDRANT_COLLECTION, or delete this one and re-index."
+                )
+        else:
             self.client.create_collection(
                 self.collection,
                 vectors_config={

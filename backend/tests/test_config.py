@@ -21,3 +21,10 @@ def test_generation_and_history_defaults():
 
 def test_naive_retrieval_can_switch_the_floor_off():
     assert RetrievalOptions(min_score=None).min_score is None
+
+
+def test_the_floor_is_set_from_the_environment(monkeypatch):
+    from grounded_rag import config
+
+    monkeypatch.setattr(config.settings, "retrieval_min_score", 0.12)
+    assert retrieval_options().min_score == 0.12

@@ -1,10 +1,11 @@
 """Matching an answer against the labelled gold clauses.
 
-Gold evidence is matched on text, not on chunk ids. A fixed-size chunk that
-contains the gold clause counts exactly like the clause chunk that IS the
-gold clause - otherwise the comparison with naive RAG is rigged by
-construction. "Contains" means containment, not overlap: phrases like "người
-sử dụng lao động" are in every other clause.
+Gold evidence is matched on text, by the same rule for both systems - never
+on chunk ids, which only the clause chunker produces. A source holds a gold
+clause if it contains the whole clause, or an unbroken run of RUN_WORDS words
+of it: a long clause is split into pieces by the clause chunker and cut by
+window edges in fixed-size chunks, and either way a piece is evidence. Short
+shared phrases are not - "người sử dụng lao động" is in every other clause.
 """
 
 from __future__ import annotations
@@ -18,8 +19,8 @@ from grounded_rag.ingest.loaders import iter_corpus, load_file
 from grounded_rag.types import Chunk
 
 WHOLE = 10**9  # no size budget: clauses are cut for indexing, never for measuring
-# A clause this long can be cut by a window boundary; half of it is a match.
-MIN_WORDS_FOR_HALF = 20
+# Legal boilerplate repeats in short phrases, not in 30-word runs.
+RUN_WORDS = 30
 _NUMBER = re.compile(r"\d+(?:[.,]\d+)*")
 
 
@@ -35,24 +36,18 @@ def gold_text(corpus: Path) -> dict[str, str]:
 
 
 def covers(chunk_text: str, gold: str) -> bool:
-    """The chunk contains the clause - whole, or the first or second half of
-    a clause long enough to straddle a window boundary. Compared word by
-    word, so line breaks and punctuation do not matter."""
+    """Compared word by word, so line breaks and punctuation do not matter."""
     want = _words(gold)
     if not want:
         return False
-    have = f" {' '.join(_words(chunk_text))} "
-    if f" {' '.join(want)} " in have:
-        return True
-    if len(want) < MIN_WORDS_FOR_HALF:
-        return False
-    half = len(want) // 2
-    return f" {' '.join(want[:half])} " in have or f" {' '.join(want[-half:])} " in have
+    have = _words(chunk_text)
+    if len(want) <= RUN_WORDS:
+        return f" {' '.join(want)} " in f" {' '.join(have)} "
+    runs = {tuple(want[i : i + RUN_WORDS]) for i in range(len(want) - RUN_WORDS + 1)}
+    return any(tuple(have[i : i + RUN_WORDS]) in runs for i in range(len(have) - RUN_WORDS + 1))
 
 
 def matches(chunk: Chunk, ref: str, gold: dict[str, str]) -> bool:
-    if chunk.ref == ref:
-        return True
     text = gold.get(ref)
     return bool(text) and covers(chunk.text, text)
 

@@ -100,3 +100,13 @@ def test_upsert_in_batches_scores_like_one_upsert_given_the_corpus_length(chunks
     q = "nghỉ hằng năm hưởng nguyên lương"
     assert [round(s, 6) for _, s in whole.sparse_search(q, 5)] == [
         round(s, 6) for _, s in batched.sparse_search(q, 5)]
+
+
+def test_an_index_built_by_another_embedding_model_is_a_clear_error(chunks):
+    class Small(HashEmbedder):
+        dim = 384
+
+    client = qdrant_client.QdrantClient(location=":memory:")
+    QdrantStore("dims", client=client, embedder=HashEmbedder()).upsert(chunks[:1])
+    with pytest.raises(RuntimeError, match="1024.*384|384.*1024"):
+        QdrantStore("dims", client=client, embedder=Small()).dense_search("x", 1)

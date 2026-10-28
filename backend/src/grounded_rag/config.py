@@ -31,18 +31,28 @@ class Settings(BaseSettings):
     max_tokens: int = 512
     # Earlier question/answer pairs used to rewrite a follow-up question
     history_turns: int = Field(default=3, ge=0)
+    # "Today", when a question names no date, is today where the law applies -
+    # not on the server's UTC clock, seven hours behind in the morning.
+    law_timezone: str = "Asia/Ho_Chi_Minh"
 
     # ":memory:" runs Qdrant's embedded mode - the real code path, no server
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "grounded_rag"
     embedding_model: str = "BAAI/bge-m3"
     reranker_model: str = "BAAI/bge-reranker-v2-m3"
+    # The rerank score below which a source is dropped - and with none left,
+    # the question refused before any LLM call. On bge-reranker-v2-m3's
+    # sigmoid scale; another reranker needs its own value.
+    retrieval_min_score: float = 0.30
     # Model calls (embed, rerank) running at once - see compute.py. Each
     # already uses every core through torch's intra-op threads, so 1 is right
     # on a CPU box; more only helps with spare cores and a smaller torch pool.
     model_workers: int = Field(default=1, ge=1)
 
     database_url: str = "sqlite+aiosqlite:///./data/app.db"
+    # Postgres connections kept open; 0 = a new connection per session, for
+    # callers that run several event loops (the tests)
+    database_pool_size: int = Field(default=5, ge=0)
     upload_dir: Path = Path("data/uploads")
     max_upload_mb: int = 10
     # Indexed at startup, file by file, when the document table does not know
@@ -77,7 +87,7 @@ class RetrievalOptions(BaseModel):
 
 
 def retrieval_options() -> RetrievalOptions:
-    return RetrievalOptions()
+    return RetrievalOptions(min_score=settings.retrieval_min_score)
 
 
 settings = Settings()

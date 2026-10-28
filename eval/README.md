@@ -12,7 +12,10 @@ and does it refuse when the law says nothing?**
   fixed-size chunks with dense search only and no floor. *The app* reads
   clause-level chunks with hybrid search, a reranker and a retrieval floor.
 - **Columns:**
-  - *Gold clause retrieved*: a gold clause is among the five sources.
+  - *Gold clause retrieved*: a gold clause is among the five sources. A source
+    holds a clause if it contains all of it or an unbroken 30-word run of it,
+    the same rule for both systems - so a fixed-size window that cuts a long
+    clause is judged like the clause chunk's own piece of it.
   - *Correct answer*: the answer cites a source holding the gold clause and
     states every number in the gold answer.
   - *Refuses when the law is silent*: on the 40 unanswerable questions.

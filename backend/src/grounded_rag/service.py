@@ -17,7 +17,8 @@ import logging
 import time
 from collections.abc import AsyncIterator, Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from grounded_rag.compute import run_model
 from grounded_rag.config import RetrievalOptions, retrieval_options, settings
@@ -91,7 +92,7 @@ async def answer_stream(
                 standalone = res.text.strip() or question
 
         with trace("retrieve") as span:
-            hits = await run_model(search, standalone, options, as_of or date.today())
+            hits = await run_model(search, standalone, options, as_of or law_today())
             span["hits"] = len(hits)
         sources = [
             RetrievedChunk(chunk=c, score=round(s, 4), label=f"C{i + 1}")
@@ -135,6 +136,11 @@ async def answer_question(
         if isinstance(event, DoneEvent):
             return event.answer
     raise RuntimeError("the answer stream ended without a done event")
+
+
+def law_today(now: datetime | None = None) -> date:
+    tz = ZoneInfo(settings.law_timezone)
+    return (now.astimezone(tz) if now else datetime.now(tz)).date()
 
 
 def _checked(raw: str, sources: list[RetrievedChunk]) -> Answer:

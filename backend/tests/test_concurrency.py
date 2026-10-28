@@ -44,3 +44,26 @@ async def test_the_event_loop_stays_free_while_questions_wait_on_the_models(monk
     assert all(a.sources for a in answers)
     # Blocking the event loop makes this the sum of the three reranker calls.
     assert waited < 0.1, f"the loop was blocked for {waited:.2f}s behind the models"
+
+
+def test_warm_up_loads_both_models(monkeypatch):
+    from grounded_rag.retrieval import search as search_module
+
+    loaded = []
+
+    class Spy:
+        def __init__(self, name):
+            self.name = name
+
+        def encode(self, texts):
+            loaded.append(self.name)
+            return [[0.0]] * len(texts)
+
+        def rerank(self, query, candidates, top_n):
+            loaded.append(self.name)
+            return [(c, 0.0) for c, _ in candidates][:top_n]
+
+    monkeypatch.setattr(search_module, "get_embedder", lambda: Spy("embedder"))
+    monkeypatch.setattr(search_module, "get_reranker", lambda: Spy("reranker"))
+    search_module.warm_up()
+    assert loaded == ["embedder", "reranker"]
