@@ -1,3 +1,7 @@
+"""The HTTP API end to end on the mock provider: the chat stream, the
+conversation history it leaves behind, feedback, and the error shape."""
+
+import json
 from pathlib import Path
 
 import pytest
@@ -5,100 +9,185 @@ from fastapi.testclient import TestClient
 
 from grounded_rag import service
 from grounded_rag.api.main import app
-from grounded_rag.config import RunConfig, settings
-from grounded_rag.generation.llm_client import LLMUnavailable
-from grounded_rag.ingest.pipeline import ingest
+from grounded_rag.api.routes import health
+from grounded_rag.generation.llm_client import LLMResponse, LLMUnavailable
+from grounded_rag.ingest.loaders import load_file
+from grounded_rag.ingest.pipeline import ingest_file
+
+SAMPLE = Path("data/sample_corpus/bo_luat_lao_dong_2019.md")
+HOURS = "Thời giờ làm việc bình thường tối đa trong một ngày là bao nhiêu giờ?"
 
 client = TestClient(app)
 
 
-def test_healthz():
-    assert client.get("/healthz").json() == {"status": "ok", "provider": "mock"}
+@pytest.fixture(scope="module", autouse=True)
+def indexed():
+    ingest_file(SAMPLE, "bo_luat_lao_dong_2019", load_file(SAMPLE).meta)
 
 
-def test_unknown_config_is_404():
-    r = client.post("/chat", json={"question": "Nghỉ việc?", "config": "nope"})
+def _events(r) -> list[tuple[str, dict]]:
+    out = []
+    for block in r.text.strip().split("\n\n"):
+        lines = dict(line.split(": ", 1) for line in block.splitlines())
+        out.append((lines["event"], json.loads(lines["data"])))
+    return out
+
+
+def _chat(**body) -> list[tuple[str, dict]]:
+    r = client.post("/api/chat", json=body)
+    assert r.status_code == 200, r.text
+    assert r.headers["content-type"].startswith("text/event-stream")
+    return _events(r)
+
+
+class Scripted:
+    def __init__(self, tokens=("Tám giờ ", "[C1]."), condensed="", fail_after=None):
+        self.tokens, self.condensed, self.fail_after = tokens, condensed, fail_after
+        self.prompts: list[str] = []
+
+    async def complete(self, system, user, **kw):
+        self.prompts.append(user)
+        return LLMResponse(text=self.condensed)
+
+    async def stream(self, system, user, **kw):
+        self.prompts.append(user)
+        for i, t in enumerate(self.tokens):
+            if self.fail_after is not None and i == self.fail_after:
+                raise LLMUnavailable("connection reset")
+            yield t
+        if self.fail_after is not None and self.fail_after >= len(self.tokens):
+            raise LLMUnavailable("connection reset")
+
+
+def test_chat_streams_meta_sources_tokens_done_and_saves_two_messages():
+    events = _chat(question=HOURS)
+    kinds = [k for k, _ in events]
+    assert kinds[:2] == ["meta", "sources"]
+    assert kinds[-1] == "done"
+    assert set(kinds[2:-1]) == {"token"}
+
+    meta, sources, done = events[0][1], events[1][1], events[-1][1]
+    assert meta["title"] == HOURS[:60]
+    src = sources["sources"][0]
+    assert src["label"] == "C1"
+    assert src["ref"] == "bo_luat_lao_dong_2019:Điều 105:1"
+    assert {"doc_id", "doc_title", "article", "clause", "text", "effective_date",
+            "expiry_date", "score"} <= src.keys()
+    assert done["status"] == "answered"
+    assert done["citations"] == ["C1"]
+
+    conv = client.get(f"/api/conversations/{meta['conversation_id']}").json()
+    roles = [m["role"] for m in conv["messages"]]
+    assert roles == ["user", "assistant"]
+    assistant = conv["messages"][1]
+    assert assistant["id"] == done["message_id"]
+    assert assistant["content"] == done["answer"]
+    assert assistant["sources"][0]["ref"] == src["ref"]
+
+
+def test_follow_up_uses_the_conversation_history(monkeypatch):
+    first = _chat(question=HOURS)
+    conv_id = first[0][1]["conversation_id"]
+    rewritten = "Thời giờ làm việc theo tuần tối đa bao nhiêu giờ?"
+    llm = Scripted(condensed=rewritten)
+    monkeypatch.setattr(service, "get_llm_client", lambda: llm)
+    events = _chat(question="Còn theo tuần thì sao?", conversation_id=conv_id)
+    assert HOURS in llm.prompts[0]          # the rewrite saw the first question
+    assert events[1][1]["standalone_question"] == rewritten
+    conv = client.get(f"/api/conversations/{conv_id}").json()
+    assert len(conv["messages"]) == 4
+
+
+def test_unknown_conversation_is_404():
+    r = client.post("/api/chat", json={"question": HOURS, "conversation_id": "khong-co"})
     assert r.status_code == 404
+    err = r.json()["error"]
+    assert err["code"] == "not_found"
+    assert err["request_id"] == r.headers["x-request-id"]
 
 
-def test_config_is_a_name_not_a_path():
-    r = client.post("/chat", json={"question": "Nghỉ việc?", "config": "../secrets"})
+def test_blank_question_is_422():
+    r = client.post("/api/chat", json={"question": "   "})
     assert r.status_code == 422
+    assert r.json()["error"]["code"] == "validation_error"
 
 
-def test_a_refusal_is_200_but_a_provider_outage_is_503(monkeypatch):
-    ingest(Path("data/sample_corpus"), RunConfig.from_yaml("configs/baseline.yaml"))
+def test_overlong_question_is_422():
+    assert client.post("/api/chat", json={"question": "a" * 1001}).status_code == 422
 
-    class Down:
-        async def complete(self, *args, **kw):
-            raise LLMUnavailable("connection refused")
 
-    monkeypatch.setattr(service, "get_llm_client", lambda: Down())
-    # baseline has no retrieval floor, so the LLM is always reached
-    r = client.post("/chat", json={"question": "Thời giờ làm việc?", "config": "baseline"})
+def test_provider_down_before_stream_is_error_event(monkeypatch):
+    monkeypatch.setattr(service, "get_llm_client", lambda: Scripted(fail_after=0))
+    events = _chat(question=HOURS)
+    assert events[-1][0] == "error"
+    assert events[-1][1]["code"] == "llm_unavailable"
+
+
+def test_stream_failure_mid_answer_sends_error_and_saves_nothing(monkeypatch):
+    monkeypatch.setattr(service, "get_llm_client",
+                        lambda: Scripted(tokens=("Người ",), fail_after=1))
+    events = _chat(question=HOURS)
+    kinds = [k for k, _ in events]
+    assert "token" in kinds
+    assert kinds[-1] == "error"
+    assert "done" not in kinds
+    conv = client.get(f"/api/conversations/{events[0][1]['conversation_id']}").json()
+    assert [m["role"] for m in conv["messages"]] == ["user"]
+
+
+def test_feedback_upserts_and_404s_on_user_message():
+    events = _chat(question=HOURS)
+    message_id = events[-1][1]["message_id"]
+    assert client.put(f"/api/messages/{message_id}/feedback",
+                      json={"rating": "up"}).status_code == 200
+    r = client.put(f"/api/messages/{message_id}/feedback",
+                   json={"rating": "down", "comment": "sai điều"})
+    assert r.json()["rating"] == "down"
+    conv = client.get(f"/api/conversations/{events[0][1]['conversation_id']}").json()
+    assert conv["messages"][1]["feedback"] == "down"
+    user_msg = conv["messages"][0]["id"]
+    assert client.put(f"/api/messages/{user_msg}/feedback",
+                      json={"rating": "up"}).status_code == 404
+    assert client.put("/api/messages/khong-co/feedback", json={"rating": "up"}).status_code == 404
+    assert client.put(f"/api/messages/{message_id}/feedback",
+                      json={"rating": "meh"}).status_code == 422
+
+
+def test_conversations_list_newest_first_and_delete():
+    a = _chat(question="Câu hỏi thứ nhất về thời giờ làm việc?")[0][1]["conversation_id"]
+    b = _chat(question="Câu hỏi thứ hai về thời giờ làm việc?")[0][1]["conversation_id"]
+    ids = [c["id"] for c in client.get("/api/conversations").json()]
+    assert ids.index(b) < ids.index(a)
+    assert client.delete(f"/api/conversations/{a}").status_code == 204
+    assert client.get(f"/api/conversations/{a}").status_code == 404
+    assert client.delete(f"/api/conversations/{a}").status_code == 404
+
+
+def test_request_id_is_echoed_and_generated():
+    assert client.get("/healthz", headers={"X-Request-ID": "abc-123"}).headers[
+        "x-request-id"] == "abc-123"
+    generated = client.get("/healthz", headers={"X-Request-ID": "bad id!"}).headers["x-request-id"]
+    assert generated != "bad id!" and len(generated) >= 16
+
+
+def test_healthz():
+    assert client.get("/healthz").json() == {"status": "ok"}
+
+
+def test_readyz_ok_and_reports_db_failure(monkeypatch):
+    assert client.get("/readyz").json() == {"qdrant": "ok", "db": "ok"}
+
+    async def down():
+        raise ConnectionError("db is down")
+
+    monkeypatch.setattr(health, "ping_db", down)
+    r = client.get("/readyz")
     assert r.status_code == 503
-    assert "connection refused" in r.json()["detail"]
+    assert r.json()["qdrant"] == "ok"
+    assert "db is down" in r.json()["db"]
 
 
-def test_configs_lists_every_yaml_with_its_guard_threshold():
-    rows = client.get("/configs").json()
-    assert {r["name"] for r in rows} == {"baseline", "threshold", "full", "agentic"}
-    by_name = {r["name"]: r for r in rows}
-    # the demo UI draws the entailment gauge against this number
-    assert by_name["full"]["guard_enabled"] is True
-    assert by_name["full"]["entailment_threshold"] == 0.50
-    assert by_name["baseline"]["guard_enabled"] is False
-    assert by_name["agentic"]["corrective_enabled"] is True
-
-
-def test_demo_ui_is_served_from_the_api_itself():
-    # one process, one origin, no CORS - see app/web/
-    index = client.get("/")
-    assert index.status_code == 200
-    assert "grounded-rag" in index.text
-    assert client.get("/static/app.js").status_code == 200
-    assert client.get("/static/styles.css").status_code == 200
-
-
-# ---- POST /ingest: an admin operation on the server's own files ------------
-
-ADMIN = {"x-api-key": "test-admin-key"}
-
-
-@pytest.fixture
-def admin_key(monkeypatch):
-    monkeypatch.setattr(settings, "admin_api_key", ADMIN["x-api-key"])
-
-
-def test_ingest_is_off_unless_an_admin_key_is_configured(monkeypatch):
-    monkeypatch.setattr(settings, "admin_api_key", "")
-    r = client.post("/ingest", json={"source": "data/sample_corpus"}, headers=ADMIN)
-    assert r.status_code == 403
-
-
-@pytest.mark.parametrize("headers", [{}, {"x-api-key": "wrong"}])
-def test_ingest_without_the_right_key_is_401(admin_key, headers):
-    r = client.post("/ingest", json={"source": "data/sample_corpus"}, headers=headers)
-    assert r.status_code == 401
-
-
-@pytest.mark.parametrize(
-    "source", ["/etc", "../..", "data/../src", "data/no-such-dir", "README.md"]
-)
-def test_ingest_reads_only_directories_under_data_root(admin_key, source):
-    r = client.post("/ingest", json={"source": source}, headers=ADMIN)
-    assert r.status_code == 400, r.text
-
-
-def test_ingest_cannot_drop_the_index_over_http(admin_key):
-    # recreate deletes every chunk of a chunker's index: CLI only
-    r = client.post(
-        "/ingest", json={"source": "data/sample_corpus", "recreate": True}, headers=ADMIN
-    )
-    assert r.status_code == 422
-
-
-def test_ingest_with_the_key_indexes_the_corpus(admin_key):
-    r = client.post("/ingest", json={"source": "data/sample_corpus"}, headers=ADMIN)
-    assert r.status_code == 200
-    assert r.json()["files"] > 0
+def test_unknown_route_has_the_error_shape():
+    r = client.get("/api/khong-co")
+    assert r.status_code == 404
+    assert r.json()["error"]["code"] == "not_found"

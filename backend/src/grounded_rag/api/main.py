@@ -12,8 +12,11 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from grounded_rag.api.routes import documents
+from grounded_rag.api import errors
+from grounded_rag.api.middleware import RequestContext
+from grounded_rag.api.routes import chat, conversations, documents, health
 from grounded_rag.config import settings
 from grounded_rag.documents import fail_stale_processing, seed_corpus
 from grounded_rag.generation.llm_client import get_llm_client
@@ -45,7 +48,21 @@ app = FastAPI(
     description="Vietnamese legal Q&A that cites the clause behind every answer.",
     lifespan=lifespan,
 )
-app.include_router(documents.router)
+errors.install(app)
+for module in (chat, conversations, documents, health):
+    app.include_router(module.router)
+
+# Not needed behind nginx or the Vite dev proxy, where the UI and the API
+# share an origin; only for a UI served from somewhere else.
+if settings.cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID", "Retry-After"],
+    )
+app.add_middleware(RequestContext)
 
 if metrics.enabled():
     from prometheus_client import make_asgi_app

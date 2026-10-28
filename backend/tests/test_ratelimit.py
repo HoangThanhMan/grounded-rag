@@ -1,0 +1,57 @@
+from fastapi.testclient import TestClient
+
+from grounded_rag.api import ratelimit
+from grounded_rag.api.main import app
+from grounded_rag.api.ratelimit import TokenBucketLimiter
+
+
+class Clock:
+    def __init__(self) -> None:
+        self.t = 1000.0
+
+    def __call__(self) -> float:
+        return self.t
+
+
+def test_bucket_allows_the_rate_then_asks_to_wait():
+    clock = Clock()
+    limiter = TokenBucketLimiter(2, clock=clock)
+    assert limiter.check("1.2.3.4") is None
+    assert limiter.check("1.2.3.4") is None
+    wait = limiter.check("1.2.3.4")
+    assert wait is not None and 0 < wait <= 30
+    assert limiter.check("5.6.7.8") is None     # another client has its own bucket
+    clock.t += 30                               # 2 per minute: one token back
+    assert limiter.check("1.2.3.4") is None
+
+
+def test_zero_turns_the_limit_off():
+    limiter = TokenBucketLimiter(0, clock=Clock())
+    assert all(limiter.check("x") is None for _ in range(100))
+
+
+def test_route_answers_429_with_retry_after(monkeypatch):
+    monkeypatch.setattr(ratelimit, "limiter", TokenBucketLimiter(1, clock=Clock()))
+    client = TestClient(app)
+    body = {"question": "Thời giờ làm việc?"}
+    assert client.post("/api/chat", json=body).status_code == 200
+    r = client.post("/api/chat", json=body)
+    assert r.status_code == 429
+    assert r.json()["error"]["code"] == "rate_limited"
+    assert int(r.headers["retry-after"]) >= 1
+    # the limit is on asking, not on reading
+    assert client.get("/api/conversations").status_code == 200
+
+
+def test_forwarded_for_counts_only_behind_a_trusted_proxy(monkeypatch):
+    from grounded_rag.config import settings
+
+    monkeypatch.setattr(ratelimit, "limiter", TokenBucketLimiter(1, clock=Clock()))
+    client = TestClient(app)
+    body = {"question": "Thời giờ làm việc?"}
+    spoofed = {"X-Forwarded-For": "9.9.9.9"}
+    assert client.post("/api/chat", json=body).status_code == 200
+    # untrusted: the header is ignored, so it is the same client again
+    assert client.post("/api/chat", json=body, headers=spoofed).status_code == 429
+    monkeypatch.setattr(settings, "trust_proxy", True)
+    assert client.post("/api/chat", json=body, headers=spoofed).status_code == 200

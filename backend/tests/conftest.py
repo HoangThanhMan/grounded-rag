@@ -29,11 +29,6 @@ os.environ.update(
 REPO = Path(__file__).resolve().parents[2]
 os.chdir(REPO)
 
-# Written against the research API (configs/, /chat) and rewritten with the
-# new /api routes.
-collect_ignore = ["test_api.py"]
-
-
 @pytest.fixture(scope="session", autouse=True)
 def database():
     from grounded_rag.db.models import Base
