@@ -231,12 +231,24 @@ def test_conversations_belong_to_the_browser_that_started_them():
     assert alice.get(f"/api/conversations/{conv}").status_code == 200
 
 
-def test_the_owner_cookie_is_http_only_and_set_once():
+def test_the_owner_cookie_is_http_only_and_renewed_with_the_same_value():
+    """Renewed on every visit, so a daily reader does not lose the history a
+    year after the first one."""
     fresh = TestClient(app)
-    first = fresh.get("/api/conversations")
-    cookie = first.headers["set-cookie"]
-    assert "gr_owner=" in cookie and "HttpOnly" in cookie and "SameSite=Lax" in cookie
-    assert "set-cookie" not in fresh.get("/api/conversations").headers
+    first = fresh.get("/api/conversations").headers["set-cookie"]
+    assert "gr_owner=" in first and "HttpOnly" in first and "SameSite=Lax" in first
+    again = fresh.get("/api/conversations").headers["set-cookie"]
+    assert again.split(";")[0] == first.split(";")[0]
+
+
+def test_another_sites_malformed_cookie_does_not_cost_the_history():
+    """Cookies are shared by every app on the host (and every port of localhost)."""
+    c = TestClient(app)
+    conv = _events(c.post("/api/chat", json={"question": HOURS}))[0][1]["conversation_id"]
+    token = c.cookies.get("gr_owner")
+    raw = f'theme={{"dark":true}}; foo[bar]=1; gr_owner={token}'
+    r = TestClient(app).get(f"/api/conversations/{conv}", headers={"cookie": raw})
+    assert r.status_code == 200
 
 
 @pytest.mark.asyncio

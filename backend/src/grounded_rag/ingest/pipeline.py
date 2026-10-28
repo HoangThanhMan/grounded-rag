@@ -18,12 +18,17 @@ from grounded_rag.retrieval.store import get_store
 from grounded_rag.types import Chunk, DocMeta
 
 
+class DocumentError(ValueError):
+    """Something wrong with the document itself, worded for the person who
+    uploaded it. Any other error stays in the server log."""
+
+
 def chunk_file(path: Path, doc_id: str, meta: DocMeta, chunker: str = "structural") -> list[Chunk]:
     """A document with no text - a scanned PDF - is an error, not an empty success."""
     doc = load_file(path)
     chunks = get_chunker(chunker)(doc.text, doc_id, meta=meta) if doc.text.strip() else []
     if not chunks:
-        raise ValueError("no text extracted from the file")
+        raise DocumentError("no text extracted from the file")
     return chunks
 
 

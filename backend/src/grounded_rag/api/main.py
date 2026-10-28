@@ -95,6 +95,7 @@ if settings.cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
+        allow_credentials=True,     # the history cookie
         allow_methods=["*"],
         allow_headers=["*"],
         expose_headers=["X-Request-ID", "Retry-After"],

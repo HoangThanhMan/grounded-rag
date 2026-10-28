@@ -177,6 +177,7 @@ class OpenAICompatClient:
         for attempt in range(self.retries + 1):
             if attempt:
                 await _sleep(wait)
+            out.finish_reason = None    # what an earlier attempt said does not count
             try:
                 async with self._http.get().stream(
                     "POST", self.url, json=body, headers=self.headers

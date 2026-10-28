@@ -373,3 +373,79 @@ def test_a_document_stuck_processing_for_long_can_be_deleted():
 
     asyncio.run(stuck())
     assert client.delete("/api/documents/ket_lau", headers=ADMIN).status_code == 204
+
+
+def test_an_interrupted_document_whose_file_is_gone_leaves_no_chunks(tmp_path):
+    from grounded_rag import documents
+
+    path = _law(tmp_path, "luat_mat_file.md", clauses=3)
+    get_store().upsert(documents.chunk_file(path, "luat_mat_file", documents.DocMeta())[:1])
+
+    async def interrupted() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="luat_mat_file", title="x", filename=path.name,
+                           path=str(tmp_path / "da_xoa.md"), status="processing"))
+            await s.commit()
+
+    asyncio.run(interrupted())
+    asyncio.run(requeue_interrupted())
+    assert _get("luat_mat_file")["status"] == "failed"
+    assert _indexed("luat_mat_file") == 0
+
+
+def test_a_requeued_document_counts_as_busy_again():
+    from datetime import UTC, datetime, timedelta
+
+    async def old_interrupted() -> None:
+        async with SessionLocal() as s:
+            s.add(Document(id="cu_bi_ngat", title="x", filename="x.md",
+                           path=str(SAMPLE), status="processing",
+                           updated_at=datetime.now(UTC) - timedelta(hours=3)))
+            await s.commit()
+
+    asyncio.run(old_interrupted())
+    assert "cu_bi_ngat" in asyncio.run(requeue_interrupted())
+    assert client.delete("/api/documents/cu_bi_ngat", headers=ADMIN).status_code == 409
+
+
+def test_chunks_of_a_deleted_document_are_purged_at_startup(tmp_path):
+    """`make ingest` or a failed store delete can leave them; the row is a
+    tombstone, so nothing else would ever remove them."""
+    from grounded_rag import documents
+
+    _law(tmp_path, "luat_ma.md")
+    asyncio.run(documents.seed_corpus(tmp_path))
+    assert client.delete("/api/documents/luat_ma", headers=ADMIN).status_code == 204
+    get_store().upsert(documents.chunk_file(tmp_path / "luat_ma.md", "luat_ma",
+                                            documents.DocMeta()))
+    asyncio.run(documents.mark_missing())
+    assert _indexed("luat_ma") == 0
+
+
+def test_only_the_apps_own_errors_are_shown_publicly(tmp_path, monkeypatch):
+    from grounded_rag import documents
+
+    def library_bug(*a, **kw):
+        raise ValueError("array dimension mismatch at 0x7f...")
+
+    monkeypatch.setattr(documents, "chunk_file", library_bug)
+    _law(tmp_path, "luat_loi_thu_vien.md")
+    asyncio.run(documents.seed_corpus(tmp_path))
+    assert _get("luat_loi_thu_vien")["error"] == "indexing failed, see the server log"
+
+
+def test_recording_gives_up_without_a_last_sleep(tmp_path, monkeypatch):
+    from grounded_rag import documents
+
+    slept = []
+
+    async def fake_sleep(s):
+        slept.append(s)
+
+    def always_down():
+        raise ConnectionError("down")
+
+    monkeypatch.setattr(documents.asyncio, "sleep", fake_sleep)
+    monkeypatch.setattr(documents, "SessionLocal", always_down)
+    asyncio.run(documents._record("nothing", 1, None))
+    assert len(slept) == 2

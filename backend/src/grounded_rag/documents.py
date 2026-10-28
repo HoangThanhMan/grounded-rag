@@ -25,7 +25,7 @@ from grounded_rag.compute import run_model
 from grounded_rag.db.models import Document, now
 from grounded_rag.db.session import SessionLocal
 from grounded_rag.ingest.loaders import iter_corpus, load_file
-from grounded_rag.ingest.pipeline import chunk_file
+from grounded_rag.ingest.pipeline import DocumentError, chunk_file
 from grounded_rag.retrieval.lexical import tokenize
 from grounded_rag.retrieval.store import get_store
 from grounded_rag.types import DocMeta
@@ -87,7 +87,7 @@ async def index_document(doc_id: str) -> None:
     except Exception as e:
         log.exception("indexing %s failed", doc_id)
         # what the library page shows; the details are in the log
-        error = str(e) if isinstance(e, ValueError) else "indexing failed, see the server log"
+        error = str(e) if isinstance(e, DocumentError) else "indexing failed, see the server log"
         try:
             await run_model(get_store().delete_document, doc_id)
         except Exception:
@@ -111,7 +111,10 @@ async def _record(doc_id: str, chunks: int, error: str | None) -> None:
                 return
         except Exception:
             log.exception("recording the index of %s failed (attempt %d)", doc_id, attempt + 1)
-            await asyncio.sleep(RECORD_RETRY_S * (attempt + 1))
+            if attempt < 2:
+                await asyncio.sleep(RECORD_RETRY_S * (attempt + 1))
+    log.error("gave up recording the index of %s; it stays processing until it is "
+              "re-indexed at the next start", doc_id)
 
 
 async def _index(path: Path, doc_id: str, meta: DocMeta) -> int:
@@ -141,6 +144,12 @@ async def mark_missing() -> list[str]:
             ):
                 doc.status, doc.error = "processing", None
                 missing.append(doc.id)
+        # A deleted document's chunks can come back - `make ingest` does not
+        # read the library - and its tombstone hides it from every other route.
+        tombstones = select(Document.id).where(Document.status == "deleted")
+        for doc_id in (await session.scalars(tombstones)).all():
+            if await asyncio.to_thread(store.has_document, doc_id):
+                await run_model(store.delete_document, doc_id)
         await session.commit()
     return missing
 
@@ -201,8 +210,11 @@ async def requeue_interrupted() -> list[str]:
             select(Document).where(Document.status == "processing")
         )).all():
             if Path(doc.path).is_file():
+                # busy again: no upload or delete may race the re-index
+                doc.updated_at = now()
                 requeued.append(doc.id)
             else:
+                await run_model(get_store().delete_document, doc.id)
                 doc.status, doc.error = "failed", "interrupted by a restart"
         await session.commit()
     return requeued

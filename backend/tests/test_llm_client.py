@@ -267,3 +267,31 @@ async def test_a_timeout_before_the_first_token_is_retried():
         return httpx.Response(200, text=sse)
 
     assert "".join([t async for t in _client(handler, retries=1).stream("s", "u")]) == "Xong"
+
+
+@pytest.mark.asyncio
+async def test_a_retry_starts_with_a_clean_finish_reason():
+    """A first attempt that said "length" and then dropped must not make the
+    retry look finished when it is cut off too."""
+    calls = []
+
+    def handler(request):
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(200, stream=_Broken(
+                b'data: {"choices":[{"delta":{},"finish_reason":"length"}]}\n\n'))
+        return httpx.Response(200, text='data: {"choices":[{"delta":{"content":"A"}}]}\n\n')
+
+    with pytest.raises(LLMUnavailable, match="ended before"):
+        _ = [t async for t in _client(handler, retries=1).stream("s", "u")]
+
+
+class _Broken(httpx.AsyncByteStream):
+    """Sends one chunk, then the connection drops."""
+
+    def __init__(self, first: bytes) -> None:
+        self.first = first
+
+    async def __aiter__(self):
+        yield self.first
+        raise httpx.ReadError("connection reset")

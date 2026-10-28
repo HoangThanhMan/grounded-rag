@@ -1,9 +1,10 @@
 """Whose conversations are whose, without accounts.
 
-Each browser gets a random token in an HttpOnly cookie on its first request;
-its conversations are stored under a hash of that token, and every
-conversation route answers only to the browser that started it. Lose the
-cookie and the history is gone - the price of having no sign-in.
+Each browser gets a random token in an HttpOnly cookie on its first request,
+renewed on every visit after; its conversations are stored under a hash of
+that token, and every conversation route answers only to the browser that
+started it. Lose the cookie and the history is gone - the price of having no
+sign-in.
 """
 
 from __future__ import annotations
@@ -11,9 +12,9 @@ from __future__ import annotations
 import hashlib
 import re
 import secrets
-from http.cookies import SimpleCookie
 
 from fastapi import Request
+from starlette.requests import cookie_parser
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from grounded_rag.config import settings
@@ -36,14 +37,11 @@ class OwnerCookie:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        token = _cookie(scope)
-        fresh = token is None
-        if fresh:
-            token = secrets.token_urlsafe(32)
+        token = _cookie(scope) or secrets.token_urlsafe(32)
         scope.setdefault("state", {})["owner"] = owner_of(token)
 
         async def send_with_cookie(message: Message) -> None:
-            if fresh and message["type"] == "http.response.start":
+            if message["type"] == "http.response.start":
                 value = f"{COOKIE}={token}; Path=/; Max-Age={YEAR}; HttpOnly; SameSite=Lax"
                 if settings.cookie_secure:
                     value += "; Secure"
@@ -59,11 +57,8 @@ def current_owner(request: Request) -> str:
 
 
 def _cookie(scope: Scope) -> str | None:
+    """Starlette's parser, not http.cookies: that one stops at the first
+    cookie it dislikes, and another app on the host may set one."""
     raw = dict(scope["headers"]).get(b"cookie", b"").decode("latin-1")
-    jar: SimpleCookie = SimpleCookie()
-    try:
-        jar.load(raw)
-    except Exception:
-        return None
-    morsel = jar.get(COOKIE)
-    return morsel.value if morsel and _TOKEN.match(morsel.value) else None
+    value = cookie_parser(raw).get(COOKIE, "")
+    return value if _TOKEN.match(value) else None
