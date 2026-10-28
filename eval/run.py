@@ -1,16 +1,21 @@
-"""Run the benchmark for one configuration.
+"""The one evaluation: does the app cite the right clause, and refuse when
+the law says nothing - compared with a naive RAG on the same questions?
 
-    python -m eval.run --config configs/full.yaml --out reports/full.json
+    python -m eval.run --system naive
+    python -m eval.run --system app
+    python -m eval.report
 
-Exits non-zero when a threshold is breached, which is what makes it usable
-as a CI gate rather than a report you have to read.
+`--set hard` asks the hard questions instead: answers that need several
+clauses, maybe of two laws; questions where a clause of the voluntary scheme
+reads like the answer for an employee; and comparisons of the 2014 and 2024
+laws. They are kept out of the 100-question sample, so adding one never
+changes which questions the main table is computed on.
 
-The report keeps every case in full - question, contexts, answer, judged
-claims, steps - because error analysis and eval/ragas_eval.py both need them.
-
-With --resume every finished case is appended to <out>.partial.jsonl as it
-completes, and a rerun skips the cases already there - a free-tier quota that
-runs out at question 150 costs a restart, not the first 150 answers.
+Both systems run through the same pipeline, prompt and LLM. What differs is
+only what this project adds for legal text: clause-level chunks, hybrid
+search, a reranker and a retrieval floor. Results are appended question by
+question to eval/results/<system>.jsonl, so a run stopped by a spent
+free-tier quota picks up where it stopped.
 """
 
 from __future__ import annotations
@@ -18,299 +23,148 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import random
+import sys
 from datetime import date
 from pathlib import Path
+from typing import Any
 
-from eval.instrument import ClauseIndex, judge_claims
-from eval.metrics import Case, Row, aggregate, case_scores, hallucinated
-from eval.rejudge import answer_from
-from grounded_rag.config import RunConfig, settings
-from grounded_rag.generation.citation import extract_citations
+from eval.gold import gold_text, matches, numbers
+from grounded_rag.config import RetrievalOptions
+from grounded_rag.generation.citation import strip_citations
 from grounded_rag.generation.llm_client import LLMUnavailable
-from grounded_rag.guard.nli_verifier import get_verifier
-from grounded_rag.ingest.pipeline import ingest
-from grounded_rag.retrieval import cache
-from grounded_rag.retrieval.corrective import search
-from grounded_rag.retrieval.store import get_store
 from grounded_rag.service import answer_question
-from grounded_rag.types import Claim
+from grounded_rag.types import Answer, AnswerStatus
 
-# Outer retry, on top of the client's own: rides out an outage that lasts
-# longer than one question.
-_CASE_RETRIES = 3
-_CASE_BACKOFF_S = 15.0
+DATASET = Path("eval/questions.jsonl")
+RESULTS = Path("eval/results")
+CORPUS = Path("data/corpus")
+# Fixed, so a rerun reads the law exactly as the committed results did.
+# Temporal questions carry their own date.
+AS_OF = date(2026, 10, 28)
 
-DEFAULT_GATES = {"hallucination_rate": 0.10, "false_abstention": 0.15}
-QUOTA_EXIT = 3
+SYSTEMS = {
+    "naive": RetrievalOptions(chunker="recursive", hybrid=False, rerank=False, min_score=None),
+    "app": RetrievalOptions(),
+}
+ANSWERABLE = 60
+UNANSWERABLE = {
+    "unanswerable_out_of_scope": 13,
+    "unanswerable_false_premise": 13,
+    "unanswerable_near_miss": 14,
+}
 
 
-class ProviderExhausted(RuntimeError):
-    """Too many questions in a row failed on the provider: a spent daily quota,
-    not a flaky call. The checkpoint keeps every finished case."""
+def select_cases(
+    rows: list[dict[str, Any]], question_set: str = "main", seed: int = 7
+) -> list[dict[str, Any]]:
+    """main: 100 test questions, 60 with an answer in the corpus, 40 without,
+    the 40 spread over the three ways a question can have no answer.
+    hard: every question of the hard split."""
+    if question_set == "hard":
+        return sorted((r for r in rows if r["split"] == "hard"), key=lambda r: r["id"])
+    rng = random.Random(seed)
+    test = sorted((r for r in rows if r["split"] == "test"), key=lambda r: r["id"])
+    picked = rng.sample([r for r in test if r["answerable"]], ANSWERABLE)
+    for kind, n in UNANSWERABLE.items():
+        picked += rng.sample([r for r in test if r["type"] == kind], n)
+    return sorted(picked, key=lambda r: r["id"])
 
 
-def load_cases(path: Path) -> list[dict]:
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+def score(case: dict[str, Any], answer: Answer, gold: dict[str, str]) -> dict[str, bool | None]:
+    """None: the question is not in that column's denominator.
+
+    `correct` is a proxy, and a strict one: the answer cites a source holding
+    the gold clause AND states every number of the gold answer - in this
+    corpus the answer usually is a number ("45 ngày", "30%").
+
+    `complete` is stricter still, for answers that need several clauses: it
+    cites every gold clause. `cites_wrong_scheme` counts answers citing one of
+    the case's `trap_chunks` - the voluntary scheme's clause, asked about an
+    employee."""
+    refused = answer.status is not AnswerStatus.ANSWERED
+    if not case["answerable"]:
+        return {
+            "hit_at_5": None, "correct": None, "false_refusal": None, "correct_refusal": refused,
+            "all_gold_retrieved": None, "complete": None, "cites_wrong_scheme": None,
+        }
+    refs = case["gold_chunks"]
+    top = answer.sources[:5]
+    cited = [s for s in answer.sources if s.label in answer.citations]
+
+    def held(sources, ref):
+        return any(matches(s.chunk, ref, gold) for s in sources)
+
+    says_numbers = numbers(case["gold_answer"] or "") <= numbers(strip_citations(answer.answer))
+    traps = case.get("trap_chunks") or []
+    return {
+        "hit_at_5": any(held(top, ref) for ref in refs),
+        "correct": not refused and any(held(cited, ref) for ref in refs) and says_numbers,
+        "false_refusal": refused,
+        "correct_refusal": None,
+        "all_gold_retrieved": all(held(top, ref) for ref in refs),
+        "complete": not refused and all(held(cited, ref) for ref in refs) and says_numbers,
+        "cites_wrong_scheme": any(held(cited, ref) for ref in traps) if traps else None,
+    }
 
 
 async def run(
-    config: RunConfig,
-    dataset: Path,
-    index: ClauseIndex,
-    judge_threshold: float,
-    as_of: date,
-    split: str = "all",
-    checkpoint: Path | None = None,
-    seed: int | None = None,
-    max_consecutive_errors: int = 0,
-) -> dict:
-    # The measuring instrument: same verifier, same threshold, every config.
-    verifier = get_verifier()
-    # Load every model before the clock starts, so the first question is not
-    # charged for it. Run each configuration in its own process as well
-    # (`make eval-all` does): the NLI cache would otherwise flatter whichever
-    # configuration runs second.
-    search("khởi động", config, as_of)
-    verifier.entailment("khởi động", "khởi động")
-    # An empty index answers every question with the retrieval floor, quickly
-    # and plausibly - a run that measures nothing. Ask the store itself, past
-    # the retrieval cache.
-    if not get_store(config.retrieval.chunker).dense_search("khởi động", 1, None):
-        raise SystemExit(f"the {config.retrieval.chunker} index is empty: ingest the corpus first "
-                         "(make ingest, or --ingest)")
-    done = _resume(checkpoint)
-    rows: dict[str, Row] = {}
-    records: dict[str, dict] = {}
-    errored = []
-    gold_text = index.gold_text()
-    order = []
-    streak = 0
-    for raw in load_cases(dataset):
-        # dev questions calibrate τ (scripts/calibrate_tau.py); a number
-        # reported on them would be scored on its own training data
-        if split != "all" and raw.get("split", "test") != split:
+    system: str, cases: list[dict[str, Any]], out: Path, as_of: date, gold: dict[str, str]
+) -> int:
+    """Answers every case not already in `out`; returns how many it added."""
+    done = set()
+    if out.exists():
+        done = {json.loads(line)["id"] for line in out.read_text().splitlines() if line}
+    out.parent.mkdir(parents=True, exist_ok=True)
+    added = 0
+    for case in cases:
+        if case["id"] in done:
             continue
-        case = Case(
-            id=raw["id"],
-            answerable=raw["answerable"],
-            gold_chunks=raw.get("gold_chunks", []),
-            type=raw.get("type", "answerable"),
-            tags=raw.get("tags", []),
-            gold_answer=raw.get("gold_answer"),
-        )
-        order.append(raw["id"])
-        if raw["id"] in done:
-            record = done[raw["id"]]
-            judged = [Claim.model_validate(c) for c in record["claims"]]
-            rows[raw["id"]] = Row(case=case, answer=answer_from(record), judged=judged)
-            records[raw["id"]] = record
-            continue
-        try:
-            # a temporal question is asked on its own date; the run's as_of is
-            # the date for every other question
-            on = date.fromisoformat(raw["as_of"]) if raw.get("as_of") else as_of
-            answer = await _answer_with_retries(raw["question"], config, on)
-        except LLMUnavailable as e:
-            # A provider outage is not a property of the configuration. Losing
-            # an hour of benchmark to one 503 is worse than reporting n < 100,
-            # so the case is recorded as errored and the run continues.
-            print(f"[error] {raw['id']}: {e}", flush=True)
-            errored.append({"id": raw["id"], "error": str(e)[:300]})
-            streak += 1
-            if max_consecutive_errors and streak >= max_consecutive_errors:
-                raise ProviderExhausted(f"{streak} questions in a row failed: {e}") from e
-            continue
-        streak = 0
-        judged = judge_claims(answer, verifier, judge_threshold, index)
-        row = Row(case=case, answer=answer, judged=judged)
-        rows[raw["id"]] = row
-        records[raw["id"]] = _case_record(raw, row, gold_text)
-        if checkpoint:
-            with checkpoint.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(records[raw["id"]], ensure_ascii=False) + "\n")
-
-    finished = [i for i in order if i in rows]
-    return {
-        "config": config.name,
-        "dataset": str(dataset),
-        "split": split,
-        "as_of": as_of.isoformat(),
-        # the model that wrote the answers - a report without it cannot be
-        # compared with anything, and the conclusions flip between models
-        "generator": {"provider": settings.llm_provider, "model": settings.llm_model,
-                      "temperature": config.generation.temperature},
-        "seed": seed,
-        # a cached search costs nothing, so latency is not comparable across
-        # configurations of a run that used the cache
-        "retrieval_cache": cache.enabled(),
-        "judge": {
-            "verifier": "mock" if settings.llm_provider == "mock" else settings.nli_model,
-            "threshold": judge_threshold,
-        },
-        "metrics": aggregate([rows[i] for i in finished], gold_text),
-        "errored": errored,
-        "cases": [records[i] for i in finished],
-    }
-
-
-def _resume(checkpoint: Path | None) -> dict[str, dict]:
-    if not checkpoint or not checkpoint.exists():
-        return {}
-    done = {}
-    for line in checkpoint.read_text(encoding="utf-8").splitlines():
-        if line.strip():
-            record = json.loads(line)
-            done[record["id"]] = record
-    print(f"[resume] {len(done)} cases from {checkpoint}")
-    return done
-
-
-async def _answer_with_retries(question: str, config: RunConfig, as_of: date):
-    """The client already retries inside one call. This is the outer loop, for
-    an outage that outlives a single question."""
-    for attempt in range(_CASE_RETRIES + 1):
-        try:
-            return await answer_question(question, config, as_of=as_of)
-        except LLMUnavailable:
-            if attempt == _CASE_RETRIES:
-                raise
-            await asyncio.sleep(_CASE_BACKOFF_S * 2**attempt)
-    raise AssertionError("unreachable")
-
-
-def _case_record(raw: dict, row: Row, gold_text: dict[str, str]) -> dict:
-    a = row.answer
-    return {
-        "id": row.case.id,
-        "type": row.case.type,
-        "as_of": raw.get("as_of"),
-        "tags": row.case.tags,
-        "question": raw["question"],
-        "gold_answer": raw.get("gold_answer"),
-        "gold_chunks": row.case.gold_chunks,
-        "status": a.status,
-        "abstain_reason": a.meta.abstain_reason,
-        "answer": a.answer,
-        "hallucinated": hallucinated(row),
-        # what every rate in `metrics` is a mean of; eval/report.py bootstraps these
-        "scores": case_scores(row, gold_text),
-        "claims": [c.model_dump(mode="json") for c in row.judged],
-        # what the pipeline's own guard decided, dropped claims included - the
-        # only place its false positives (correct claims it removed) show up
-        "guard_claims": [c.model_dump(mode="json") for c in a.claims],
-        "cited": extract_citations(a.answer),
-        "sources": [
-            {"label": s.label, "ref": s.chunk.ref, "score": s.score, "text": s.chunk.text,
-             "article": s.chunk.article, "clause": s.chunk.clause}
-            for s in a.sources
-        ],
-        "latency_ms": a.meta.latency_ms,
-        "tokens": a.meta.tokens,
-        "llm_calls": a.meta.llm_calls,
-        "cost_usd": a.meta.cost_usd,
-        "steps": [s.model_dump(mode="json") for s in a.meta.steps],
-    }
+        on = date.fromisoformat(case["as_of"]) if case.get("as_of") else as_of
+        answer = await answer_question(case["question"], as_of=on, options=SYSTEMS[system])
+        record = {
+            "id": case["id"],
+            "type": case["type"],
+            "question": case["question"],
+            "as_of": on.isoformat(),
+            "status": answer.status,
+            "abstain_reason": answer.meta.abstain_reason,
+            "answer": answer.answer,
+            "citations": answer.citations,
+            "sources": [s.chunk.ref for s in answer.sources],
+            "latency_ms": answer.meta.latency_ms,
+            "model": answer.meta.model,
+            "escalated": answer.meta.escalated,
+            **score(case, answer, gold),
+        }
+        with out.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        added += 1
+        print(f"[{system}] {case['id']} {answer.status}", flush=True)
+    return added
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--config", required=True)
-    ap.add_argument("--dataset", default="eval/dataset/questions.jsonl", type=Path)
-    ap.add_argument("--out", default=None)
-    ap.add_argument("--gate", action="store_true", help="exit 1 when thresholds are breached")
-    ap.add_argument(
-        "--ingest",
-        default=None,
-        type=Path,
-        help="index this directory first. Required with the in-memory mock store, "
-        "which lives inside one process and is therefore empty at eval time.",
-    )
-    ap.add_argument(
-        "--corpus",
-        default=None,
-        type=Path,
-        help="where gold refs are resolved to text (default: --ingest, else data/corpus)",
-    )
-    ap.add_argument("--judge-threshold", type=float, default=settings.entailment_threshold)
-    ap.add_argument("--as-of", type=date.fromisoformat, default=date.today())
-    ap.add_argument("--resume", action="store_true",
-                    help="checkpoint each case to <out>.partial.jsonl and skip finished ones")
-    ap.add_argument("--temperature", type=float, help="override the config's temperature")
-    ap.add_argument("--seed", type=int, help="label of a repeated run, stored in the report")
-    ap.add_argument("--max-consecutive-errors", type=int, default=0,
-                    help="stop without a report after this many provider failures in a row "
-                         "(exit 3); with --resume the next run carries on")
-    ap.add_argument(
-        "--split",
-        choices=["test", "dev", "all"],
-        default="test",
-        help="test (default): the questions τ was not calibrated on",
-    )
+    ap.add_argument("--system", choices=sorted(SYSTEMS), required=True)
+    ap.add_argument("--set", dest="question_set", choices=["main", "hard"], default="main")
+    ap.add_argument("--as-of", type=date.fromisoformat, default=AS_OF)
+    # the results file, when the same system runs another configuration -
+    # app_cascade: the app with LLM_ESCALATION set
+    ap.add_argument("--name", help="results file name; default: the system")
     args = ap.parse_args()
 
-    SAMPLE = Path("eval/dataset/questions.sample.jsonl")
-    dataset = args.dataset
-    if not dataset.exists():
-        dataset = SAMPLE
-        print(f"[warn] {args.dataset} not found, falling back to {dataset}")
-    # Six questions over an excerpt of one law say whether the pipeline runs,
-    # not whether it is good enough to ship. Thresholds need the full dataset
-    # against the full corpus.
-    on_sample = dataset.name == SAMPLE.name
-
-    config = RunConfig.from_yaml(args.config)
-    if args.temperature is not None:
-        config.generation.temperature = args.temperature
-
-    # The instrument's threshold comes from the environment, the guard's from
-    # the YAML. They are separate on purpose, but a silent divergence makes
-    # every number in the report wrong in a way nobody notices.
-    print(f"[judge] {settings.nli_model} tau={args.judge_threshold} "
-          f"(guard tau={config.guard.entailment_threshold})")
-    if abs(args.judge_threshold - config.guard.entailment_threshold) > 1e-9:
-        print(f"[warn] judge tau {args.judge_threshold} != guard tau "
-              f"{config.guard.entailment_threshold}; set ENTAILMENT_THRESHOLD or "
-              f"pass --judge-threshold if that is not intended")
-
-    if args.ingest:
-        stats = ingest(args.ingest, config)
-        print(f"[ingest] files={stats['files']} chunks={stats['chunks']}")
-
-    index = ClauseIndex(args.corpus or args.ingest or Path("data/corpus"))
-    checkpoint = Path(f"{args.out}.partial.jsonl") if args.resume and args.out else None
-    if checkpoint:
-        checkpoint.parent.mkdir(parents=True, exist_ok=True)
+    rows = [json.loads(line) for line in DATASET.read_text(encoding="utf-8").splitlines()]
+    cases = select_cases(rows, args.question_set)
+    suffix = "" if args.question_set == "main" else f"_{args.question_set}"
+    out = RESULTS / f"{args.name or args.system}{suffix}.jsonl"
     try:
-        report = asyncio.run(
-            run(config, dataset, index, args.judge_threshold, args.as_of, args.split,
-                checkpoint=checkpoint, seed=args.seed,
-                max_consecutive_errors=args.max_consecutive_errors)
-        )
-    except ProviderExhausted as e:
-        print(f"[stop] {e}; resume later with the same command", flush=True)
-        raise SystemExit(QUOTA_EXIT) from e
-
-    if args.out:
-        Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-        Path(args.out).write_text(json.dumps(report, indent=2, ensure_ascii=False), "utf-8")
-        # a report with errored cases keeps its checkpoint, so a rerun retries them
-        if checkpoint and checkpoint.exists() and not report["errored"]:
-            checkpoint.unlink()
-
-    m = report["metrics"]
-    print(f"\n=== {report['config']} (n={m.get('n', 0)}) ===")
-    for k, v in m.items():
-        print(f"  {k:28} {v}")
-
-    if args.gate and on_sample:
-        print("\n[skip] thresholds are not enforced on the sample dataset - "
-              "run against eval/dataset/questions.jsonl and the full corpus")
-    elif args.gate:
-        breached = [k for k, limit in DEFAULT_GATES.items() if m.get(k, 0) > limit]
-        if breached:
-            print(f"\nFAIL: threshold breached -> {', '.join(breached)}")
-            raise SystemExit(1)
-        print("\nPASS: all thresholds met")
+        added = asyncio.run(run(args.system, cases, out, args.as_of, gold_text(CORPUS)))
+    except LLMUnavailable as e:
+        print(f"stopped: {e}\nThe provider is unavailable or the quota is spent; "
+              "run the same command again later to continue.", file=sys.stderr)
+        sys.exit(2)
+    print(f"[{args.system}] {added} new, {len(cases)} in the set -> {out}")
 
 
 if __name__ == "__main__":

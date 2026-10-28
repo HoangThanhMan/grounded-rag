@@ -2,306 +2,249 @@
 
 [![ci](https://github.com/HoangThanhMan/grounded-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/HoangThanhMan/grounded-rag/actions/workflows/ci.yml)
 
-**A RAG API that verifies every claim it generates against the passage it cites — and refuses to answer when the documents do not support it.**
+Vietnamese labour-law Q&A that cites the clause behind every answer and refuses when the law is silent.
 
-Most RAG demos retrieve, generate, and stop there. This one adds the part that
-decides whether the answer can be trusted: each sentence is checked against its
-cited source by a self-hosted NLI model, unsupported sentences never reach the
-user, and the whole thing is measured on a benchmark where **40% of the
-questions have no answer in the corpus at all**.
+![The answer cites Điều 105, khoản 1, and the clause opens beside it](assets/ui.png)
 
-Corpus: Vietnamese labour law. Domain where a plausible-sounding invented clause
-is worse than no answer.
+## Table of contents
 
----
+- [About](#about)
+- [Architecture](#architecture)
+- [Getting started](#getting-started)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Evaluation](#evaluation)
+- [Development](#development)
+- [Project status](#project-status)
+- [Limitations](#limitations)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
 
-## Results
+## About
 
-Generator `gemini-3.1-flash-lite` (free tier, temperature 0), law read as of
-2026-10-12, scored on the 80 `test` questions (50 answerable, 30 unanswerable)
-by the guard's NLI model at τ 0.5. Every answer, citation and per-step timing
-is in [`reports/runs/2026-10-12-gemini/`](reports/runs/2026-10-12-gemini/); the tables
-come from `python -m eval.report` over those files.
+When an answer about the law sounds right but is invented, it does more harm
+than no answer at all. This app answers questions about Vietnamese labour and
+social-insurance law in one of two ways: with an answer tied to the exact
+clause it comes from, or with a plain "not found".
 
-| Configuration | Halluc. ↓ | Correct abst. ↑ | False abst. ↓ | Cite prec. ↑ | Retr. recall ↑ | LLM calls/q | p95 |
-|---|---|---|---|---|---|---|---|
-| `baseline` — plain RAG | 0.088 (7/80) | 0.93 (28/30) | 0.02 (1/50) | 0.87 | 0.97 | 1.00 | 40 s |
-| `threshold` — retrieval floor | 0.075 (6/80) | 0.97 (29/30) | 0.06 (3/50) | 0.83 | 0.89 | 0.76 | 34 s |
-| `full` — NLI guard | 0.000 (0/80)\* | 0.93 (28/30) | 0.08 (4/50) | 0.86 | 0.93 | 0.86 | 69 s |
-| `agentic` — full + corrective retrieval | 0.000 (0/80)\* | 0.93 (28/30) | 0.08 (4/50) | 0.86 | 0.95 | 1.26 | 71 s |
+- **Cited answers.** An answer is shown only if it cites a clause that was
+  retrieved for it. Click a citation and the clause opens with its law and
+  effective date.
+- **Refusal over invention.** If no clause is relevant enough, the LLM is not
+  called at all. The same applies when the answer cites nothing it was given.
+- **The law as of a date.** Only clauses in force on the chosen day are
+  searched, so the 2014 and 2024 Social Insurance Laws never mix.
+- **A complete web app.** Answers stream in, and follow-up questions work. Each
+  browser keeps its own history, with no sign-up, and can rate answers 👍/👎.
+  An admin can upload new laws.
 
-Which layer of defence caught the unanswerable questions (share of all 30):
+The library holds Bộ luật Lao động 2019 and Luật Bảo hiểm xã hội 2014 and
+2024, split into 1,375 clause-level chunks.
 
-| Configuration | retrieval floor | out of domain | model refusal | guard |
-|---|---|---|---|---|
-| `baseline` | – | – | 0.93 | – |
-| `threshold` | 0.57 | 0 | 0.40 | – |
-| `full` | 0.53 | 0 | 0.40 | 0 |
-| `agentic` | 0.37 | 0 | 0.53 | 0.03 |
+## Architecture
 
-How to read it:
+```mermaid
+flowchart LR
+    B["Browser<br/>React + TypeScript"]
+    N["nginx<br/>static UI · /api proxy"]
+    subgraph api["api container"]
+        F["FastAPI<br/>routes · rate limit"]
+        P["RAG pipeline"]
+        I["Indexer<br/>background task"]
+        M["bge-m3<br/>bge-reranker-v2-m3"]
+    end
+    PG[("Postgres<br/>history · documents")]
+    Q[("Qdrant<br/>dense + BM25")]
+    L["LLM API<br/>OpenAI-compatible"]
 
-- **\* The guard's zero is not an independent measurement.** The judge is the
-  guard's own model at the guard's own τ, so whatever the judge would flag the
-  guard has already removed. What the table can show is what that removal
-  cost. Of the six answers `threshold` lets through that the judge flags,
-  under `full` two came out clean on the first attempt (different chunks, a
-  different answer), two were regenerated and trimmed to the claims the guard
-  accepts, and two were refused after the regeneration — two answerable
-  questions lost. The graded sample ([`reports/grading/`](reports/grading/))
-  says what was removed: of those six answers, four are right by the law, one
-  is incomplete, and one cites the wrong article number for a correct amount.
-  The guard removed no invented content here.
-- **The retrieval floor is the cheap win.** It turns away 17 of the 30
-  unanswerable questions before any LLM call, which is why `threshold` makes
-  fewer calls than there are questions. The price is two answerable questions
-  whose retrieval falls under the floor (false abstention 1 → 3 of 50); an
-  answer that never retrieves anything also scores zero retrieval recall,
-  hence 0.97 → 0.89.
-- **`full` changes two things at once:** the guard, and the chunker
-  (`recursive` → `structural`, split on Điều / Khoản). The recall and citation
-  columns move with the chunker as much as with the guard.
-- **Corrective retrieval did not pay for itself on this run.** It made 24
-  rewrite calls; 21 went to questions with no answer to find. It lifted
-  retrieval recall on colloquial questions from 0.89 to 1.00, but recovered no
-  answer: the one colloquial question it pulled over the floor (`a004`) was
-  then refused by the guard. Net, 0.4 more LLM calls per question for the same
-  abstention rates.
-- **Latency is this machine, not the design.** Everything but the generator
-  runs on a laptop CPU: retrieval and reranking take ~8–11 s per question and
-  each free-tier Gemini call ~12 s, so p50 is ~24 s in every configuration.
-  The guard's p95 comes from the questions it catches — verification, a
-  regeneration and a second verification, all on CPU; the slowest took 142 s.
-- 30 unanswerable and 50 answerable questions are small samples. One question
-  moves a rate by 0.02 or 0.03, and none of the differences above is more than
-  a few questions.
-
-Benchmark: the tables above are the v1 set — 100 hand-labelled questions, 63
-answerable and 37 unanswerable across three adversarial types, scored on the 80
-`test` questions τ was never fitted on. The set has since grown to **300
-questions** in [`eval/dataset/questions.jsonl`](eval/dataset/questions.jsonl):
-180 answerable — 93 of them questions real people asked, from
-TVPL-Retrieval-VN (CC-BY-SA-4.0), rewritten against the corpus — 40 of each
-unanswerable type, and 20 temporal questions asked on two dates across the 2014
-and 2024 social insurance laws. It is split dev 60 / test 240 by article, so τ
-is never calibrated on the article a test question is scored on. `make
-eval-matrix` runs it: every configuration three times at temperature 0.7, an
-LLM judge from another model family, paired tests and risk–coverage curves,
-resumable across free-tier quota days. Labelling protocol and every decision
-taken while building the set: [`eval/dataset/LABELING.md`](eval/dataset/LABELING.md).
-
-`make check-dataset` resolves every gold reference through the same clause
-index the metrics score with, checks each number in a gold answer against the
-clause it cites, and searches the corpus for anything labelled unanswerable —
-a gold reference that no longer resolves would silently zero retrieval recall,
-so it runs in CI.
-
-Every configuration is scored by **the same instrument after the fact**, so a
-configuration without a guard is not flattered by being judged differently.
-Because that instrument is the guard's own NLI model, two independent checks sit
-next to it: a claim-level LLM judge from another model family
-([`eval/judge.py`](eval/judge.py)), and a graded sample of 41 answers. Against
-the graded answers the judge agrees at Cohen's κ 0.45 and flags 4 answers; the
-NLI instrument agrees at κ 0.10 and flags 13
-([`judge-agreement.json`](reports/grading/judge-agreement.json)).
-
-## How it works
-
-```
-question ─► hybrid retrieval (bge-m3 + BM25) ─► rerank ─┬─ weak? ─► [agentic] rewrite / split, retrieve again
-                                                         ▼
-                                                  retrieval floor ──► no_context
-                                                         │
-                                           LLM (citations required) ──► its own refusal ─► abstained
-                                                         │
-                                         split into claims ─► NLI verify
-                                                         │
-                              ┌──────────────────────────┤
-                              ▼                          ▼
-                     all supported → answer     some unsupported →
-                                                regenerate once, then
-                                                drop the claim or abstain
+    B -- "HTTPS · SSE" --> N
+    N -- "/api" --> F
+    F --> PG
+    F --> P
+    F -. "upload" .-> I
+    P --> M
+    I --> M
+    P --> L
+    P --> Q
+    I --> Q
 ```
 
-Four layers of defence, cheapest first:
+| Component | Technology | Role |
+|---|---|---|
+| Web | React, Vite, nginx | Serves the UI and proxies `/api` from the same origin |
+| API | FastAPI, SQLAlchemy (async), Alembic | Streams answers over server-sent events, stores history, indexes uploads |
+| Models | bge-m3, bge-reranker-v2-m3 on CPU | Embedding and reranking, run in a thread pool off the event loop |
+| Storage | Postgres, Qdrant | Conversations and the document library; clause vectors with dates |
+| LLM | Any OpenAI-compatible API | Gemini, Groq, Ollama or vLLM, with optional fallback models |
 
-1. **Retrieval floor** — nothing retrieves above threshold, the LLM is never called
-2. **Model refusal** — the prompt gives the model one exact sentence for "not in the documents"; it is counted as an abstention, never verified or regenerated
-3. **Citation validation** — a citation to a label that was never supplied is caught without running a model
-4. **NLI guard** — `P(entailment)` between each claim and its cited passage
+### How a question is answered
 
-The law is read **as of a date**: each document carries its effective and expiry
-dates, and a clause that is not in force on `as_of` is never retrieved.
+```mermaid
+flowchart LR
+    Q[Question] --> R["Hybrid search<br/>bge-m3 + BM25<br/>in force on the date"]
+    R --> K["Rerank<br/>top 20 → 5"]
+    K --> T{"Score ≥ floor?"}
+    T -- no --> X["Not found"]
+    T -- yes --> G["LLM streams<br/>a cited answer"]
+    G --> V{"Valid citation?"}
+    V -- yes --> A["Answer + clauses"]
+    V -- no --> X
+```
 
-### Corrective retrieval — bounded, and measured
+A follow-up is first rewritten as a standalone question. Dense and BM25 results
+are fused with reciprocal rank fusion, and a cross-encoder keeps the best five.
+If the answer fails the citation check although retrieval found good sources,
+a stronger model can try once more. The whole pipeline is one file,
+[`service.py`](backend/src/grounded_rag/service.py).
 
-The `agentic` configuration adds one hand-written, CRAG-style loop. When the best
-rerank score is weak, a single LLM call rewrites colloquial wording into legal
-terms or splits a multi-part question, and retrieval runs again. The loop has a
-hard budget (`max_rounds`, `max_llm_calls`) and its own row in the table, so
-what it buys (false abstentions recovered) and what it costs (LLM calls, p95)
-sit side by side. Why no agent framework: see [Stack](#stack).
+Laws are chunked along their own structure, one chunk per khoản (clause).
+Each chunk carries its law, chapter and section. Without that context,
+Điều 95 of the 2024 law, which pays 2,000,000 đồng per child under *voluntary*
+insurance only, reads like every worker's entitlement.
 
-## Quick start
+## Getting started
 
-No API key and no model weights needed — the `mock` provider runs the whole
-pipeline end to end:
+### Requirements
+
+- Docker with Compose
+- To use the real models: about 6 GB of RAM and 7 GB of disk
+- An API key for an OpenAI-compatible LLM; Gemini and Groq have free tiers
+
+### Run with Docker
 
 ```bash
-make install && make test
-LLM_PROVIDER=mock ADMIN_API_KEY=dev make run   # API and demo UI on http://localhost:8000
-ADMIN_API_KEY=dev make seed                    # in another shell: index the sample corpus
+git clone https://github.com/HoangThanhMan/grounded-rag.git
+cd grounded-rag
+cp .env.example .env    # uncomment one LLM preset and set ADMIN_API_KEY
+docker compose up --build -d
 ```
 
-The mock provider keeps its index inside the process, so `make seed` has to run
-against the server that is already up, and again after every restart. `POST
-/ingest` is an admin call: off until the server has an `ADMIN_API_KEY`, and it
-reads only directories under `data/`. Without
-it every question answers `no_context`, correctly — there is nothing indexed to
-answer from.
+Open http://localhost:8080. The first start downloads the models and indexes
+the three laws, which takes a few minutes on CPU. Follow it with
+`docker compose logs -f api`.
 
-Every `make` target runs through `.venv/bin/python` when that directory exists,
-so there is nothing to activate first; `make python` prints the interpreter it
-picked.
+Without an LLM key the app runs in mock mode: every page works, but the
+answers are canned. This is enough to look around the UI.
 
-The real thing:
+## Usage
 
-```bash
-make up-qdrant           # Qdrant. The API itself runs natively, not in a container
-cp .env.example .env     # LLM_PROVIDER = gemini | ollama | vllm | openai | anthropic
-make dev-install
-make ingest              # once; skip it if Qdrant already holds the collections
-make run                 # then open http://localhost:8000
-```
+- **Ask.** Type a question in Vietnamese. Pick a date to read the law as of
+  that day.
+- **Check the source.** Click a citation number to open the clause beside the
+  answer.
+- **Manage documents.** On the *Văn bản* page, enter the admin key to upload a
+  `.md` or `.pdf` law and watch it being indexed.
 
-The first question takes 5–15 seconds: the cross-encoder reranker runs on CPU.
-
-Open models, no GPU: `make up-ollama` serves one on CPU, and a benchmark run
-then costs no API quota. What that trades away: a 3B model dropped the
-citation format on a question `gemini-3.1-flash-lite` answered from the same
-prompt. With a GPU, `make up-gpu` serves Qwen2.5-7B-Instruct (AWQ) through vLLM;
-set `LLM_PROVIDER=vllm`.
-
-## API
+The same works over HTTP:
 
 ```bash
-curl -X POST localhost:8000/chat \
+curl -N -c jar -b jar localhost:8080/api/chat \
   -H 'content-type: application/json' \
-  -d '{"question": "Nghỉ việc phải báo trước bao nhiêu ngày?", "config": "full"}'
+  -d '{"question": "Nghỉ việc phải báo trước bao nhiêu ngày?"}'
 ```
 
-```json
-{
-  "answer": "Người lao động phải báo trước ít nhất 45 ngày [C1].",
-  "status": "answered",
-  "claims": [{"text": "...", "citations": ["C1"], "entailment": 0.94, "verdict": "supported"}],
-  "sources": [{"label": "C1", "score": 0.87,
-               "chunk": {"ref": "bo_luat_lao_dong_2019:Điều 35:1", "article": "Điều 35", "clause": "Khoản 1"}}],
-  "meta": {"llm_calls": 1, "tokens": 612, "latency_ms": 1840, "abstain_reason": null,
-           "steps": [{"name": "retrieve", "ms": 210}, {"name": "generate", "ms": 1350}, {"name": "verify", "ms": 260}]}
-}
+The response is a stream of events: `meta`, then `sources`, then `token`
+repeated, then `done` (or `error`). The cookie jar keeps the conversation for
+follow-up questions.
+
+| Endpoint | Description |
+|---|---|
+| `POST /api/chat` | Ask a question; server-sent events |
+| `GET /api/conversations`, `GET · DELETE /api/conversations/{id}` | This browser's history |
+| `PUT /api/messages/{id}/feedback` | Rate an answer up or down |
+| `GET /api/documents`, `POST · DELETE` (admin) | The law library |
+| `GET /healthz`, `GET /readyz` | Liveness and readiness |
+
+Interactive API docs: http://localhost:8000/docs.
+
+## Configuration
+
+Settings come from `.env`. All of them are listed with defaults in
+[`.env.example`](.env.example). The ones you are most likely to change:
+
+| Variable | Purpose |
+|---|---|
+| `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` | The model that answers |
+| `LLM_FALLBACKS`, `LLM_ESCALATION` | Backup models, and a stronger model for a second try |
+| `ADMIN_API_KEY` | Enables document upload and delete |
+| `RETRIEVAL_MIN_SCORE` | The rerank score below which the app refuses (default `0.30`) |
+| `RATE_LIMIT_PER_MINUTE` | Questions per client per minute (default `20`) |
+| `POSTGRES_PASSWORD` | Set it before the first start |
+
+For a public deployment, also put TLS in front of port 8080 and set
+`COOKIE_SECURE=true`. If the proxy runs on the same host, set `WEB_BIND` and
+`REAL_IP_FROM` as described in `.env.example`.
+
+## Evaluation
+
+The evaluation asks whether the app retrieves and cites the right clause, and
+whether it refuses when the law has no answer. It uses 100 test questions:
+60 answerable and 40 that are out of scope, rest on a false premise, or ask for
+a detail the law does not give. A further 15 hard questions are kept apart;
+they need several clauses, contain a trap between insurance schemes, or
+compare law versions. Scoring is automatic.
+
+These are the results of the first run, at commit `b03a054`:
+
+| Gold clause in top 5 | Correct answer | Refuses when the law is silent | Refuses an answerable question |
+|---|---|---|---|
+| 0.98 (59/60) | 0.85 (51/60) | 0.95 (38/40) | 0.02 (1/60) |
+
+The method, the scoring rules and their limits are in
+[`eval/README.md`](eval/README.md).
+
+## Development
+
+```bash
+make install                 # backend with models, frontend packages
+docker compose up -d qdrant
+make dev-api                 # API on :8000 with reload (SQLite)
+make dev-web                 # UI on :5173, proxying /api
+make test                    # backend and frontend tests
+make lint
 ```
 
-`GET /configs` lists every file in `configs/` with the defences it turns on,
-which is how the demo UI knows where to draw the guard threshold.
+CI runs the backend tests on both SQLite and Postgres, and the frontend
+typecheck, tests and build.
 
-`status` is one of `answered` · `partial` · `abstained` · `no_context`.
-Refusing to answer is a 200, not an error; an unreachable LLM provider is a 503.
-`GET /metrics` serves Prometheus metrics: per-step latency, answers by status and
-abstain reason, LLM calls and tokens.
+```
+backend/      FastAPI app, Alembic migrations, tests
+frontend/     React app, nginx config
+eval/         questions, runner, scoring, results
+data/corpus/  the three laws, with YAML front matter
+scripts/      rebuild the corpus from Công báo
+```
 
-With `LANGFUSE_*` set, each answer is also sent to Langfuse as one trace: a span
-per step, the LLM call as a generation, and the guard's entailment scores
-attached to the trace.
+## Project status
 
-![A Langfuse trace: retrieve, generate and verify, with the guard's scores](assets/langfuse-trace.png)
+The app is complete and runs end to end with real models. Work in progress:
 
-## Demo UI
-
-`make run` serves a single-page UI from the API itself at
-[`localhost:8000`](http://localhost:8000) — no build step, no second process,
-no CORS. It is built around the one thing a RAG demo usually hides: each
-sentence of the answer sits next to the passage it was checked against, with
-its entailment score drawn against the guard threshold, so a claim that only
-just cleared the bar looks different from one that sailed over it. That scale is
-the page's only colour, and it is shown full width above the question with the τ
-of the selected configuration marked on it, so every gauge below has a legend.
-Dropped claims stay on screen, struck through, with the score that killed them.
-When the answer is a refusal, the four layers of defence are listed and the one
-that fired is marked.
-
-![The demo UI answering a question, with the claim checked against the clause it cites](assets/ui.png)
-
-The run above is real: `qwen2.5:3b` on CPU through Ollama, one LLM call, the
-claim scored 0.99 against Điều 35 Khoản 1.
-
-`?q=...&config=...` asks straight away, so a demo run is a shareable link.
-
-## Stack
-
-FastAPI · Qdrant (dense + BM25 sparse) · bge-m3 · bge-reranker-v2-m3 ·
-mDeBERTa-v3 XNLI · Gemini / Ollama · Prometheus · Langfuse · Docker Compose ·
-GitHub Actions
-
-Wired but not yet run for real: the vLLM, OpenAI and Anthropic providers
-(tested against a fake transport only — no GPU here for vLLM) and the RAGAS
-second opinion (`make ragas`, waiting on a judge from a different model family).
-
-No orchestration framework. The pipeline is a handful of steps, its only loop has
-two branches, and the interesting part is hand-written; a framework would hide it.
-
-## Design decisions
-
-Each of these had a real alternative that was weighed and rejected:
-
-- NLI instead of an LLM judge for the guard
-- Qdrant as the vector store, holding dense and BM25 sparse vectors together
-- Verify every claim before streaming anything
-- Chunk along the legal structure (Điều / Khoản), not by token count
-- A hand-written corrective loop with a hard budget, not LangGraph
-- BM25 for the sparse half of hybrid search
-- No fine-tuning of the generator
+- Rerun the evaluation on the current code, which adds chunk context, and
+  compare it with the naive baseline and with the stronger-model cascade.
+- Follow cross-references between articles, such as "khoản 1 Điều 139 của Bộ
+  luật này".
+- Answer questions that compare two versions of a law.
 
 ## Limitations
 
-The first one is the finding this project did not want:
+- **Three laws only.** The decrees and circulars that detail them (nghị định,
+  thông tư) are not in the library.
+- **Article-level citations for the 2014 law.** The source copy lost its clause
+  numbers, so that law is cited by Điều only.
+- **CPU latency.** The first token usually arrives after 10–20 seconds.
+- **Not legal advice.** This is a lookup tool, and the UI says so.
 
-- **On the dev split, the NLI model caught none of the errors the generator
-  actually made.** Calibrating τ over 23 hand-labelled claims found no threshold
-  that separates grounded from ungrounded: all six ungrounded claims score ≥ 0.70,
-  and blocking two thirds of them would block nearly half the correct sentences.
+## Acknowledgements
 
-  ![Guard on the dev split as τ moves: the catch rate stays at zero while the false-block rate climbs](assets/tau-curve.svg)
+- Legal texts come from the official gazette (Công báo). The 2014 Social
+  Insurance Law comes from a third-party copy, checked against the gazette
+  scan where noted in its front matter.
+- Some evaluation questions are adapted from
+  [TVPL-Retrieval-VN](https://huggingface.co/datasets/GreenNode/TVPL-Retrieval-VN)
+  (CC-BY-SA-4.0) and from the Zalo AI Legal Text Retrieval dataset (MIT). See
+  [`eval/LABELING.md`](eval/LABELING.md).
 
-  What does protect the answer is the cheaper machinery around the NLI model —
-  the number rule, uncited claims, and citations to labels that were never
-  supplied — and two of those three never run a model at all.
-- A 24-pair probe ([`scripts/nli_probe.py`](scripts/nli_probe.py)) says the same
-  thing more precisely: the model lets through claims that keep the wording but
-  swap the subject, drop a condition, or take the number from the neighbouring
-  item — the exact shape of the `near_miss` questions. Doubling the model size
-  (`xlm-roberta-large-xnli`) made that group worse, not better.
-- Measuring hallucination with the same NLI model that powers the guard is
-  circular, and the point above means the circularity is not harmless. The
-  graded sample is the check that matters, and it shows the limit of both
-  instruments: they test a claim against the passage it cites, not against the
-  whole law. The two wrong answers in the sample — one quoting the 2014 social
-  insurance law through Điều 219 of the Labour Code, one adding "only after 12
-  months" to the annual-leave rule — match the clause they cite, and both the
-  judge and the NLI instrument pass them.
-- **The number rule refuses correct answers that repeat a number from the
-  question.** Asked about a miscarriage at 23 weeks, the model answers 40 days
-  and cites the clause for "13 to under 25 weeks"; "23" is not in the clause, so
-  the claim is blocked before NLI runs. Found on the v2 temporal questions;
-  eight v2 questions (seven in test) contain a number their gold clause does
-  not — an age of 14 or 16, 23 weeks, "2 employees".
-- **The structural chunker drops an article's lead-in sentence** when it sits
-  between the heading and clause 1 — 15 articles, among them Điều 108 ("…người
-  lao động không được từ chối") and Điều 25 ("chỉ được thử việc một lần").
-  The `full` configuration never sees those sentences. Both of these are left
-  as they are until the fix can be measured against this run.
-- The corrective loop spends one extra LLM call on every weak retrieval,
-  including the out-of-scope questions it cannot rescue.
-- 23 dev claims and 24 probe pairs are small samples. The direction is
-  consistent across both and matches the per-question reading, but no percentage
-  here should be quoted on its own.
+## License
+
+No license has been chosen yet. Evaluation questions adapted from
+TVPL-Retrieval-VN remain under CC-BY-SA-4.0.

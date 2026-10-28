@@ -8,22 +8,15 @@ venv/
 .pytest_cache/
 .ruff_cache/
 *.egg-info/
+node_modules/
+frontend/dist/
 # data/corpus/ IS committed: 500 KB of Công báo text, so `git clone` gives a
-# working corpus without depending on that site still being up, and CI can
-# resolve every gold ref in the evaluation dataset.
-# data/sample_corpus/ IS committed too: the fast path for tests and CI eval.
-# reports/ itself is scratch space for `make eval` and CI; the kept results
-# live in its subfolders, indexed by reports/README.md
-reports/*
-!reports/README.md
-!reports/runs/
-!reports/ablations/
-!reports/calibration/
-!reports/grading/
-reports/**/*.log
-# eval.run --resume checkpoints; the finished report replaces them
-reports/**/*.partial.jsonl
+# working corpus without depending on that site still being up.
+# data/sample_corpus/ IS committed too: the fast path for tests.
+data/app.db
+data/uploads/
 qdrant_storage/
 .cache/
-# the optional langfuse service in docker-compose.yml keeps its database here
+# left over from the research setup's Langfuse service
 langfuse_pgdata/
+reports/

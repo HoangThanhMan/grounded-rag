@@ -5,52 +5,66 @@ on:
   pull_request:
 
 jobs:
-  quality:
+  backend:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # 3.12 is what the Docker image runs (.python-version); the newest
-        # release is what a fresh local venv tends to get.
-        python-version: ["3.12", "3.14"]
     env:
-      LLM_PROVIDER: mock        # no API keys in CI
+      LLM_PROVIDER: mock        # no API keys, no model weights in CI
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test" --health-interval 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
           cache: pip
-
+          cache-dependency-path: backend/requirements.lock
+      # the versions the Docker image ships, not whatever is newest today
       - name: Install
-        run: pip install -e ".[dev]"
-
+        run: |
+          pip install -r backend/requirements.lock --extra-index-url https://download.pytorch.org/whl/cpu
+          pip install --no-deps -e backend
+          pip install pytest pytest-asyncio ruff
       - name: Lint
-        run: ruff check src eval tests app scripts
+        run: ruff check backend/src backend/tests backend/alembic eval
+      - name: Tests (SQLite)
+        run: pytest -q backend/tests
+      # The schema built by the migrations, with the column limits SQLite ignores
+      - name: Tests (Postgres)
+        run: pytest -q backend/tests
+        env:
+          TEST_DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
 
-      - name: Unit tests
-        run: pytest -q
-
-      # The dataset is the project's evidence; a broken gold ref silently
-      # zeroes retrieval_recall, so it is checked before anything is measured.
-      - name: Evaluation dataset
-        run: python scripts/check_dataset.py
-
-      # The sample dataset and sample corpus only prove the pipeline runs end
-      # to end; the real gate needs the full corpus and is run with `make eval-all`.
-      - name: Pipeline smoke test (mock)
-        run: >-
-          python -m eval.run --config configs/full.yaml
-          --dataset eval/dataset/questions.sample.jsonl
-          --ingest data/sample_corpus --out reports/ci-full.json --gate
-
-      - name: Corrective-retrieval config runs end to end
-        run: >-
-          python -m eval.run --config configs/agentic.yaml
-          --dataset eval/dataset/questions.sample.jsonl
-          --ingest data/sample_corpus --out reports/ci-agentic.json
-
-      - uses: actions/upload-artifact@v4
-        if: always()
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: eval-report-py${{ matrix.python-version }}
-          path: reports/ci-*.json
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build
+        run: npx vite build
+
+  compose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compose file is valid
+        run: docker compose config -q
