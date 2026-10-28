@@ -1,17 +1,11 @@
-"""Settings from the environment, plus per-run YAML configs.
-
-Two layers on purpose:
-  - Settings  -> secrets and infrastructure, from .env, never in git
-  - RunConfig -> pipeline behaviour, from configs/*.yaml, committed so an
-                 eval run is reproducible from the repo alone.
-"""
+"""Settings from the environment (.env, never in git), and the retrieval
+options the pipeline runs with."""
 
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Literal
+from typing import Literal
 
-import yaml
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -84,54 +78,6 @@ class RetrievalOptions(BaseModel):
 
 def retrieval_options() -> RetrievalOptions:
     return RetrievalOptions()
-
-
-class RetrievalConfig(BaseModel):
-    chunker: Literal["recursive", "structural"] = "recursive"
-    hybrid: bool = True             # dense + BM25; false = dense only, for ablation
-    top_k_dense: int = 20
-    top_k_sparse: int = 20
-    rerank_candidates: int = 20     # fused list is cut here before the cross-encoder
-    rerank_to: int = 5
-    min_score: float = 0.0
-
-
-class CorrectiveConfig(BaseModel):
-    """Corrective retrieval: one bounded rewrite-and-retry when retrieval is weak."""
-
-    enabled: bool = False
-    confident_score: float = 0.60   # top rerank score that needs no second attempt
-    max_rounds: int = Field(default=1, ge=0, le=3)
-    max_queries: int = Field(default=3, ge=1, le=5)
-
-
-class GenerationConfig(BaseModel):
-    temperature: float = 0.0
-    max_tokens: int = 512
-    require_citations: bool = True
-
-
-class GuardConfig(BaseModel):
-    enabled: bool = False
-    entailment_threshold: float = 0.60
-    max_regenerations: int = 1
-    on_unsupported: Literal["drop_claim", "abstain_all"] = "drop_claim"
-
-
-class RunConfig(BaseModel):
-    name: str = "unnamed"
-    retrieval: RetrievalConfig = Field(default_factory=RetrievalConfig)
-    corrective: CorrectiveConfig = Field(default_factory=CorrectiveConfig)
-    generation: GenerationConfig = Field(default_factory=GenerationConfig)
-    guard: GuardConfig = Field(default_factory=GuardConfig)
-    # Hard ceiling on LLM calls per question, planner and regeneration
-    # included. The loops are bounded by construction; this is the backstop.
-    max_llm_calls: int = Field(default=4, ge=1)
-
-    @classmethod
-    def from_yaml(cls, path: str | Path) -> RunConfig:
-        raw: dict[str, Any] = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
-        return cls.model_validate(raw)
 
 
 settings = Settings()

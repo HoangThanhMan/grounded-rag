@@ -1,4 +1,4 @@
-"""The models run on CPU and take seconds per call. A request waiting on one
+"""The models run on CPU and take seconds per call. A question waiting on one
 must not stop the server answering anything else - /healthz above all, or
 an orchestrator restarts a server that is merely busy."""
 
@@ -6,16 +6,16 @@ import asyncio
 import time
 from pathlib import Path
 
-import httpx
 import pytest
 
-from grounded_rag.api.main import app
-from grounded_rag.config import RunConfig
-from grounded_rag.ingest.pipeline import ingest
-from grounded_rag.retrieval import corrective
+from grounded_rag.ingest.loaders import load_file
+from grounded_rag.ingest.pipeline import ingest_file
+from grounded_rag.retrieval import search as search_module
 from grounded_rag.retrieval.reranker import LexicalReranker
+from grounded_rag.service import answer_question
 
 SLOW_S = 0.4
+SAMPLE = Path("data/sample_corpus/bo_luat_lao_dong_2019.md")
 
 
 class SlowReranker:
@@ -27,30 +27,20 @@ class SlowReranker:
 
 
 @pytest.mark.asyncio
-async def test_healthz_answers_while_chat_requests_wait_on_the_models(monkeypatch):
-    ingest(Path("data/sample_corpus"), RunConfig.from_yaml("configs/full.yaml"))
-    monkeypatch.setattr(corrective, "get_reranker", lambda: SlowReranker())
+async def test_the_event_loop_stays_free_while_questions_wait_on_the_models(monkeypatch):
+    ingest_file(SAMPLE, "bo_luat_lao_dong_2019", load_file(SAMPLE).meta)
+    monkeypatch.setattr(search_module, "get_reranker", lambda: SlowReranker())
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async def probe() -> float:
+        await asyncio.sleep(0.05)       # due while the three are in the reranker
+        # Measured from when it was due, not from when it got to run: a
+        # blocked loop delays the start of this coroutine too.
+        return time.perf_counter() - started - 0.05
 
-        async def probe() -> tuple[httpx.Response, float]:
-            await asyncio.sleep(0.05)       # sent while the three are in the reranker
-            r = await client.get("/healthz")
-            # Measured from when it was due, not from when it got to run: a
-            # blocked loop delays the start of this coroutine too.
-            return r, time.perf_counter() - started - 0.05
-
-        started = time.perf_counter()
-        chats = [
-            client.post("/chat", json={"question": "Thời giờ làm việc?", "config": "full"})
-            for _ in range(3)
-        ]
-        (health, waited), *answers = await asyncio.gather(probe(), *chats)
-
-    assert health.status_code == 200
-    assert all(a.status_code == 200 for a in answers)
-    # /healthz should answer in 50 ms under load; doubled so CI noise is not a failure.
+    started = time.perf_counter()
+    waited, *answers = await asyncio.gather(
+        probe(), *(answer_question("Thời giờ làm việc?") for _ in range(3))
+    )
+    assert all(a.sources for a in answers)
     # Blocking the event loop makes this the sum of the three reranker calls.
-    assert waited < 0.1, f"/healthz waited {waited:.2f}s behind the models"
+    assert waited < 0.1, f"the loop was blocked for {waited:.2f}s behind the models"

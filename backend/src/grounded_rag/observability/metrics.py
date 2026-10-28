@@ -2,8 +2,7 @@
 Without it every function here is a no-op, so no caller has to care.
 
 Scraped from GET /metrics. The questions they answer: which step is slow,
-how many LLM calls and tokens a configuration costs, and which layer of
-defence is doing the refusing.
+and how often - and why - the app refuses to answer.
 """
 
 from __future__ import annotations
@@ -27,11 +26,9 @@ if Histogram is not None:
     )
     ANSWERS = Counter(
         "grounded_rag_answers_total",
-        "Answers by config, status and abstain reason",
-        ["config", "status", "reason"],
+        "Answers by status and abstain reason",
+        ["status", "reason"],
     )
-    LLM_TOKENS = Counter("grounded_rag_llm_tokens_total", "LLM tokens consumed", ["config"])
-    LLM_CALLS = Counter("grounded_rag_llm_calls_total", "LLM calls made", ["config"])
 
 
 def enabled() -> bool:
@@ -46,8 +43,5 @@ def observe_step(name: str, ms: int) -> None:
 def observe_answer(answer: Answer) -> None:
     if Counter is None:
         return
-    m = answer.meta
-    reason = str(m.abstain_reason) if m.abstain_reason else ""
-    ANSWERS.labels(config=m.config, status=str(answer.status), reason=reason).inc()
-    LLM_TOKENS.labels(config=m.config).inc(m.tokens)
-    LLM_CALLS.labels(config=m.config).inc(m.llm_calls)
+    reason = str(answer.meta.abstain_reason) if answer.meta.abstain_reason else ""
+    ANSWERS.labels(status=str(answer.status), reason=reason).inc()

@@ -2,6 +2,7 @@ import re
 
 from grounded_rag.generation.citation import (
     extract_citations,
+    finalize,
     invalid_citations,
     strip_citations,
 )
@@ -44,3 +45,13 @@ def test_only_the_label_sits_inside_brackets():
     documents = prompt.split("CÂU HỎI:")[0]
     assert extract_citations(documents) == ["C1"]
     assert re.findall(r"\[[^\]]*\]", documents) == ["[C1]"]
+
+
+def test_finalize_drops_unknown_labels_and_lists_the_valid_ones():
+    text, labels = finalize("Ít nhất 45 ngày [C2][C9]. Trừ trường hợp khác [C1].", ["C1", "C2"])
+    assert text == "Ít nhất 45 ngày [C2]. Trừ trường hợp khác [C1]."
+    assert labels == ["C2", "C1"]
+
+
+def test_finalize_without_any_valid_label_returns_none():
+    assert finalize("Ít nhất 45 ngày [C7].", ["C1"]) == ("Ít nhất 45 ngày.", [])

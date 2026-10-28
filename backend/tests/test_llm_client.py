@@ -200,3 +200,16 @@ async def test_calls_share_one_connection_pool_until_closed():
     assert client._http.get() is pool
     await client.aclose()
     assert pool.is_closed
+
+
+@pytest.mark.asyncio
+async def test_mock_condense_returns_the_question():
+    from grounded_rag.generation.llm_client import MockClient
+    from grounded_rag.generation.prompts import CONDENSE_SYSTEM_PROMPT, build_condense_prompt
+    from grounded_rag.types import Turn
+
+    history = [Turn(role="user", content="Nghỉ việc báo trước mấy ngày?"),
+               Turn(role="assistant", content="Ít nhất 45 ngày [C1].")]
+    prompt = build_condense_prompt(history, "Còn hợp đồng xác định thời hạn?")
+    res = await MockClient().complete(CONDENSE_SYSTEM_PROMPT, prompt)
+    assert res.text == "Còn hợp đồng xác định thời hạn?"

@@ -55,3 +55,26 @@ def test_reset_drops_the_index(store, chunks):
     store.upsert(chunks)
     store.reset()
     assert store.upsert(chunks) == len(chunks)
+
+
+def test_delete_document_removes_only_that_doc(store, chunks):
+    other = [c.model_copy(update={"doc_id": "khac", "chunk_id": f"khac:{c.chunk_id}"})
+             for c in chunks]
+    store.upsert(chunks + other)
+    store.delete_document("bo_luat_lao_dong_2019")
+    left = {c.doc_id for c, _ in store.sparse_search("nghỉ hằng năm", 20)}
+    assert left == {"khac"}
+
+
+def test_in_memory_store_deletes_a_document_too(chunks):
+    from grounded_rag.retrieval.store import InMemoryStore
+
+    mem = InMemoryStore(HashEmbedder())
+    other = [c.model_copy(update={"doc_id": "khac", "chunk_id": f"khac:{c.chunk_id}"})
+             for c in chunks]
+    mem.upsert(chunks + other)
+    mem.delete_document("bo_luat_lao_dong_2019")
+    assert {c.doc_id for c, _ in mem.sparse_search("nghỉ hằng năm", 20)} == {"khac"}
+    mem.upsert(chunks)  # a re-indexed document comes back
+    assert {c.doc_id for c, _ in mem.sparse_search("nghỉ hằng năm", 20)} == {
+        "khac", "bo_luat_lao_dong_2019"}

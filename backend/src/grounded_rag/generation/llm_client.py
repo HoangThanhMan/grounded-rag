@@ -55,14 +55,11 @@ class MockClient:
     """Echoes the first document back with a citation. Lets the whole
     pipeline, the API and the eval harness run with no API key at all.
 
-    Asked to plan queries, it splits the question on "và" - just enough to
-    drive the corrective-retrieval path end to end without a model."""
+    Asked to rewrite a follow-up, it returns the new question unchanged."""
 
     async def complete(self, system: str, user: str, **kw) -> LLMResponse:
-        if '"queries"' in system:
-            question = user.split("CÂU HỎI:", 1)[-1].split("\n", 1)[0]
-            parts = [p.strip(" ?") for p in re.split(r"\s+và\s+|;", question) if p.strip(" ?")]
-            text = json.dumps({"in_domain": True, "queries": parts}, ensure_ascii=False)
+        if "CÂU HỎI MỚI:" in user:
+            text = user.rsplit("CÂU HỎI MỚI:", 1)[-1].strip()
         else:
             m = _FIRST_SOURCE.search(user)
             lines = m.group(1).splitlines() if m else []

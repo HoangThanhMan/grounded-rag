@@ -1,8 +1,8 @@
 """Vector store. Qdrant in production, in-memory when mocking.
 
-One index per chunker. `baseline` (recursive) and `full` (structural) are two
-different indexes of the same corpus; if they shared one, each configuration
-would retrieve the other's chunks and the comparison would be meaningless.
+One index per chunker. The app reads the structural one; the evaluation's
+naive RAG reads a recursive one built from the same corpus. Sharing one index
+would let each retrieve the other's chunks.
 
 Point ids derive from content hashes, so re-running ingest overwrites instead
 of duplicating - the property that makes `make ingest` safe to repeat.
@@ -37,6 +37,8 @@ class VectorStore(Protocol):
     def dense_search(self, query: str, top_k: int, as_of: date | None = None) -> Hits: ...
     def sparse_search(self, query: str, top_k: int, as_of: date | None = None) -> Hits: ...
     def reset(self) -> None: ...
+    def delete_document(self, doc_id: str) -> None: ...
+    def ping(self) -> None: ...
 
 
 class InMemoryStore:
@@ -54,6 +56,17 @@ class InMemoryStore:
         self._chunks: list[Chunk] = []
         self._vectors: list[list[float]] = []
         self._bm25 = BM25Index()
+
+    def delete_document(self, doc_id: str) -> None:
+        keep = [i for i, c in enumerate(self._chunks) if c.doc_id != doc_id]
+        chunks, vectors = [self._chunks[i] for i in keep], [self._vectors[i] for i in keep]
+        self.reset()
+        self._chunks, self._vectors = chunks, vectors
+        for c in chunks:
+            self._bm25.add(tokenize(c.text))
+
+    def ping(self) -> None:
+        pass
 
     def upsert(self, chunks: list[Chunk]) -> int:
         known = {c.chunk_id for c in self._chunks}
@@ -137,6 +150,23 @@ class QdrantStore:
         if self.client.collection_exists(self.collection):
             self.client.delete_collection(self.collection)
         self._ready = False
+
+    def delete_document(self, doc_id: str) -> None:
+        """Every chunk of a document, before it is indexed again: content-hashed
+        ids would keep the chunks of an older version next to the new ones."""
+        from qdrant_client import models
+
+        if not self.client.collection_exists(self.collection):
+            return
+        self.client.delete(
+            self.collection,
+            points_selector=models.Filter(
+                must=[models.FieldCondition(key="doc_id", match=models.MatchValue(value=doc_id))]
+            ),
+        )
+
+    def ping(self) -> None:
+        self.client.get_collections()
 
     def upsert(self, chunks: list[Chunk]) -> int:
         from qdrant_client import models
@@ -253,7 +283,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
 
 
 @functools.cache
-def get_store(chunker: str) -> VectorStore:
+def get_store(chunker: str = "structural") -> VectorStore:
     if settings.llm_provider == "mock":
         return InMemoryStore()
     return QdrantStore(f"{settings.qdrant_collection}_{chunker}")

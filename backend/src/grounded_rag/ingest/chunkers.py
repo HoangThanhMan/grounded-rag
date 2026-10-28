@@ -1,6 +1,6 @@
 """Chunking strategies.
 
-Two of them, because the eval compares them:
+Two of them, because the evaluation compares them:
   recursive  - generic, splits on paragraph/sentence boundaries at a size budget
   structural - splits Vietnamese legal text on Điều / Khoản boundaries, so a
                citation lands on a real clause instead of an arbitrary window
@@ -8,7 +8,7 @@ Two of them, because the eval compares them:
 Structural chunks are heading-aware: each one starts with its article heading
 ("Điều 35. Quyền đơn phương chấm dứt ..."). A clause that on its own says only
 "phải báo trước ít nhất 45 ngày" still carries what it is about - for the
-retriever, and for the NLI premise the guard checks against.
+retriever, and for the model reading it as a source.
 """
 
 from __future__ import annotations

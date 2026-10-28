@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, computed_field
 
@@ -58,36 +58,25 @@ class RetrievedChunk(BaseModel):
     label: str                      # "C1", "C2", ... - what the LLM cites
 
 
-class Verdict(StrEnum):
-    SUPPORTED = "supported"
-    UNSUPPORTED = "unsupported"
-    UNCITED = "uncited"             # the model made a claim with no citation at all
+class Turn(BaseModel):
+    """One earlier message of the conversation, for rewriting a follow-up."""
 
-
-class Claim(BaseModel):
-    text: str
-    citations: list[str] = Field(default_factory=list)
-    entailment: float | None = None
-    verdict: Verdict | None = None  # None = not verified (guard disabled)
-    # set when the guard moved the citation to the source that does support
-    # the claim: what the model originally cited
-    cited_as: list[str] | None = None
+    role: Literal["user", "assistant"]
+    content: str
 
 
 class AnswerStatus(StrEnum):
     ANSWERED = "answered"
-    PARTIAL = "partial"             # some claims dropped by the guard
-    ABSTAINED = "abstained"         # the model or the guard declined to answer
-    NO_CONTEXT = "no_context"       # stopped before the LLM ever wrote an answer
+    ABSTAINED = "abstained"         # the LLM was asked and no cited answer came back
+    NO_CONTEXT = "no_context"       # stopped before the LLM: nothing relevant retrieved
 
 
 class AbstainReason(StrEnum):
-    """Which layer of defence stopped the answer - reported per layer in eval."""
+    """Which check stopped the answer - shown to the user, counted in /metrics."""
 
     RETRIEVAL_FLOOR = "retrieval_floor"
-    OUT_OF_DOMAIN = "out_of_domain"     # the query planner saw no legal question
     MODEL = "model"                     # the model used the refusal sentence itself
-    GUARD = "guard"                     # the guard rejected every claim
+    NO_CITATION = "no_citation"         # the answer cited no source it was given
 
 
 ABSTAIN_TEXT = "Không tìm thấy thông tin này trong tài liệu."
@@ -96,20 +85,13 @@ ABSTAIN_TEXT = "Không tìm thấy thông tin này trong tài liệu."
 class Step(BaseModel):
     """One span of the pipeline, returned with the answer so its cost is visible."""
 
-    name: str                       # retrieve | plan | generate | verify
+    name: str                       # condense | retrieve | generate
     ms: int
     detail: dict[str, Any] = Field(default_factory=dict)
-    # wall-clock start, for exporting the span to Langfuse; not part of the API
-    started: datetime | None = Field(default=None, exclude=True)
 
 
 class AnswerMeta(BaseModel):
-    regenerated: bool = False
     latency_ms: int = 0
-    tokens: int = 0
-    llm_calls: int = 0
-    cost_usd: float = 0.0
-    config: str = "unnamed"
     abstain_reason: AbstainReason | None = None
     steps: list[Step] = Field(default_factory=list)
 
@@ -117,6 +99,9 @@ class AnswerMeta(BaseModel):
 class Answer(BaseModel):
     answer: str
     status: AnswerStatus
-    claims: list[Claim] = Field(default_factory=list)
     sources: list[RetrievedChunk] = Field(default_factory=list)
+    citations: list[str] = Field(default_factory=list)   # labels cited, in order
+    # what was retrieved for: the question itself, or a follow-up rewritten
+    # to stand on its own
+    standalone_question: str = ""
     meta: AnswerMeta = Field(default_factory=AnswerMeta)

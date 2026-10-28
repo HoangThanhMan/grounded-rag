@@ -1,8 +1,7 @@
 """Parsing and validating the [C1] citation markers the prompt demands.
 
 A citation pointing at a label that was never in the context is itself a
-hallucination, and a cheap one to catch - so it is caught here, before the
-NLI guard ever runs.
+hallucination, and a cheap one to catch: no model has to run.
 """
 
 from __future__ import annotations
@@ -32,3 +31,12 @@ def invalid_citations(text: str, valid_labels: list[str]) -> list[str]:
 
 def label_for(index: int) -> str:
     return f"C{index + 1}"
+
+
+def finalize(text: str, valid_labels: list[str]) -> tuple[str, list[str]]:
+    """The answer with every citation to an unknown label removed, and the
+    labels left, in order. No label left means nothing in the answer is tied
+    to a source - the caller refuses rather than show it."""
+    for label in invalid_citations(text, valid_labels):
+        text = re.sub(rf"\s*\[{label}\]", "", text)
+    return text.strip(), extract_citations(text)

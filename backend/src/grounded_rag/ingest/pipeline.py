@@ -1,11 +1,9 @@
-"""Offline indexing: corpus directory -> chunks -> vector store.
+"""Indexing: a file -> chunks -> vector store.
 
-Idempotent by construction (content-hashed chunk ids), so running it twice
-is a no-op rather than a duplicate index. Each chunker has its own index;
-`--recreate` drops that index first, which is what you want after changing
-the chunker itself (old chunks would otherwise linger next to the new ones).
+The API calls `ingest_file` for an upload; the CLI below indexes a whole
+directory, which is how the evaluation builds its naive (recursive) index:
 
-    python -m grounded_rag.ingest.pipeline --source data/corpus --config configs/full.yaml
+    python -m grounded_rag.ingest.pipeline --source data/corpus --chunker recursive
 """
 
 from __future__ import annotations
@@ -13,39 +11,36 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from grounded_rag.config import RunConfig
 from grounded_rag.ingest.chunkers import get_chunker
 from grounded_rag.ingest.loaders import iter_corpus, load_file
 from grounded_rag.retrieval.store import get_store
-from grounded_rag.types import Chunk
+from grounded_rag.types import DocMeta
 
 
-def ingest(source: Path, config: RunConfig, *, recreate: bool = False) -> dict[str, int]:
-    chunker = get_chunker(config.retrieval.chunker)
-    store = get_store(config.retrieval.chunker)
-    if recreate:
-        store.reset()
-
-    all_chunks: list[Chunk] = []
-    files = 0
-    for path in iter_corpus(source):
-        doc = load_file(path)
-        all_chunks.extend(chunker(doc.text, doc.doc_id, meta=doc.meta))
-        files += 1
-
-    written = store.upsert(all_chunks)
-    return {"files": files, "chunks": len(all_chunks), "written": written}
+def ingest_file(path: Path, doc_id: str, meta: DocMeta, chunker: str = "structural") -> int:
+    """Index one document, replacing whatever was indexed under its id, and
+    return the number of chunks. A document with no text - a scanned PDF -
+    is an error, not an empty success."""
+    doc = load_file(path)
+    chunks = get_chunker(chunker)(doc.text, doc_id, meta=meta) if doc.text.strip() else []
+    if not chunks:
+        raise ValueError("no text extracted from the file")
+    store = get_store(chunker)
+    store.delete_document(doc_id)
+    store.upsert(chunks)
+    return len(chunks)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--source", default="data/corpus", type=Path)
-    ap.add_argument("--config", default="configs/full.yaml")
-    ap.add_argument("--recreate", action="store_true", help="drop this chunker's index first")
+    ap.add_argument("--chunker", default="structural", choices=["structural", "recursive"])
     args = ap.parse_args()
 
-    stats = ingest(args.source, RunConfig.from_yaml(args.config), recreate=args.recreate)
-    print(f"files={stats['files']} chunks={stats['chunks']} newly_written={stats['written']}")
+    for path in iter_corpus(args.source):
+        doc = load_file(path)
+        n = ingest_file(path, doc.doc_id, doc.meta, args.chunker)
+        print(f"{doc.doc_id}: {n} chunks")
 
 
 if __name__ == "__main__":
