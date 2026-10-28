@@ -27,8 +27,8 @@ def indexed():
 class Scripted:
     """An LLM that says what the test tells it to, and remembers being asked."""
 
-    def __init__(self, answer: str, condensed: str = "") -> None:
-        self.answer, self.condensed = answer, condensed
+    def __init__(self, answer: str, condensed: str = "", model: str = "cheap") -> None:
+        self.answer, self.condensed, self.model = answer, condensed, model
         self.calls: list[tuple[str, str]] = []
 
     async def complete(self, system, user, **kw):
@@ -41,8 +41,9 @@ class Scripted:
             yield word + " "
 
 
-def _use(monkeypatch, llm) -> None:
+def _use(monkeypatch, llm, stronger=None) -> None:
     monkeypatch.setattr(service, "get_llm_client", lambda: llm)
+    monkeypatch.setattr(service, "get_escalation_client", lambda: stronger)
 
 
 @pytest.mark.asyncio
@@ -166,3 +167,102 @@ async def test_an_answer_cut_off_at_max_tokens_is_refused(monkeypatch):
     answer = await answer_question(NOTICE)
     assert answer.status is AnswerStatus.ABSTAINED
     assert answer.meta.abstain_reason == "truncated"
+
+
+@pytest.mark.asyncio
+async def test_an_uncited_answer_is_asked_again_of_the_stronger_model(monkeypatch):
+    stronger = Scripted("Phải báo trước ít nhất 45 ngày [C1].", model="strong")
+    _use(monkeypatch, Scripted("Phải báo trước ít nhất 45 ngày."), stronger)
+    events = [e async for e in answer_stream(NOTICE)]
+    kinds = [type(e).__name__ for e in events]
+    retry = kinds.index("RetryEvent")
+    assert "TokenEvent" in kinds[:retry] and "TokenEvent" in kinds[retry:]
+    assert events[retry].reason is AbstainReason.NO_CITATION
+    answer = events[-1].answer
+    assert answer.status is AnswerStatus.ANSWERED and answer.citations == ["C1"]
+    assert (answer.meta.model, answer.meta.escalated) == ("strong", True)
+    # the same prompt, sources included: only the model changes
+    assert stronger.calls[0][1].startswith("TÀI LIỆU:\n[C1]")
+
+
+@pytest.mark.asyncio
+async def test_a_refusal_despite_good_sources_is_asked_again(monkeypatch):
+    stronger = Scripted("Phải báo trước ít nhất 45 ngày [C1].", model="strong")
+    _use(monkeypatch, Scripted(ABSTAIN_TEXT), stronger)
+    answer = await answer_question(NOTICE)
+    assert answer.status is AnswerStatus.ANSWERED
+    assert answer.meta.escalated
+
+
+@pytest.mark.asyncio
+async def test_a_good_answer_never_reaches_the_stronger_model(monkeypatch):
+    stronger = Scripted("không được gọi [C1]", model="strong")
+    _use(monkeypatch, Scripted("Phải báo trước ít nhất 45 ngày [C1]."), stronger)
+    answer = await answer_question(NOTICE)
+    assert stronger.calls == []
+    assert (answer.meta.model, answer.meta.escalated) == ("cheap", False)
+
+
+@pytest.mark.asyncio
+async def test_a_question_below_the_floor_is_not_escalated(monkeypatch):
+    """Nothing relevant was found: a stronger model has nothing more to read."""
+    stronger = Scripted("không được gọi [C1]", model="strong")
+    _use(monkeypatch, Scripted("không được gọi [C1]"), stronger)
+    answer = await answer_question(NOTICE, options=RetrievalOptions(min_score=2.0))
+    assert answer.status is AnswerStatus.NO_CONTEXT
+    assert stronger.calls == []
+
+
+@pytest.mark.asyncio
+async def test_the_stronger_models_answer_is_checked_too(monkeypatch):
+    _use(monkeypatch, Scripted("45 ngày."), Scripted("Vẫn 45 ngày.", model="strong"))
+    answer = await answer_question(NOTICE)
+    assert answer.status is AnswerStatus.ABSTAINED
+    assert answer.meta.abstain_reason is AbstainReason.NO_CITATION
+    assert answer.meta.escalated
+
+
+@pytest.mark.asyncio
+async def test_a_stronger_model_that_is_down_leaves_the_first_refusal(monkeypatch):
+    """A second opinion that fails is no reason to fail the question."""
+    from grounded_rag.generation.llm_client import LLMUnavailable
+
+    class Down(Scripted):
+        async def stream(self, system, user, **kw):
+            raise LLMUnavailable("busy")
+            yield  # an async generator, like the real stream
+
+    _use(monkeypatch, Scripted("45 ngày."), Down("", model="strong"))
+    answer = await answer_question(NOTICE)
+    assert answer.status is AnswerStatus.ABSTAINED
+    assert answer.meta.abstain_reason is AbstainReason.NO_CITATION
+    assert answer.meta.model == "cheap"
+
+
+class FellBack(Scripted):
+    """A failover chain whose first model was down: the stream says who answered."""
+
+    def stream(self, system, user, **kw):
+        tokens = super().stream(system, user, **kw)
+
+        class Answered:
+            model, finish_reason = "spare", None
+
+            def __aiter__(self):
+                return tokens
+
+        return Answered()
+
+
+@pytest.mark.asyncio
+async def test_an_answer_from_a_fallback_model_says_so(monkeypatch):
+    _use(monkeypatch, FellBack("Phải báo trước ít nhất 45 ngày [C1]."))
+    answer = await answer_question(NOTICE)
+    assert (answer.meta.model, answer.meta.fallback) == ("spare", True)
+
+
+@pytest.mark.asyncio
+async def test_the_first_model_answering_is_no_fallback(monkeypatch):
+    _use(monkeypatch, Scripted("Phải báo trước ít nhất 45 ngày [C1]."))
+    answer = await answer_question(NOTICE)
+    assert (answer.meta.model, answer.meta.fallback) == ("cheap", False)

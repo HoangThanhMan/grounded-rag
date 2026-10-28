@@ -19,7 +19,7 @@ from typing import Any, Protocol
 
 import httpx
 
-from grounded_rag.config import settings
+from grounded_rag.config import LLMEndpoint, settings
 
 log = logging.getLogger("grounded_rag.llm")
 
@@ -47,6 +47,7 @@ class LLMResponse:
     # models spend output tokens on reasoning first, so this happens with
     # budgets that look generous - and a cut-off sentence has no citation.
     truncated: bool = False
+    model: str = ""                 # which model answered, behind a failover chain
 
 
 class LLMClient(Protocol):
@@ -60,6 +61,8 @@ class MockClient:
 
     Asked to rewrite a follow-up, it returns the new question unchanged."""
 
+    model = "mock"
+
     async def complete(self, system: str, user: str, **kw) -> LLMResponse:
         if "CÂU HỎI MỚI:" in user:
             text = user.rsplit("CÂU HỎI MỚI:", 1)[-1].strip()
@@ -71,7 +74,7 @@ class MockClient:
             if len(body) > 180:
                 body = body[:180].rsplit(" ", 1)[0]
             text = f"{body} [C1]" if body else "Không tìm thấy thông tin này trong tài liệu."
-        return LLMResponse(text=text, tokens=len(text.split()))
+        return LLMResponse(text=text, tokens=len(text.split()), model=self.model)
 
     async def stream(self, system: str, user: str, **kw) -> AsyncIterator[str]:
         res = await self.complete(system, user, **kw)
@@ -156,12 +159,14 @@ class OpenAICompatClient:
         except (KeyError, IndexError, TypeError) as e:
             raise LLMUnavailable(f"unexpected response: {str(data)[:200]}") from e
         usage = data.get("usage") or {}
-        return _response(
+        res = _response(
             text,
             usage.get("prompt_tokens", 0),
             usage.get("completion_tokens", 0),
             truncated=choice.get("finish_reason") == "length",
         )
+        res.model = self.model
+        return res
 
     def stream(
         self, system: str, user: str, *, temperature: float = 0.0, max_tokens: int = 512
@@ -170,7 +175,7 @@ class OpenAICompatClient:
         dropped connection is retried like `complete` does - but only before
         the first token: once text has reached the user, a retry would repeat it."""
         body = {**self._body(system, user, temperature, max_tokens), "stream": True}
-        return Stream(lambda out: self._tokens(out, body, max_tokens))
+        return Stream(lambda out: self._tokens(out, body, max_tokens), model=self.model)
 
     async def _tokens(self, out: Stream, body: dict, max_tokens: int) -> AsyncIterator[str]:
         error, wait, sent = "no attempt made", 0.0, False
@@ -232,14 +237,63 @@ class OpenAICompatClient:
 
 class Stream:
     """The answer as it arrives, and - once it has - why it stopped:
-    "stop", or "length" when max_tokens cut it off."""
+    "stop", or "length" when max_tokens cut it off - and which model wrote it."""
 
-    def __init__(self, tokens: Callable[[Stream], AsyncIterator[str]]) -> None:
+    def __init__(self, tokens: Callable[[Stream], AsyncIterator[str]], model: str = "") -> None:
         self.finish_reason: str | None = None
+        self.model = model
         self._tokens = tokens(self)
 
     def __aiter__(self) -> AsyncIterator[str]:
         return self._tokens
+
+
+class FailoverClient:
+    """Several models, asked in order: the next one only when the one before
+    is unavailable. Free tiers run out per model and per day, and a provider
+    can be overloaded for minutes; another model answers meanwhile.
+
+    A stream moves on only before its first token. Once text has reached the
+    user, a second model would start the answer over in the middle of it."""
+
+    def __init__(self, clients: list[OpenAICompatClient]) -> None:
+        self.clients = clients
+        self.model = clients[0].model
+
+    async def aclose(self) -> None:
+        for c in self.clients:
+            await c.aclose()
+
+    async def complete(self, system: str, user: str, **kw) -> LLMResponse:
+        error: LLMUnavailable | None = None
+        for client in self.clients:
+            try:
+                return await client.complete(system, user, **kw)
+            except LLMUnavailable as e:
+                log.warning("%s unavailable, trying the next model: %s", client.model, e)
+                error = e
+        raise LLMUnavailable(f"every model is unavailable; last: {error}")
+
+    def stream(self, system: str, user: str, **kw) -> Stream:
+        return Stream(lambda out: self._tokens(out, system, user, kw))
+
+    async def _tokens(self, out: Stream, system: str, user: str, kw: dict) -> AsyncIterator[str]:
+        error: LLMUnavailable | None = None
+        for client in self.clients:
+            inner, sent = client.stream(system, user, **kw), False
+            try:
+                async for token in inner:
+                    sent = True
+                    yield token
+            except LLMUnavailable as e:
+                if sent:
+                    raise
+                log.warning("%s unavailable, trying the next model: %s", client.model, e)
+                error = e
+                continue
+            out.model, out.finish_reason = inner.model, inner.finish_reason
+            return
+        raise LLMUnavailable(f"every model is unavailable; last: {error}")
 
 
 async def _post_json(
@@ -295,9 +349,30 @@ def _response(
 def get_llm_client() -> LLMClient:
     if settings.llm_provider == "mock":
         return MockClient()
-    return OpenAICompatClient(
-        settings.llm_base_url,
-        settings.llm_api_key,
-        settings.llm_model,
+    primary = LLMEndpoint(
+        base_url=settings.llm_base_url,
+        api_key=settings.llm_api_key,
+        model=settings.llm_model,
         reasoning_effort=settings.llm_reasoning_effort,
+    )
+    chain = [primary, *settings.llm_fallbacks]
+    if len(chain) == 1:
+        return _client(primary)
+    # with another model to go to, waiting out a busy one is the slower path
+    return FailoverClient(
+        [_client(e, retries=0 if i < len(chain) - 1 else None) for i, e in enumerate(chain)]
+    )
+
+
+@functools.lru_cache(maxsize=1)
+def get_escalation_client() -> LLMClient | None:
+    """The stronger model the pipeline asks again, if one is configured."""
+    if settings.llm_provider == "mock" or settings.llm_escalation is None:
+        return None
+    return _client(settings.llm_escalation)
+
+
+def _client(e: LLMEndpoint, retries: int | None = None) -> OpenAICompatClient:
+    return OpenAICompatClient(
+        e.base_url, e.api_key, e.model, reasoning_effort=e.reasoning_effort, retries=retries
     )

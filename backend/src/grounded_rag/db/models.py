@@ -10,7 +10,7 @@ import uuid
 from datetime import UTC, date, datetime
 from typing import Any
 
-from sqlalchemy import JSON, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, Date, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -61,6 +61,11 @@ class Message(Base):
     citations: Mapped[list[str] | None] = mapped_column(JSON)
     standalone_question: Mapped[str | None] = mapped_column(Text)
     latency_ms: Mapped[int | None] = mapped_column(Integer)
+    # which model wrote the answer, and whether a first one failed the checks:
+    # a thumbs-down is read against these
+    model: Mapped[str | None] = mapped_column(String(128))
+    escalated: Mapped[bool | None] = mapped_column(Boolean)
+    fallback: Mapped[bool | None] = mapped_column(Boolean)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
     conversation: Mapped[Conversation] = relationship(back_populates="messages")

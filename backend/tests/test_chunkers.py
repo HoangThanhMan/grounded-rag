@@ -115,3 +115,71 @@ def test_recursive_overlap_never_glues_two_words_into_one():
     assert len(chunks) > 1
     for c in chunks:
         assert set(re.findall(r"\w+", c.text)) <= words
+
+
+VOLUNTARY = """Chương III
+BẢO HIỂM XÃ HỘI BẮT BUỘC
+Mục 1
+CHẾ ĐỘ THAI SẢN
+Điều 59. Trợ cấp thai sản
+1. Trợ cấp thai sản một tháng bằng 100% mức bình quân tiền lương.
+
+Chương VI
+BẢO HIỂM XÃ HỘI TỰ NGUYỆN
+Mục 1. TRỢ CẤP THAI SẢN
+Điều 95. Trợ cấp thai sản
+1. Mức trợ cấp thai sản là 2.000.000 đồng cho mỗi con.
+
+Chương VII
+ĐIỀU KHOẢN THI HÀNH
+Điều 141. Hiệu lực thi hành
+1. Luật này có hiệu lực từ ngày 01 tháng 7 năm 2025.
+"""
+BHXH = DocMeta(title="Luật Bảo hiểm xã hội 2024")
+
+
+def test_every_clause_knows_the_law_chapter_and_section_it_sits_in():
+    # Điều 95 alone reads like every worker's maternity pay; only its chapter
+    # says it is the voluntary scheme's
+    mandatory, voluntary, _ = structural_chunk(VOLUNTARY, "bhxh", meta=BHXH)
+    assert mandatory.context == (
+        "Luật Bảo hiểm xã hội 2024 › Chương III. Bảo hiểm xã hội bắt buộc"
+        " › Mục 1. Chế độ thai sản"
+    )
+    assert voluntary.context == (
+        "Luật Bảo hiểm xã hội 2024 › Chương VI. Bảo hiểm xã hội tự nguyện"
+        " › Mục 1. Trợ cấp thai sản"
+    )
+    assert voluntary.text.startswith("Điều 95. Trợ cấp thai sản\n1. ")
+
+
+def test_a_new_chapter_closes_the_section_before_it():
+    last = structural_chunk(VOLUNTARY, "bhxh", meta=BHXH)[-1]
+    assert last.context == "Luật Bảo hiểm xã hội 2024 › Chương VII. Điều khoản thi hành"
+
+
+def test_retrieval_reads_the_context_before_the_clause():
+    voluntary = structural_chunk(VOLUNTARY, "bhxh", meta=BHXH)[1]
+    assert voluntary.search_text == f"{voluntary.context}\n{voluntary.text}"
+
+
+def test_the_same_clause_under_another_chapter_is_another_chunk():
+    moved = VOLUNTARY.replace("BẢO HIỂM XÃ HỘI TỰ NGUYỆN", "BẢO HIỂM XÃ HỘI KHÁC")
+    before = structural_chunk(VOLUNTARY, "bhxh", meta=BHXH)[1]
+    after = structural_chunk(moved, "bhxh", meta=BHXH)[1]
+    assert before.text == after.text
+    assert before.chunk_id != after.chunk_id
+
+
+def test_naive_chunks_get_no_context():
+    # the evaluation's baseline stays naive
+    chunk = recursive_chunk(VOLUNTARY, "bhxh", meta=BHXH)[0]
+    assert chunk.context is None
+    assert chunk.search_text == chunk.text
+
+
+def test_a_capitalised_title_keeps_its_proper_nouns():
+    text = ("Mục 3\nNGƯỜI LAO ĐỘNG VIỆT NAM ĐI LÀM VIỆC Ở NƯỚC NGOÀI\n"
+            "Điều 151. Điều kiện\n1. Có giấy phép lao động.\n")
+    assert structural_chunk(text, "d")[0].context == (
+        "Mục 3. Người lao động Việt Nam đi làm việc ở nước ngoài")

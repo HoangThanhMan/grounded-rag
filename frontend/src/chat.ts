@@ -28,6 +28,9 @@ export function applyEvent(state: Pending, e: ChatEvent): Pending {
       return edit((m) => ({ ...m, sources: e.data.sources, phase: "writing" }));
     case "token":
       return edit((m) => ({ ...m, content: m.content + e.data.text, phase: "writing" }));
+    case "retry":
+      // the draft failed the server's checks: a stronger model writes it again
+      return edit((m) => ({ ...m, content: "", phase: "rechecking" }));
     case "done":
       return edit(
         (m) => ({
@@ -37,6 +40,9 @@ export function applyEvent(state: Pending, e: ChatEvent): Pending {
           status: e.data.status,
           abstain_reason: e.data.abstain_reason,
           citations: e.data.citations,
+          model: e.data.model,
+          escalated: e.data.escalated,
+          fallback: e.data.fallback,
           phase: undefined,
         }),
         e.data.message_id,

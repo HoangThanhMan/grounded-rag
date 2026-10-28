@@ -3,6 +3,8 @@
     meta     {conversation_id, title}            at once
     sources  {standalone_question, sources}      after retrieval
     token    {text}                              while the answer is written
+    retry    {reason}                            the draft failed the checks; a
+                                                 stronger model starts over
     done     {message_id, answer, status, ...}   the checked answer - the client
                                                  shows this, not the streamed draft
     error    {code, message}                     instead of done
@@ -31,7 +33,7 @@ from grounded_rag.config import settings
 from grounded_rag.db.models import Conversation, Message, new_id, now
 from grounded_rag.db.session import SessionLocal, get_session
 from grounded_rag.generation.llm_client import LLMUnavailable
-from grounded_rag.service import DoneEvent, SourcesEvent, TokenEvent, answer_stream
+from grounded_rag.service import DoneEvent, RetryEvent, SourcesEvent, TokenEvent, answer_stream
 from grounded_rag.types import Answer, Turn
 
 router = APIRouter(prefix="/api", tags=["chat"])
@@ -68,6 +70,8 @@ async def chat(req: ChatRequest, session: Session, owner: Owner) -> StreamingRes
                     })
                 elif isinstance(event, TokenEvent):
                     yield _sse("token", {"text": event.text})
+                elif isinstance(event, RetryEvent):
+                    yield _sse("retry", {"reason": event.reason})
                 elif isinstance(event, DoneEvent):
                     message_id = await _save_answer(conv_id, event.answer)
                     yield _sse("done", _done(message_id, event.answer))
@@ -112,6 +116,9 @@ async def _save_answer(conversation_id: str, answer: Answer) -> str:
             citations=answer.citations,
             standalone_question=answer.standalone_question,
             latency_ms=answer.meta.latency_ms,
+            model=answer.meta.model or None,
+            escalated=answer.meta.escalated,
+            fallback=answer.meta.fallback,
         )
         session.add(msg)
         conv = await session.get(Conversation, conversation_id)
@@ -129,6 +136,10 @@ def _done(message_id: str, answer: Answer) -> dict[str, Any]:
         "abstain_reason": answer.meta.abstain_reason,
         "citations": answer.citations,
         "latency_ms": answer.meta.latency_ms,
+        # shown under the answer: who wrote it, and why not the first model
+        "model": answer.meta.model or None,
+        "escalated": answer.meta.escalated,
+        "fallback": answer.meta.fallback,
     }
 
 

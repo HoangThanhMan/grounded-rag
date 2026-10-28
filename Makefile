@@ -49,9 +49,11 @@ ingest:       ## both indexes the evaluation needs, from data/corpus
 	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --chunker structural
 	$(PY) -m grounded_rag.ingest.pipeline --source data/corpus --chunker recursive
 
-eval:         ## naive RAG vs the app on 100 test questions -> eval/results/
+eval:         ## naive RAG vs the app on 100 test questions, then the hard ones -> eval/results/
 	$(PY) -m eval.run --system naive
 	$(PY) -m eval.run --system app
+	$(PY) -m eval.run --system naive --set hard
+	$(PY) -m eval.run --system app --set hard
 	$(PY) -m eval.report > eval/results/summary.md
 	cat eval/results/summary.md
 

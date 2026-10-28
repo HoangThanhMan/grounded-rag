@@ -76,6 +76,9 @@ class MessageOut(BaseModel):
     sources: list[SourceOut] | None
     citations: list[str] | None
     feedback: str | None            # "up" | "down" | None
+    model: str | None               # which model wrote an answer
+    escalated: bool | None          # asked again of a stronger model
+    fallback: bool | None           # a stand-in for an unavailable model
     created_at: datetime
 
 

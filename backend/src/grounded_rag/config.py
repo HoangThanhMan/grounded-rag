@@ -10,6 +10,17 @@ from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+class LLMEndpoint(BaseModel):
+    """One more OpenAI-compatible model: where it is, which one, how to ask.
+    Set in .env as JSON - see LLM_FALLBACKS and LLM_ESCALATION."""
+
+    base_url: str
+    model: str
+    api_key: str = ""
+    # per model: gemini-3.5-flash-lite rejects "none", gemini-3.1-flash-lite wants it
+    reasoning_effort: str = ""
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -27,6 +38,12 @@ class Settings(BaseSettings):
     # Sent as `reasoning_effort` when set ("none", "low", ...). Thinking
     # tokens count against max_tokens.
     llm_reasoning_effort: str = ""
+    # Asked in order when the model before is unavailable - a spent quota, an
+    # overloaded server - but only before the first token reaches the user.
+    llm_fallbacks: list[LLMEndpoint] = Field(default_factory=list)
+    # A stronger model, asked once more when the first answer fails the
+    # citation check after retrieval found good sources. None = no second try.
+    llm_escalation: LLMEndpoint | None = None
     temperature: float = 0.0
     max_tokens: int = 512
     # Earlier question/answer pairs used to rewrite a follow-up question

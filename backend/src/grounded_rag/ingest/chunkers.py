@@ -8,7 +8,10 @@ Two of them, because the evaluation compares them:
 Structural chunks are heading-aware: each one starts with its article heading
 ("Điều 35. Quyền đơn phương chấm dứt ..."). A clause that on its own says only
 "phải báo trước ít nhất 45 ngày" still carries what it is about - for the
-retriever, and for the model reading it as a source.
+retriever, and for the model reading it as a source. Above the article, its
+`context` names the law, chapter and section: Điều 95 of the 2024 social
+insurance law pays 2,000,000 đồng per child, but only under "Chương VI. Bảo
+hiểm xã hội tự nguyện".
 """
 
 from __future__ import annotations
@@ -19,13 +22,16 @@ from dataclasses import dataclass, field
 
 from grounded_rag.types import Chunk, DocMeta
 
-CHAPTER_RE = re.compile(r"^\s*(?:Chương|CHƯƠNG)\s+([IVXLCDM]+|\d+)\b")
-SECTION_RE = re.compile(r"^\s*(?:Mục|MỤC)\s+\d+\b")
+# The title follows on the same line ("Mục 1. CHẾ ĐỘ HƯU TRÍ") or the next
+CHAPTER_RE = re.compile(r"^\s*(?:Chương|CHƯƠNG)\s+([IVXLCDM]+|\d+)\b[\s.:-]*(.*)$")
+SECTION_RE = re.compile(r"^\s*(?:Mục|MỤC)\s+(\d+)\b[\s.:-]*(.*)$")
 # The '.' or ':' is required: a wrapped line that happens to start with
 # "Điều 35 của Bộ luật này" is body text, not a new article.
 ARTICLE_RE = re.compile(r"^\s*(Điều\s+\d+[a-z]?)\s*[.:]\s*(.*)$")
 CLAUSE_RE = re.compile(r"^\s*(\d+)\.\s+", re.MULTILINE)
 SEPARATORS = ["\n\n", "\n", ". ", " "]
+# what lower-casing a capitalised title must not lower-case
+PROPER_NOUNS = ["Việt Nam"]
 
 
 def _chunk_id(doc_id: str, text: str) -> str:
@@ -35,8 +41,10 @@ def _chunk_id(doc_id: str, text: str) -> str:
 
 
 def _make(doc_id: str, text: str, meta: DocMeta, **structure: str | None) -> Chunk:
+    # the context is part of what is embedded, so it is part of the id
+    context = structure.get("context")
     return Chunk(
-        chunk_id=_chunk_id(doc_id, text),
+        chunk_id=_chunk_id(doc_id, f"{context}\n{text}" if context else text),
         doc_id=doc_id,
         text=text,
         doc_title=meta.title,
@@ -126,6 +134,7 @@ def structural_chunk(
                         article=art.label,
                         clause=f"Khoản {clause_no}" if clause_no else None,
                         chapter=art.chapter,
+                        context=" › ".join(p for p in (meta.title, *art.headings) if p),
                     )
                 )
     # no legal structure found - fall back rather than return nothing
@@ -149,6 +158,7 @@ class _Article:
     label: str                      # "Điều 35"
     title: str                      # "Quyền đơn phương chấm dứt ..."
     chapter: str | None             # "Chương III"
+    headings: tuple[str, ...] = ()  # ("Chương III. Hợp đồng lao động", "Mục 1. ...")
     lines: list[str] = field(default_factory=list)
 
     @property
@@ -161,18 +171,41 @@ def _parse_articles(text: str) -> list[_Article]:
     them instead of leaking into its last clause."""
     articles: list[_Article] = []
     chapter: str | None = None
+    # [chapter heading, section heading]; a heading whose title is on the
+    # next line waits for it there
+    headings: list[str] = []
+    titled = True
     current: _Article | None = None
     for line in text.splitlines():
         if m := CHAPTER_RE.match(line):
             chapter, current = f"Chương {m.group(1)}", None
-        elif SECTION_RE.match(line):
+            headings, titled = [_heading(chapter, m.group(2))], bool(m.group(2).strip())
+        elif m := SECTION_RE.match(line):
             current = None
+            headings = [*headings[:1], _heading(f"Mục {m.group(1)}", m.group(2))]
+            titled = bool(m.group(2).strip())
         elif m := ARTICLE_RE.match(line):
-            current = _Article(m.group(1), m.group(2).strip(), chapter)
+            current = _Article(m.group(1), m.group(2).strip(), chapter, tuple(headings))
             articles.append(current)
+            titled = True
+        elif not titled and line.strip():
+            headings[-1] = _heading(headings[-1], line)
+            titled = True
         elif current is not None:
             current.lines.append(line)
     return articles
+
+
+def _heading(label: str, title: str) -> str:
+    """ "Chương VI" + "BẢO HIỂM XÃ HỘI TỰ NGUYỆN" -> "Chương VI. Bảo hiểm xã hội
+    tự nguyện". The gazette sets titles in capitals; read in a sentence, they
+    shout."""
+    title = title.strip()
+    if title.isupper():
+        title = title.capitalize()
+        for name in PROPER_NOUNS:
+            title = re.sub(rf"\b{name}\b", name, title, flags=re.IGNORECASE)
+    return f"{label}. {title}" if title else label
 
 
 def _split_clauses(body: str) -> list[tuple[str | None, str]]:

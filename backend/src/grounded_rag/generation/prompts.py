@@ -46,8 +46,9 @@ def build_condense_prompt(history: Sequence[Turn], question: str) -> str:
 def build_user_prompt(question: str, sources: list[RetrievedChunk]) -> str:
     # The label is the only thing in the header. "[C1] Điều 105, Khoản 1" was
     # copied by small models as "[Điều 105][C1]", an answer with no sentence
-    # in it; the chunk text already opens with its article heading.
-    documents = "\n\n".join(f"[{s.label}]\n{s.chunk.text}" for s in sources)
+    # in it; the chunk text already opens with its article heading, and its
+    # context line names the law and chapter above it.
+    documents = "\n\n".join(f"[{s.label}]\n{s.chunk.search_text}" for s in sources)
     # Restated right before the answer slot: qwen2.5:3b followed the system
     # prompt's citation rule in 1 of 4 answers, and in 3 of 4 with this line.
     return (

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { sendFeedback } from "../api";
-import { REFUSAL_WHY } from "../format";
+import { REFUSAL_WHY, answeredBy } from "../format";
 import type { ChatMessage, Rating } from "../types";
 import { CitedText } from "./Citation";
 
@@ -16,6 +16,13 @@ export function Message({ message, activeLabel, onCite }: Props) {
   }
   if (message.phase === "searching") {
     return <div className="msg msg-answer is-pending">Đang tìm điều luật liên quan…</div>;
+  }
+  if (message.phase === "rechecking") {
+    return (
+      <div className="msg msg-answer is-pending">
+        Câu trả lời chưa dẫn được căn cứ, đang hỏi lại mô hình mạnh hơn…
+      </div>
+    );
   }
 
   const refused = message.status && message.status !== "answered";
@@ -35,6 +42,9 @@ export function Message({ message, activeLabel, onCite }: Props) {
       {message.interrupted && <p className="interrupted">{message.interrupted}</p>}
       {!message.phase && !message.interrupted && message.status === "answered" && (
         <Feedback messageId={message.id} initial={message.feedback ?? null} />
+      )}
+      {!message.phase && answeredBy(message) && (
+        <p className="answered-by">{answeredBy(message)}</p>
       )}
     </article>
   );

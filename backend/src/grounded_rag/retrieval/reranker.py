@@ -29,6 +29,8 @@ class LexicalReranker:
         q = set(tokenize(query))
         if not q:
             return []
+        # the clause alone: a chapter title gives every clause under it the
+        # same words, which a share of overlapping words cannot tell apart
         scored = [(c, len(q & set(tokenize(c.text))) / len(q)) for c, _ in candidates]
         scored.sort(key=lambda x: x[1], reverse=True)
         return scored[:top_n]
@@ -70,7 +72,7 @@ class BGEReranker:
                 batch = chunks[i : i + self.batch_size]
                 enc = tokenizer(
                     [query] * len(batch),
-                    [c.text for c in batch],
+                    [c.search_text for c in batch],
                     padding=True,
                     truncation="only_second",
                     max_length=self.max_length,

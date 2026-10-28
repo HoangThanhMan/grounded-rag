@@ -30,12 +30,13 @@ describe("applyEvent", () => {
         data: {
           message_id: "m1", answer: "Không quá 200 giờ [C1].", status: "answered",
           abstain_reason: null, citations: ["C1"], latency_ms: 10,
+          model: "gemini-3.5-flash", escalated: true, fallback: false,
         },
       },
     ]);
     expect(ms[1]).toMatchObject({
       id: "m1", content: "Không quá 200 giờ [C1].", status: "answered", phase: undefined,
-      sources: [source],
+      sources: [source], model: "gemini-3.5-flash", escalated: true, fallback: false,
     });
   });
 
@@ -49,6 +50,20 @@ describe("applyEvent", () => {
       phase: undefined,
       interrupted: "Mô hình ngôn ngữ đang không phản hồi. Thử lại sau ít phút.",
     });
+  });
+
+  it("drops the failed draft when a stronger model starts over", () => {
+    const ms = run([
+      { event: "token", data: { text: "Không quá 200 giờ." } },
+      { event: "retry", data: { reason: "no_citation" } },
+    ]);
+    expect(ms[1]).toMatchObject({ content: "", phase: "rechecking" });
+    const after = run([
+      { event: "token", data: { text: "Không quá 200 giờ." } },
+      { event: "retry", data: { reason: "no_citation" } },
+      { event: "token", data: { text: "Không quá 200 giờ [C1]." } },
+    ]);
+    expect(after[1]).toMatchObject({ content: "Không quá 200 giờ [C1].", phase: "writing" });
   });
 
   it("leaves the user's question untouched", () => {
@@ -72,7 +87,7 @@ describe("finishStream", () => {
     state = applyEvent(state, {
       event: "done",
       data: { message_id: "m1", answer: "A [C1].", status: "answered", abstain_reason: null,
-              citations: ["C1"], latency_ms: 1 },
+              citations: ["C1"], latency_ms: 1, model: "m", escalated: false, fallback: false },
     });
     expect(finishStream(state)).toEqual(state);
   });

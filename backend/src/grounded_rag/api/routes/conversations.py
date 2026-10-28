@@ -58,7 +58,9 @@ async def get_conversation(conversation_id: str, session: Session, owner: Owner)
             MessageOut(
                 id=m.id, role=m.role, content=m.content, status=m.status,
                 abstain_reason=m.abstain_reason, sources=m.sources, citations=m.citations,
-                feedback=m.feedback.rating if m.feedback else None, created_at=m.created_at,
+                feedback=m.feedback.rating if m.feedback else None,
+                model=m.model, escalated=m.escalated, fallback=m.fallback,
+                created_at=m.created_at,
             )
             for m in conv.messages
         ],

@@ -26,7 +26,7 @@ from grounded_rag.documents import (
     register_corpus,
     requeue_interrupted,
 )
-from grounded_rag.generation.llm_client import get_llm_client
+from grounded_rag.generation.llm_client import get_escalation_client, get_llm_client
 from grounded_rag.observability import metrics
 from grounded_rag.retrieval.search import warm_up
 
@@ -60,9 +60,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     indexing = asyncio.create_task(_catch_up(pending))
     yield
     indexing.cancel()
-    # the provider client keeps a connection pool open for the life of the app
-    if close := getattr(get_llm_client(), "aclose", None):
-        await close()
+    # the provider clients keep a connection pool open for the life of the app
+    for llm in (get_llm_client(), get_escalation_client()):
+        if close := getattr(llm, "aclose", None):
+            await close()
 
 
 async def _catch_up(pending: list[str]) -> None:

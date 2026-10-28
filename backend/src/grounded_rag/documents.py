@@ -122,7 +122,7 @@ async def _index(path: Path, doc_id: str, meta: DocMeta) -> int:
     # First: whatever happens next, the previous version is not answered from.
     await run_model(store.delete_document, doc_id)
     chunks = await run_model(chunk_file, path, doc_id, meta)
-    avg_len = sum(len(tokenize(c.text)) for c in chunks) / len(chunks)
+    avg_len = sum(len(tokenize(c.search_text)) for c in chunks) / len(chunks)
     for i in range(0, len(chunks), INDEX_BATCH):
         await run_model(store.upsert, chunks[i : i + INDEX_BATCH], avg_len)
     return len(chunks)
@@ -133,7 +133,8 @@ async def mark_missing() -> list[str]:
     back to `processing` and returned, for `index_document` to redo from the
     file it was indexed from. The mock index lives in the process and is
     empty after a restart; a first start can be interrupted mid-corpus; a
-    Qdrant volume can be wiped. Needs no model, so it runs before any loads."""
+    Qdrant volume can be wiped; an upgrade can change how chunks are built
+    (store.INDEX_VERSION). Needs no model, so it runs before any loads."""
     store = get_store()
     async with SessionLocal() as session:
         missing = []
@@ -146,10 +147,10 @@ async def mark_missing() -> list[str]:
                 missing.append(doc.id)
         # A deleted document's chunks can come back - `make ingest` does not
         # read the library - and its tombstone hides it from every other route.
+        # Deleted whatever version indexed them: has_document sees only the current one.
         tombstones = select(Document.id).where(Document.status == "deleted")
         for doc_id in (await session.scalars(tombstones)).all():
-            if await asyncio.to_thread(store.has_document, doc_id):
-                await run_model(store.delete_document, doc_id)
+            await run_model(store.delete_document, doc_id)
         await session.commit()
     return missing
 

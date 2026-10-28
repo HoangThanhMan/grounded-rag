@@ -47,6 +47,20 @@ def test_only_the_label_sits_inside_brackets():
     assert re.findall(r"\[[^\]]*\]", documents) == ["[C1]"]
 
 
+def test_the_model_reads_which_law_and_chapter_a_source_is_from():
+    from grounded_rag.generation.prompts import build_user_prompt
+    from grounded_rag.types import Chunk, RetrievedChunk
+
+    src = RetrievedChunk(
+        chunk=Chunk(chunk_id="x", doc_id="d", text="Điều 95. Trợ cấp thai sản\n1. 2.000.000 đồng.",
+                    context="Luật Bảo hiểm xã hội 2024 › Chương VI. Bảo hiểm xã hội tự nguyện"),
+        score=0.9, label="C1",
+    )
+    prompt = build_user_prompt("Trợ cấp thai sản bao nhiêu?", [src])
+    assert ("[C1]\nLuật Bảo hiểm xã hội 2024 › Chương VI. Bảo hiểm xã hội tự nguyện\n"
+            "Điều 95.") in prompt
+
+
 def test_finalize_drops_unknown_labels_and_lists_the_valid_ones():
     text, labels = finalize("Ít nhất 45 ngày [C2][C9]. Trừ trường hợp khác [C1].", ["C1", "C2"])
     assert text == "Ít nhất 45 ngày [C2]. Trừ trường hợp khác [C1]."

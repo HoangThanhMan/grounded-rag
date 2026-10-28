@@ -28,6 +28,10 @@ from grounded_rag.types import Chunk
 
 DENSE = "dense"
 SPARSE = "sparse"
+# Bumped when what a point is built from changes. Version 2 embeds each clause
+# under its law, chapter and section; a document indexed by an older version
+# counts as missing, so startup indexes it again.
+INDEX_VERSION = 2
 
 Hits = list[tuple[Chunk, float]]
 
@@ -64,7 +68,7 @@ class InMemoryStore:
         self.reset()
         self._chunks, self._vectors = chunks, vectors
         for c in chunks:
-            self._bm25.add(tokenize(c.text))
+            self._bm25.add(tokenize(c.search_text))
 
     def has_document(self, doc_id: str) -> bool:
         return any(c.doc_id == doc_id for c in self._chunks)
@@ -77,9 +81,9 @@ class InMemoryStore:
         fresh = list({c.chunk_id: c for c in chunks if c.chunk_id not in known}.values())
         if fresh:
             self._chunks.extend(fresh)
-            self._vectors.extend(self.embedder.encode([c.text for c in fresh]))
+            self._vectors.extend(self.embedder.encode([c.search_text for c in fresh]))
             for c in fresh:
-                self._bm25.add(tokenize(c.text))
+                self._bm25.add(tokenize(c.search_text))
         return len(fresh)
 
     def dense_search(self, query: str, top_k: int, as_of: date | None = None) -> Hits:
@@ -184,8 +188,11 @@ class QdrantStore:
         if not self.client.collection_exists(self.collection):
             return False
         doc = models.FieldCondition(key="doc_id", match=models.MatchValue(value=doc_id))
+        current = models.FieldCondition(
+            key="index_version", match=models.MatchValue(value=INDEX_VERSION)
+        )
         found, _ = self.client.scroll(
-            self.collection, scroll_filter=models.Filter(must=[doc]), limit=1
+            self.collection, scroll_filter=models.Filter(must=[doc, current]), limit=1
         )
         return bool(found)
 
@@ -214,13 +221,13 @@ class QdrantStore:
 
         # BM25 length normalisation is relative to the whole batch, not the new part.
         if avg_len is None:
-            avg_len = sum(len(tokenize(c.text)) for c in unique.values()) / len(unique)
+            avg_len = sum(len(tokenize(c.search_text)) for c in unique.values()) / len(unique)
         now = datetime.now(UTC).isoformat()
         for batch in _batched(fresh, 64):
-            dense = self.embedder.encode([c.text for c in batch])
+            dense = self.embedder.encode([c.search_text for c in batch])
             points = []
             for chunk, vector in zip(batch, dense, strict=True):
-                indices, values = sparse_doc_vector(tokenize(chunk.text), avg_len)
+                indices, values = sparse_doc_vector(tokenize(chunk.search_text), avg_len)
                 points.append(
                     models.PointStruct(
                         id=ids[chunk.chunk_id],
@@ -228,7 +235,11 @@ class QdrantStore:
                             DENSE: vector,
                             SPARSE: models.SparseVector(indices=indices, values=values),
                         },
-                        payload={**chunk.model_dump(mode="json"), "ingested_at": now},
+                        payload={
+                            **chunk.model_dump(mode="json"),
+                            "index_version": INDEX_VERSION,
+                            "ingested_at": now,
+                        },
                     )
                 )
             self.client.upsert(self.collection, points=points)

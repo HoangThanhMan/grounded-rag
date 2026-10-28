@@ -1,4 +1,4 @@
-import type { AbstainReason, Source } from "./types";
+import type { AbstainReason, ChatMessage, Source } from "./types";
 
 export function viDate(iso: string | null | undefined): string {
   if (!iso) return "";
@@ -24,3 +24,12 @@ export const REFUSAL_WHY: Record<AbstainReason, string> = {
   no_citation: "Câu trả lời không dẫn được điều luật nào làm căn cứ, nên không được hiển thị.",
   truncated: "Câu trả lời dài quá giới hạn và bị cắt giữa chừng, nên không được hiển thị. Thử hỏi hẹp hơn.",
 };
+
+/** The line under an answer: which model wrote it, and why not the first one.
+ * Null when no model was asked - a question refused before the LLM. */
+export function answeredBy(m: Pick<ChatMessage, "model" | "escalated" | "fallback">): string | null {
+  if (!m.model) return null;
+  if (m.escalated) return `${m.model} · đã hỏi lại mô hình mạnh hơn (câu trả lời đầu không có căn cứ)`;
+  if (m.fallback) return `${m.model} · mô hình dự phòng (mô hình chính không phản hồi)`;
+  return m.model;
+}

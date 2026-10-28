@@ -11,6 +11,7 @@ from grounded_rag.ingest.chunkers import structural_chunk
 from grounded_rag.ingest.loaders import load_file
 from grounded_rag.retrieval.embedder import HashEmbedder
 from grounded_rag.retrieval.store import QdrantStore
+from grounded_rag.types import DocMeta
 
 qdrant_client = pytest.importorskip("qdrant_client")
 
@@ -40,7 +41,7 @@ def test_sparse_search_finds_the_clause_by_its_terms(store, chunks):
 
 def test_payload_round_trips_to_the_same_chunk(store, chunks):
     store.upsert(chunks)
-    hit, score = store.dense_search(chunks[0].text, 1)[0]  # same text -> same hash vector
+    hit, score = store.dense_search(chunks[0].search_text, 1)[0]  # same text -> same hash vector
     assert hit == chunks[0]
     assert score == pytest.approx(1.0)
 
@@ -94,7 +95,7 @@ def test_upsert_in_batches_scores_like_one_upsert_given_the_corpus_length(chunks
     batched = QdrantStore("b", client=qdrant_client.QdrantClient(location=":memory:"),
                           embedder=HashEmbedder())
     whole.upsert(chunks)
-    avg = sum(len(tokenize(c.text)) for c in chunks) / len(chunks)
+    avg = sum(len(tokenize(c.search_text)) for c in chunks) / len(chunks)
     batched.upsert(chunks[:1], avg_len=avg)
     batched.upsert(chunks[1:], avg_len=avg)
     q = "nghỉ hằng năm hưởng nguyên lương"
@@ -110,3 +111,26 @@ def test_an_index_built_by_another_embedding_model_is_a_clear_error(chunks):
     QdrantStore("dims", client=client, embedder=HashEmbedder()).upsert(chunks[:1])
     with pytest.raises(RuntimeError, match="1024.*384|384.*1024"):
         QdrantStore("dims", client=client, embedder=Small()).dense_search("x", 1)
+
+
+def test_a_clause_is_found_by_words_only_its_chapter_holds(store):
+    meta = DocMeta(title="Luật Bảo hiểm xã hội 2024")
+    text = ("Chương VI\nBẢO HIỂM XÃ HỘI TỰ NGUYỆN\n"
+            "Điều 95. Trợ cấp thai sản\n1. Mức 2.000.000 đồng.\n")
+    store.upsert(structural_chunk(text, "bhxh", meta=meta))
+    assert store.sparse_search("tự nguyện", 1)
+
+
+def test_a_document_indexed_by_an_older_version_counts_as_missing(store, chunks):
+    """Its chunks lack what retrieval now reads, so startup has to redo them."""
+    from grounded_rag.retrieval import store as store_module
+
+    store.upsert(chunks[:1])
+    assert store.has_document("bo_luat_lao_dong_2019")
+    old = store.client.scroll("test", limit=1)[0][0]
+    store.client.overwrite_payload(
+        "test", payload={k: v for k, v in old.payload.items() if k != "index_version"},
+        points=[old.id],
+    )
+    assert not store.has_document("bo_luat_lao_dong_2019")
+    assert store_module.INDEX_VERSION >= 2

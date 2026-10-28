@@ -26,8 +26,12 @@ export interface ChatMessage {
   sources?: Source[] | null;
   citations?: string[] | null;
   feedback?: Rating | null;
+  // which model wrote an answer, and why not the first one
+  model?: string | null;
+  escalated?: boolean | null;
+  fallback?: boolean | null;
   // only while an answer is on its way
-  phase?: "searching" | "writing";
+  phase?: "searching" | "writing" | "rechecking";
   interrupted?: string;
 }
 
@@ -64,11 +68,15 @@ export interface DoneData {
   abstain_reason: AbstainReason | null;
   citations: string[];
   latency_ms: number;
+  model: string | null;
+  escalated: boolean;
+  fallback: boolean;
 }
 
 export type ChatEvent =
   | { event: "meta"; data: { conversation_id: string; title: string } }
   | { event: "sources"; data: { standalone_question: string; sources: Source[] } }
   | { event: "token"; data: { text: string } }
+  | { event: "retry"; data: { reason: string | null } }
   | { event: "done"; data: DoneData }
   | { event: "error"; data: { code: string; message: string } };

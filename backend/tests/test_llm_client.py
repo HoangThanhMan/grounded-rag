@@ -295,3 +295,117 @@ class _Broken(httpx.AsyncByteStream):
     async def __aiter__(self):
         yield self.first
         raise httpx.ReadError("connection reset")
+
+
+def _model(name, handler, retries=0) -> OpenAICompatClient:
+    return OpenAICompatClient(f"http://{name}/v1", "", name,
+                              transport=httpx.MockTransport(handler), retries=retries)
+
+
+def _down(status=503):
+    return lambda request: httpx.Response(status, json={"error": {"message": "busy"}})
+
+
+def _streaming(*deltas, finish="stop"):
+    lines = [f"data: {json.dumps({'choices': [{'delta': {'content': d}}]})}" for d in deltas]
+    lines.append(f"data: {json.dumps({'choices': [{'delta': {}, 'finish_reason': finish}]})}")
+    lines.append("data: [DONE]")
+    return lambda request: httpx.Response(200, text="\n\n".join(lines) + "\n\n")
+
+
+@pytest.mark.asyncio
+async def test_failover_asks_the_next_model_when_one_is_unavailable():
+    from grounded_rag.generation.llm_client import FailoverClient
+
+    chain = FailoverClient([_model("cheap", _down(429)),
+                            _model("spare", lambda r: httpx.Response(200, json=_reply()))])
+    res = await chain.complete("sys", "user")
+    assert res.text == "Phải báo trước 45 ngày [C1]."
+    assert res.model == "spare"
+
+
+@pytest.mark.asyncio
+async def test_failover_streams_from_the_next_model_before_any_token():
+    from grounded_rag.generation.llm_client import FailoverClient
+
+    spare = _model("spare", _streaming("45 ", "ngày [C1]", finish="length"))
+    stream = FailoverClient([_model("cheap", _down(400)), spare]).stream("sys", "user")
+    assert [t async for t in stream] == ["45 ", "ngày [C1]"]
+    assert (stream.model, stream.finish_reason) == ("spare", "length")
+
+
+@pytest.mark.asyncio
+async def test_failover_never_switches_model_once_tokens_have_been_sent():
+    """Half an answer from one model and the rest from another is no answer."""
+    from grounded_rag.generation.llm_client import FailoverClient
+
+    def cut(request):  # a token, then the connection drops
+        chunk = json.dumps({"choices": [{"delta": {"content": "Phải "}}]})
+        return httpx.Response(200, text=f"data: {chunk}\n\n")
+
+    asked = []
+
+    def spare(request):
+        asked.append(1)
+        return _streaming("x")(request)
+
+    stream = FailoverClient([_model("cheap", cut), _model("spare", spare)]).stream("s", "u")
+    with pytest.raises(LLMUnavailable):
+        _ = [t async for t in stream]
+    assert asked == []
+
+
+@pytest.mark.asyncio
+async def test_failover_is_unavailable_when_every_model_is():
+    from grounded_rag.generation.llm_client import FailoverClient
+
+    chain = FailoverClient([_model("cheap", _down(503)), _model("spare", _down(429))])
+    with pytest.raises(LLMUnavailable, match="spare"):
+        await chain.complete("sys", "user")
+
+
+def test_fallbacks_and_escalation_are_read_from_json_in_the_environment(monkeypatch):
+    monkeypatch.setenv("LLM_FALLBACKS", json.dumps([
+        {"base_url": "https://g/v1", "model": "spare", "api_key": "k", "reasoning_effort": "low"},
+    ]))
+    monkeypatch.setenv("LLM_ESCALATION", json.dumps({"base_url": "https://g/v1", "model": "big"}))
+    s = Settings(_env_file=None)
+    assert (s.llm_fallbacks[0].model, s.llm_fallbacks[0].reasoning_effort) == ("spare", "low")
+    assert s.llm_escalation.model == "big"
+
+
+def test_only_the_last_model_of_a_chain_waits_out_a_rate_limit(monkeypatch):
+    """With another model to go to, retrying a busy one is the slower path."""
+    from grounded_rag.config import LLMEndpoint
+    from grounded_rag.generation.llm_client import FailoverClient, get_llm_client
+
+    monkeypatch.setattr(llm_client.settings, "llm_provider", "openai")
+    monkeypatch.setattr(llm_client.settings, "llm_model", "cheap")
+    monkeypatch.setattr(llm_client.settings, "llm_max_retries", 2)
+    monkeypatch.setattr(llm_client.settings, "llm_fallbacks", [
+        LLMEndpoint(base_url="https://g/v1", model="spare", reasoning_effort="low"),
+    ])
+    get_llm_client.cache_clear()
+    try:
+        chain = get_llm_client()
+        assert isinstance(chain, FailoverClient)
+        assert [(c.model, c.retries) for c in chain.clients] == [("cheap", 0), ("spare", 2)]
+        assert chain.clients[1].reasoning_effort == "low"
+    finally:
+        get_llm_client.cache_clear()
+
+
+def test_there_is_no_stronger_model_unless_one_is_configured(monkeypatch):
+    from grounded_rag.config import LLMEndpoint
+    from grounded_rag.generation.llm_client import get_escalation_client
+
+    get_escalation_client.cache_clear()
+    assert get_escalation_client() is None
+    monkeypatch.setattr(llm_client.settings, "llm_provider", "openai")
+    monkeypatch.setattr(llm_client.settings, "llm_escalation",
+                        LLMEndpoint(base_url="https://g/v1", model="big"))
+    get_escalation_client.cache_clear()
+    try:
+        assert get_escalation_client().model == "big"
+    finally:
+        get_escalation_client.cache_clear()

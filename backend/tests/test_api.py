@@ -278,3 +278,33 @@ def test_readyz_does_not_show_internals_publicly(monkeypatch):
     assert r.status_code == 503
     assert r.json()["db"] == "unavailable"
     assert "password" not in r.text
+
+
+def test_an_escalated_answer_restarts_the_draft_and_records_the_model(monkeypatch):
+    import asyncio
+
+    from grounded_rag.db.models import Message
+    from grounded_rag.db.session import SessionLocal
+
+    cheap, strong = Scripted(tokens=("Tám giờ.",)), Scripted(tokens=("Tám giờ ", "[C1]."))
+    cheap.model, strong.model = "cheap", "strong"
+    monkeypatch.setattr(service, "get_llm_client", lambda: cheap)
+    monkeypatch.setattr(service, "get_escalation_client", lambda: strong)
+    events = _chat(question=HOURS)
+    kinds = [k for k, _ in events]
+    assert kinds.index("token") < kinds.index("retry") < len(kinds) - 1
+    assert dict(events)["retry"] == {"reason": "no_citation"}
+    done = events[-1][1]
+    assert (done["status"], done["answer"]) == ("answered", "Tám giờ [C1].")
+    # what the reader is told under the answer, then and after a reload
+    assert (done["model"], done["escalated"], done["fallback"]) == ("strong", True, False)
+    conv = client.get(f"/api/conversations/{events[0][1]['conversation_id']}").json()
+    shown = conv["messages"][-1]
+    assert (shown["model"], shown["escalated"], shown["fallback"]) == ("strong", True, False)
+
+    async def saved() -> Message:
+        async with SessionLocal() as s:
+            return await s.get(Message, done["message_id"])
+
+    msg = asyncio.run(saved())
+    assert (msg.model, msg.escalated, msg.fallback) == ("strong", True, False)

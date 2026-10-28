@@ -26,6 +26,9 @@ class Chunk(BaseModel):
     article: str | None = None      # "Điều 35"
     clause: str | None = None       # "Khoản 1"
     chapter: str | None = None      # "Chương III"
+    # Where the clause sits: "Luật Bảo hiểm xã hội 2024 › Chương VI. Bảo hiểm
+    # xã hội tự nguyện › Mục 1. Trợ cấp thai sản". Structural chunks only.
+    context: str | None = None
     doc_title: str | None = None
     effective_date: date | None = None
     expiry_date: date | None = None
@@ -43,6 +46,13 @@ class Chunk(BaseModel):
         if self.clause:
             return f"{self.doc_id}:{self.article}:{self.clause.removeprefix('Khoản ').strip()}"
         return f"{self.doc_id}:{self.article}"
+
+    @property
+    def search_text(self) -> str:
+        """What the retriever, the reranker and the model read: the clause
+        under its law, chapter and section. A clause of the voluntary scheme
+        reads, alone, like every worker's entitlement."""
+        return f"{self.context}\n{self.text}" if self.context else self.text
 
     def in_force(self, on: date) -> bool:
         """A regulation that has not started or has already expired must not be
@@ -94,6 +104,9 @@ class Step(BaseModel):
 class AnswerMeta(BaseModel):
     latency_ms: int = 0
     abstain_reason: AbstainReason | None = None
+    model: str = ""                 # the model whose answer this is; "" = none was asked
+    escalated: bool = False         # the first model's answer failed the checks
+    fallback: bool = False          # the first model was unavailable; a stand-in answered
     steps: list[Step] = Field(default_factory=list)
 
 

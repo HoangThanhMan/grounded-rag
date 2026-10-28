@@ -29,6 +29,11 @@ if Histogram is not None:
         "Answers by status and abstain reason",
         ["status", "reason"],
     )
+    ESCALATIONS = Counter(
+        "grounded_rag_escalations_total",
+        "Answers a stronger model was asked to redo, by how the second try ended",
+        ["status"],
+    )
 
 
 def enabled() -> bool:
@@ -45,3 +50,5 @@ def observe_answer(answer: Answer) -> None:
         return
     reason = str(answer.meta.abstain_reason) if answer.meta.abstain_reason else ""
     ANSWERS.labels(status=str(answer.status), reason=reason).inc()
+    if answer.meta.escalated:
+        ESCALATIONS.labels(status=str(answer.status)).inc()

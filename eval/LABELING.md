@@ -81,6 +81,11 @@ cặp là **cùng một câu hỏi** hỏi vào hai ngày, với hai đáp án k
 của mỗi vế phải có hiệu lực vào ngày của vế đó. `eval.run` hỏi câu temporal
 đúng vào `as_of` của nó; mọi câu khác dùng `--as-of` của lượt chạy.
 
+Câu split `hard` (xem `eval/README.md`) không bốc mẫu, hỏi toàn bộ. Câu
+`scheme_trap` có thêm `trap_chunks`: các khoản của chế độ khác (thường là BHXH
+tự nguyện) đọc giống đáp án nhưng không áp dụng cho người được hỏi. Khoản bẫy
+không được trùng 30 từ liên tiếp với khoản gold, vì eval chấm theo văn bản.
+
 `gold_chunks` ghi theo `ref`: `<doc_id>:Điều <số>:<số khoản>`, hoặc
 `<doc_id>:Điều <số>` nếu điều đó không chia khoản. `doc_id` là tên file không
 đuôi. Eval tự tra ra nội dung khoản, nên chunk `recursive` cũng được chấm công
