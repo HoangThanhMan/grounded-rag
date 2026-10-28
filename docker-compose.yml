@@ -2,16 +2,19 @@
 #
 # Without a .env the API runs on the mock provider: every page works, the
 # answers are canned. Put an LLM key in .env (see .env.example) for real ones.
+# Compose also reads POSTGRES_PASSWORD from .env; set it before a real deploy.
 
 services:
   web:
     build: ./frontend
+    restart: unless-stopped
     ports: ["8080:80"]
     depends_on:
       api: {condition: service_healthy}
 
   api:
     build: ./backend
+    restart: unless-stopped
     # this machine only: curl and the docs at /docs. From outside, the API is
     # reached through nginx, which is why X-Forwarded-For can be trusted.
     ports: ["127.0.0.1:8000:8000"]
@@ -19,22 +22,25 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgresql+asyncpg://grounded_rag:grounded_rag@db:5432/grounded_rag
+      DATABASE_URL: postgresql+asyncpg://grounded_rag:${POSTGRES_PASSWORD:-grounded_rag}@db:5432/grounded_rag
       QDRANT_URL: http://qdrant:6333
       AUTO_SEED_DIR: data/corpus
       TRUST_PROXY: "true"
     volumes:
       - ./data:/app/data       # the corpus, and uploads in data/uploads
       - ./.cache:/app/.cache   # HF model cache, survives rebuilds
+    # an LLM served on this machine (Ollama) is http://host.docker.internal:11434/v1
+    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
       db: {condition: service_healthy}
       qdrant: {condition: service_healthy}
 
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: grounded_rag
-      POSTGRES_PASSWORD: grounded_rag
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-grounded_rag}
       POSTGRES_DB: grounded_rag
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
@@ -44,6 +50,7 @@ services:
 
   qdrant:
     image: qdrant/qdrant:v1.19.1
+    restart: unless-stopped
     ports: ["127.0.0.1:6333:6333"]   # for `make ingest` from this machine; no auth
     volumes: ["./qdrant_storage:/qdrant/storage"]
     healthcheck:

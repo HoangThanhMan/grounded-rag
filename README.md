@@ -8,8 +8,9 @@
 
 ## What it does
 
-- **Cites the clause.** Each sentence of an answer ends in a citation; click it
-  and the clause opens beside the answer with its law and effective date.
+- **Cites the clause.** An answer is shown only if it cites a clause it was
+  given; click a citation and the clause opens beside the answer with its law
+  and effective date.
 - **Refuses instead of guessing.** If nothing in the library is relevant enough,
   or the model cannot tie its answer to a clause, the user sees "not found"
   rather than a plausible invention.
@@ -89,6 +90,11 @@ answers are canned echoes of the top clause. The first start indexes the three
 laws in `data/corpus/`; with real models that downloads bge-m3 and the reranker
 (~4.6 GB) and takes a few minutes on CPU. Set `ADMIN_API_KEY` in `.env` to
 upload or delete documents.
+
+Before putting it on a server: set `POSTGRES_PASSWORD` and `ADMIN_API_KEY` in
+`.env`, put TLS in front of port 8080, and give the machine ~6 GB of RAM for
+the two models. Every setting, with its default, is in
+[`.env.example`](.env.example).
 
 For development: `make dev-api` and `make dev-web` (Vite on :5173 with a proxy
 to the API), `make test`, `make lint`.

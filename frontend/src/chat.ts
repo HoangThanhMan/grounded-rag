@@ -59,3 +59,12 @@ export function interrupt(state: Pending, reason: string): Pending {
     ),
   };
 }
+
+/** The stream closed. An answer still searching or writing never got its
+ * `done` or `error` - a proxy dropped it - and must not spin forever. */
+export function finishStream(state: Pending): Pending {
+  const open = state.messages.some((m) => m.id === state.target && m.phase !== undefined);
+  return open
+    ? interrupt(state, "Kết nối bị ngắt trước khi câu trả lời hoàn tất. Hỏi lại để thử lần nữa.")
+    : state;
+}

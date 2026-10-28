@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEvent, type Pending } from "./chat";
+import { applyEvent, finishStream, type Pending } from "./chat";
 import type { ChatEvent, ChatMessage } from "./types";
 
 const start: ChatMessage[] = [
@@ -53,5 +53,27 @@ describe("applyEvent", () => {
 
   it("leaves the user's question untouched", () => {
     expect(run([{ event: "token", data: { text: "x" } }])[0]).toBe(start[0]);
+  });
+});
+
+describe("finishStream", () => {
+  it("marks an answer the stream never settled as interrupted", () => {
+    let state: Pending = { messages: start, target: "pending" };
+    state = applyEvent(state, { event: "token", data: { text: "Không quá " } });
+    const done = finishStream(state);
+    expect(done.messages[1]).toMatchObject({
+      phase: undefined,
+      interrupted: "Kết nối bị ngắt trước khi câu trả lời hoàn tất. Hỏi lại để thử lần nữa.",
+    });
+  });
+
+  it("leaves a finished answer alone", () => {
+    let state: Pending = { messages: start, target: "pending" };
+    state = applyEvent(state, {
+      event: "done",
+      data: { message_id: "m1", answer: "A [C1].", status: "answered", abstain_reason: null,
+              citations: ["C1"], latency_ms: 1 },
+    });
+    expect(finishStream(state)).toEqual(state);
   });
 });

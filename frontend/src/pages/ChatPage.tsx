@@ -5,9 +5,10 @@ import {
   deleteConversation,
   getConversation,
   listConversations,
+  listDocuments,
   streamChat,
 } from "../api";
-import { applyEvent, interrupt } from "../chat";
+import { applyEvent, finishStream, interrupt } from "../chat";
 import { Composer } from "../components/Composer";
 import { Message } from "../components/Message";
 import { Sidebar } from "../components/Sidebar";
@@ -41,6 +42,23 @@ export function ChatPage() {
   }, []);
 
   useEffect(refreshList, [refreshList]);
+
+  // Questions asked while laws are being indexed are answered from what is
+  // indexed so far; say so, and stop saying it once indexing is done.
+  const [indexing, setIndexing] = useState(false);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const check = () =>
+      listDocuments()
+        .then((docs) => {
+          const busy = docs.some((d) => d.status === "processing");
+          setIndexing(busy);
+          if (busy) timer = setTimeout(check, 5000);
+        })
+        .catch(() => {});
+    check();
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     setSelected(null);
@@ -96,11 +114,10 @@ export function ChatPage() {
     };
 
     try {
-      await streamChat(
-        { question, conversation_id: id, as_of: asOf === today() ? undefined : asOf },
-        onEvent,
-        controller.signal,
-      );
+      // always the date on screen: the server's clock may be in another day
+      await streamChat({ question, conversation_id: id, as_of: asOf }, onEvent, controller.signal);
+      const at = target;
+      setMessages((ms) => finishStream({ messages: ms, target: at }).messages);
     } catch (err) {
       if (controller.signal.aborted) return;
       const text =
@@ -151,6 +168,11 @@ export function ChatPage() {
           Hội thoại
         </button>
         <div className="thread">
+          {indexing && (
+            <p className="notice">
+              Thư viện đang lập chỉ mục văn bản. Câu trả lời có thể thiếu căn cứ cho tới khi xong.
+            </p>
+          )}
           {notice && <p className="notice">{notice}</p>}
           {messages.length === 0 && !id ? (
             <Welcome onAsk={send} />
