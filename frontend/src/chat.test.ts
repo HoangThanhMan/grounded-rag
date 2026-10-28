@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyEvent, finishStream, type Pending } from "./chat";
+import { applyEvent, askedOn, finishStream, followAnswer, type Pending } from "./chat";
 import type { ChatEvent, ChatMessage } from "./types";
 
 const start: ChatMessage[] = [
@@ -75,5 +75,21 @@ describe("finishStream", () => {
               citations: ["C1"], latency_ms: 1 },
     });
     expect(finishStream(state)).toEqual(state);
+  });
+});
+
+describe("followAnswer", () => {
+  it("keeps a citation opened during streaming open once the answer gets its id", () => {
+    const sel = { messageId: "pending", label: "C2" };
+    expect(followAnswer(sel, "pending", "m1")).toEqual({ messageId: "m1", label: "C2" });
+    expect(followAnswer(sel, "other", "m1")).toBe(sel);
+    expect(followAnswer(null, "pending", "m1")).toBeNull();
+  });
+});
+
+describe("askedOn", () => {
+  it("reads the law today unless the reader picked a day", () => {
+    expect(askedOn(null, () => "2026-10-29")).toBe("2026-10-29");
+    expect(askedOn("2025-01-01", () => "2026-10-29")).toBe("2025-01-01");
   });
 });

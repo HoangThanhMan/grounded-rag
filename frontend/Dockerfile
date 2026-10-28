@@ -6,6 +6,7 @@ COPY . .
 RUN npm run build
 
 FROM nginx:1.27-alpine
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# rendered to /etc/nginx/conf.d/default.conf by the image entrypoint (envsubst)
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 COPY security-headers.conf /etc/nginx/security-headers.conf
 COPY --from=build /web/dist /usr/share/nginx/html

@@ -19,12 +19,11 @@ COPY alembic.ini ./
 COPY alembic ./alembic
 
 # Not root. The code stays root-owned and read-only to the server; what it
-# writes - the model cache, uploads, the corpus volume - are bind mounts in
-# docker-compose.yml, so the uid defaults to the usual first user on a Linux
-# host, who owns them. Elsewhere: docker compose build --build-arg UID=$(id -u)
+# writes - the model cache and uploads - are named volumes in
+# docker-compose.yml, which start out owned like these directories.
 ARG UID=1000
 RUN useradd --uid "$UID" --no-create-home --shell /usr/sbin/nologin app \
-    && mkdir -p /app/.cache /app/data && chown app /app/.cache /app/data
+    && mkdir -p /app/.cache /app/data/uploads && chown -R app /app/.cache /app/data
 USER app
 
 EXPOSE 8000

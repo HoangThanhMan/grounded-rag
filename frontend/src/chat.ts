@@ -68,3 +68,20 @@ export function finishStream(state: Pending): Pending {
     ? interrupt(state, "Kết nối bị ngắt trước khi câu trả lời hoàn tất. Hỏi lại để thử lần nữa.")
     : state;
 }
+
+export interface Selection {
+  messageId: string;
+  label: string;
+}
+
+/** A citation clicked while the answer was still being written belongs to
+ * the placeholder id; follow the answer to the id the server gave it. */
+export function followAnswer(sel: Selection | null, from: string, to: string): Selection | null {
+  return sel && sel.messageId === from ? { ...sel, messageId: to } : sel;
+}
+
+/** The day the law is read on: the reader's pick, else today - worked out
+ * when the question is asked, so a tab left open overnight is not a day behind. */
+export function askedOn(picked: string | null, today: () => string): string {
+  return picked ?? today();
+}

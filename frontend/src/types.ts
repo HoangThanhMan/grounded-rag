@@ -1,7 +1,7 @@
 // The API's shapes, as backend/src/grounded_rag/api/schemas.py defines them.
 
 export type AnswerStatus = "answered" | "abstained" | "no_context";
-export type AbstainReason = "retrieval_floor" | "model" | "no_citation";
+export type AbstainReason = "retrieval_floor" | "model" | "no_citation" | "truncated";
 export type Rating = "up" | "down";
 
 export interface Source {

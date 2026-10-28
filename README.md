@@ -17,8 +17,9 @@
 - **Reads the law as of a date.** The 2014 and 2024 Social Insurance Laws are
   both in the library. Ask "as of 01/01/2025" and only clauses in force that day
   are searched.
-- **Is a whole app.** Streaming answers, follow-up questions, conversation
-  history, 👍/👎 feedback, and a document library where an admin uploads a law
+- **Is a whole app.** Streaming answers, follow-up questions, a private
+  conversation history per browser (an anonymous cookie, no sign-up),
+  👍/👎 feedback, and a document library where an admin uploads a law
   (`.md` or `.pdf`) and watches it being indexed.
 
 Corpus: Bộ luật Lao động 2019, Luật Bảo hiểm xã hội 2014 and 2024, from the
@@ -91,10 +92,17 @@ laws in `data/corpus/`; with real models that downloads bge-m3 and the reranker
 (~4.6 GB) and takes a few minutes on CPU. Set `ADMIN_API_KEY` in `.env` to
 upload or delete documents.
 
-Before putting it on a server: set `POSTGRES_PASSWORD` and `ADMIN_API_KEY` in
-`.env`, put TLS in front of port 8080, and give the machine ~6 GB of RAM for
-the two models. Every setting, with its default, is in
-[`.env.example`](.env.example).
+Before putting it on a server:
+
+- Set `POSTGRES_PASSWORD` and `ADMIN_API_KEY` in `.env` **before the first
+  `up`**. Postgres keeps the password it was created with, so changing it later
+  means changing it inside the database too.
+- Put TLS in front of port 8080, then set `COOKIE_SECURE=true`, and set
+  `REAL_IP_FROM` to the proxy's address so the rate limit sees real clients
+  (for a proxy on the same host, the Docker network: `172.16.0.0/12`).
+- Give the machine ~6 GB of RAM for the two models.
+
+Every setting, with its default, is in [`.env.example`](.env.example).
 
 For development: `make dev-api` and `make dev-web` (Vite on :5173 with a proxy
 to the API), `make test`, `make lint`.
@@ -109,7 +117,8 @@ to the API), `make test`, `make lint`.
 | PUT | `/api/messages/{id}/feedback` | `{"rating": "up" \| "down"}` |
 | GET | `/api/documents` | The library and each law's indexing status |
 | POST · DELETE | `/api/documents` · `/api/documents/{id}` | Admin (`X-API-Key`): upload a `.md`/`.pdf`, remove a law |
-| GET | `/healthz` · `/readyz` · `/metrics` | Alive · Qdrant and Postgres reachable · Prometheus |
+| GET | `/healthz` · `/readyz` | Alive · Qdrant and Postgres reachable |
+| GET | `/metrics` | Prometheus; on the API port (127.0.0.1:8000) only, not through nginx |
 
 ```bash
 curl -N localhost:8080/api/chat -H 'content-type: application/json' \

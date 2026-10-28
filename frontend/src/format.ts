@@ -22,4 +22,5 @@ export const REFUSAL_WHY: Record<AbstainReason, string> = {
   retrieval_floor: "Không có điều luật nào đủ liên quan tới câu hỏi trong các văn bản đang có hiệu lực.",
   model: "Các điều luật tìm được không trả lời câu hỏi này.",
   no_citation: "Câu trả lời không dẫn được điều luật nào làm căn cứ, nên không được hiển thị.",
+  truncated: "Câu trả lời dài quá giới hạn và bị cắt giữa chừng, nên không được hiển thị. Thử hỏi hẹp hơn.",
 };

@@ -8,7 +8,14 @@ import {
   listDocuments,
   streamChat,
 } from "../api";
-import { applyEvent, finishStream, interrupt } from "../chat";
+import {
+  applyEvent,
+  askedOn,
+  finishStream,
+  followAnswer,
+  interrupt,
+  type Selection,
+} from "../chat";
 import { Composer } from "../components/Composer";
 import { Message } from "../components/Message";
 import { Sidebar } from "../components/Sidebar";
@@ -28,8 +35,9 @@ export function ChatPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [busy, setBusy] = useState(false);
-  const [asOf, setAsOf] = useState(today);
-  const [selected, setSelected] = useState<{ messageId: string; label: string } | null>(null);
+  // null = today, whenever "today" is; a date only once the reader picks one
+  const [asOf, setAsOf] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Selection | null>(null);
   const [drawer, setDrawer] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   // a conversation this page just created: its messages are already on screen
@@ -109,13 +117,20 @@ export function ChatPage() {
         return;
       }
       const at = target;
-      if (e.event === "done") target = e.data.message_id;
+      if (e.event === "done") {
+        target = e.data.message_id;
+        setSelected((sel) => followAnswer(sel, at, target));
+      }
       setMessages((ms) => applyEvent({ messages: ms, target: at }, e).messages);
     };
 
     try {
       // always the date on screen: the server's clock may be in another day
-      await streamChat({ question, conversation_id: id, as_of: asOf }, onEvent, controller.signal);
+      await streamChat(
+        { question, conversation_id: id, as_of: askedOn(asOf, today) },
+        onEvent,
+        controller.signal,
+      );
       const at = target;
       setMessages((ms) => finishStream({ messages: ms, target: at }).messages);
     } catch (err) {
@@ -188,7 +203,7 @@ export function ChatPage() {
           )}
           <div ref={bottom} />
         </div>
-        <Composer busy={busy} asOf={asOf} onAsOf={setAsOf} onSend={send} />
+        <Composer busy={busy} asOf={asOf ?? today()} onAsOf={setAsOf} onSend={send} />
       </main>
 
       {selected && <div className="backdrop backdrop-sheet" onClick={() => setSelected(null)} />}
