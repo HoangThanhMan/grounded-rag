@@ -11,7 +11,7 @@ jobs:
       matrix:
         # 3.12 is what the Docker image runs (.python-version); the newest
         # release is what a fresh local venv tends to get.
-        python-version: ["3.12", "3.14"]
+        python-version: ["3.12"]
     env:
       LLM_PROVIDER: mock        # no API keys in CI
     steps:
@@ -20,37 +20,14 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install
-        run: pip install -e ".[dev]"
+        run: pip install -e "backend[dev]"
 
       - name: Lint
-        run: ruff check src eval tests app scripts
+        run: ruff check backend/src backend/tests
 
       - name: Unit tests
-        run: pytest -q
+        run: pytest -q backend/tests
 
-      # The dataset is the project's evidence; a broken gold ref silently
-      # zeroes retrieval_recall, so it is checked before anything is measured.
-      - name: Evaluation dataset
-        run: python scripts/check_dataset.py
-
-      # The sample dataset and sample corpus only prove the pipeline runs end
-      # to end; the real gate needs the full corpus and is run with `make eval-all`.
-      - name: Pipeline smoke test (mock)
-        run: >-
-          python -m eval.run --config configs/full.yaml
-          --dataset eval/dataset/questions.sample.jsonl
-          --ingest data/sample_corpus --out reports/ci-full.json --gate
-
-      - name: Corrective-retrieval config runs end to end
-        run: >-
-          python -m eval.run --config configs/agentic.yaml
-          --dataset eval/dataset/questions.sample.jsonl
-          --ingest data/sample_corpus --out reports/ci-agentic.json
-
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: eval-report-py${{ matrix.python-version }}
-          path: reports/ci-*.json

@@ -2,9 +2,16 @@
 weights, no network. Qdrant tests use the embedded ':memory:' mode.
 
 Set before anything imports grounded_rag.config, which reads the environment
-once at import time."""
+once at import time.
+
+Every process - the API, the CLI, the eval - runs from the repository root,
+where `data/` lives. The tests do too, wherever pytest was started from."""
 
 import os
+from pathlib import Path
 
 os.environ["LLM_PROVIDER"] = "mock"
 os.environ["QDRANT_URL"] = ":memory:"
+
+REPO = Path(__file__).resolve().parents[2]
+os.chdir(REPO)
