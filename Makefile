@@ -64,7 +64,7 @@ test:
 	$(PY) -m pytest -q backend/tests
 
 lint:
-	$(PY) -m ruff check backend/src backend/tests
+	$(PY) -m ruff check backend/src backend/tests backend/alembic
 
 fmt:
 	$(PY) -m ruff format backend/src backend/tests

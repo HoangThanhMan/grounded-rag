@@ -282,8 +282,14 @@ def _cosine(a: list[float], b: list[float]) -> float:
     return dot / (na * nb) if na and nb else 0.0
 
 
-@functools.cache
 def get_store(chunker: str = "structural") -> VectorStore:
+    return _store(chunker)
+
+
+@functools.cache
+def _store(chunker: str) -> VectorStore:
+    # cached on the chunker alone: get_store() and get_store("structural")
+    # must be the same index
     if settings.llm_provider == "mock":
         return InMemoryStore()
     return QdrantStore(f"{settings.qdrant_collection}_{chunker}")

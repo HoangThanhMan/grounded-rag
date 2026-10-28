@@ -78,3 +78,9 @@ def test_in_memory_store_deletes_a_document_too(chunks):
     mem.upsert(chunks)  # a re-indexed document comes back
     assert {c.doc_id for c, _ in mem.sparse_search("nghỉ hằng năm", 20)} == {
         "khac", "bo_luat_lao_dong_2019"}
+
+
+def test_the_default_store_is_the_structural_index():
+    from grounded_rag.retrieval.store import get_store
+
+    assert get_store() is get_store("structural")

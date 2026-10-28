@@ -10,11 +10,13 @@ def test_the_app_retrieves_with_the_legal_defaults():
 
 
 def test_generation_and_history_defaults():
-    s = Settings(_env_file=None)
-    assert (s.temperature, s.max_tokens, s.history_turns) == (0.0, 512, 3)
-    assert s.llm_base_url == "https://api.groq.com/openai/v1"
-    assert s.database_url == "sqlite+aiosqlite:///./data/app.db"
-    assert (s.max_upload_mb, s.rate_limit_per_minute) == (10, 20)
+    # the defaults themselves: conftest overrides several through the environment
+    default = {name: f.default for name, f in Settings.model_fields.items()}
+    assert (default["temperature"], default["max_tokens"], default["history_turns"]) == (
+        0.0, 512, 3)
+    assert default["llm_base_url"] == "https://api.groq.com/openai/v1"
+    assert default["database_url"] == "sqlite+aiosqlite:///./data/app.db"
+    assert (default["max_upload_mb"], default["rate_limit_per_minute"]) == (10, 20)
 
 
 def test_naive_retrieval_can_switch_the_floor_off():
