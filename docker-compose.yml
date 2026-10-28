@@ -1,4 +1,47 @@
+# docker compose up --build   ->   http://localhost:8080
+#
+# Without a .env the API runs on the mock provider: every page works, the
+# answers are canned. Put an LLM key in .env (see .env.example) for real ones.
+
 services:
+  web:
+    build: ./frontend
+    ports: ["8080:80"]
+    depends_on:
+      api: {condition: service_healthy}
+
+  api:
+    build: ./backend
+    # this machine only: curl and the docs at /docs. From outside, the API is
+    # reached through nginx, which is why X-Forwarded-For can be trusted.
+    ports: ["127.0.0.1:8000:8000"]
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+asyncpg://grounded_rag:grounded_rag@db:5432/grounded_rag
+      QDRANT_URL: http://qdrant:6333
+      AUTO_SEED_DIR: data/corpus
+      TRUST_PROXY: "true"
+    volumes:
+      - ./data:/app/data       # the corpus, and uploads in data/uploads
+      - ./.cache:/app/.cache   # HF model cache, survives rebuilds
+    depends_on:
+      db: {condition: service_healthy}
+      qdrant: {condition: service_healthy}
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: grounded_rag
+      POSTGRES_PASSWORD: grounded_rag
+      POSTGRES_DB: grounded_rag
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grounded_rag"]
+      interval: 5s
+      retries: 10
+
   qdrant:
     image: qdrant/qdrant:v1.19.1
     ports: ["6333:6333"]
@@ -8,74 +51,5 @@ services:
       interval: 10s
       retries: 5
 
-  api:
-    build: .
-    ports: ["8000:8000"]
-    env_file: [.env]
-    environment:
-      QDRANT_URL: http://qdrant:6333
-      VLLM_BASE_URL: http://vllm:8000/v1   # used when LLM_PROVIDER=vllm
-    volumes:
-      - ./data:/app/data
-      - ./.cache:/app/.cache          # HF model cache, survives rebuilds
-    depends_on:
-      qdrant: {condition: service_healthy}
-
-  # Optional. Comment out if you do not need tracing yet.
-  langfuse:
-    image: langfuse/langfuse:2
-    ports: ["3000:3000"]
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@langfuse-db:5432/postgres
-      NEXTAUTH_SECRET: dev-secret-change-me
-      SALT: dev-salt-change-me
-      NEXTAUTH_URL: http://localhost:3000
-    # healthy, not just started: on a fresh volume Postgres spends seconds in
-    # initdb, and langfuse exits if its migration cannot connect
-    depends_on:
-      langfuse-db: {condition: service_healthy}
-
-  langfuse-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_PASSWORD: postgres
-    volumes: ["./langfuse_pgdata:/var/lib/postgresql/data"]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      retries: 10
-
-  # Optional, CPU is fine:  make up-ollama
-  # An open model served locally, so a benchmark run costs no API quota. On a
-  # small machine mind the total: the pipeline already holds bge-m3, the
-  # reranker and the NLI model in memory before the generator is loaded.
-  ollama:
-    # pinned: the 2026-09-15 benchmark ran on 0.34.0, and `latest` would
-    # quietly change the runtime under the numbers in the README
-    image: ollama/ollama:0.34.0
-    profiles: ["ollama"]
-    ports: ["11434:11434"]
-    volumes: ["./.cache/ollama:/root/.ollama"]
-    environment:
-      OLLAMA_KEEP_ALIVE: "10m"
-      OLLAMA_MAX_LOADED_MODELS: "1"
-    mem_limit: 3g
-
-  # Optional, NVIDIA GPU only:  make up-gpu
-  # An open model behind the OpenAI protocol, so switching to it is
-  # LLM_PROVIDER=vllm + LLM_MODEL=Qwen/Qwen2.5-7B-Instruct-AWQ. AWQ weights are
-  # already 4-bit, so there is no quantising step to run here.
-  vllm:
-    image: vllm/vllm-openai:v0.29.0
-    profiles: ["gpu"]
-    command:
-      - --model=Qwen/Qwen2.5-7B-Instruct-AWQ
-      - --max-model-len=8192
-      - --gpu-memory-utilization=0.85
-    ports: ["8001:8000"]
-    ipc: host
-    volumes: ["./.cache/hf:/root/.cache/huggingface"]
-    deploy:
-      resources:
-        reservations:
-          devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+volumes:
+  pgdata:
