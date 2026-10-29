@@ -126,7 +126,7 @@ phải ghi rõ đó là intra- hay inter-annotator.
 
 Mọi thay đổi nhãn sau khi tập đã dùng để chạy đều phải ghi ở đây, kèm lý do.
 
-### 2026-09-14 — dựng tập 100 câu
+### dựng tập 100 câu
 
 `questions.jsonl`: 60 `answerable`, 15 `out_of_scope`, 15 `false_premise`,
 10 `near_miss`. 12 câu gắn `colloquial`, 11 câu gắn `multi_part`.
@@ -165,7 +165,7 @@ ngày") đã đọc tay và giữ nguyên nhãn — Điều 14 chỉ quy định
 lời nói hoặc dữ liệu điện tử, và từ "công chứng" không xuất hiện lần nào trong
 Bộ luật Lao động.
 
-### 2026-09-17 — kiểm tra chéo lần hai
+### Kiểm tra chéo lần hai
 
 Đọc lại cả 100 câu cạnh nguyên văn khoản gold, tìm toàn văn corpus cho các câu
 không trả lời được. Lượt này do trợ lý AI làm, không phải
@@ -189,13 +189,13 @@ Giữ nguyên, sau khi cân nhắc: u028 ("làm việc tối thiểu bao nhiêu 
 ký hợp đồng không xác định thời hạn") — Điều 20 không đặt điều kiện thâm niên
 nào, và không có khoản nào bác tiền đề trực tiếp như Điều 127:2.
 
-### 2026-09-17 — tách tập dev
+### Tách tập dev
 
 20 câu có `"split": "dev"`, lấy phân tầng (câu thứ 5, 10, ... trong mỗi loại
 theo thứ tự ban đầu). Chỉ dùng để hiệu chỉnh τ (`scripts/calibrate_tau.py`);
 `eval.run` mặc định chấm trên 80 câu `test` còn lại.
 
-### 2026-10-26 — v2: 300 câu
+### V2: 300 câu
 
 `questions.jsonl` từ 100 lên 300 câu theo spec v2 (WS1a): 180 `answerable`,
 40 mỗi loại không trả lời được; 44 `colloquial`, 18 `multi_part`, 20
